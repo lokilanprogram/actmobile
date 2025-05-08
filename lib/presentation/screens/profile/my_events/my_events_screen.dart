@@ -1,4 +1,5 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/widgets/events_home_widget.dart';
 import 'package:flutter/material.dart';
 
 class MyEventsScreen extends StatelessWidget {
@@ -9,33 +10,39 @@ class MyEventsScreen extends StatelessWidget {
     return Scaffold(
       appBar:AppBar(leading: Padding(
         padding: const EdgeInsets.only(left: 30),
-        child: IconButton(onPressed: (){}, icon: Icon(Icons.arrow_back_ios,size: 22,)),
+        child: IconButton(onPressed: (){
+          Navigator.pop(context);
+        }, icon: Icon(Icons.arrow_back_ios,size: 22,)),
       ),title: Align(
         alignment: Alignment.topLeft,
         child: Text('События',
         style: TextStyle(fontFamily: 'Inter',fontWeight: FontWeight.bold,fontSize:23 ),),
       ),),
       body: SafeArea(child: 
-      Column(
-        children: [
-          TabBarWidget(),
-          Padding(
-            padding: const EdgeInsets.only(left: 30,right: 30,top: 10,bottom: 10),
-            child: Container(
-              decoration: BoxDecoration(
-               color: Colors.grey[200],borderRadius: BorderRadius.circular(25)
-              ),
-              child: TextFormField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(25),borderSide: BorderSide.none),
-                  prefixIcon: Icon(Icons.search,color: Colors.grey,),
-                  hintText: 'Поиск',hintStyle: TextStyle(fontFamily: 'Gilroy',fontSize: 16,
-                  fontWeight: FontWeight.w400)
+      Padding( padding: const EdgeInsets.only(left: 20,right: 20,top: 10,bottom: 10),
+        child: ListView(
+          children: [
+            TabBarWidget(),
+            Container(
+                decoration: BoxDecoration(
+                 color: Colors.grey[200],borderRadius: BorderRadius.circular(25)
+                ),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(25),borderSide: BorderSide.none),
+                    prefixIcon: Icon(Icons.search,color: Colors.grey,),
+                    hintText: 'Поиск',hintStyle: TextStyle(fontFamily: 'Gilroy',fontSize: 16,
+                    fontWeight: FontWeight.w400)
+                  ),
                 ),
               ),
-            ),
-          )
-        ],
+            SizedBox(height: 25,),
+            CardEventWidget(),
+            CardEventWidget(),
+            CardEventWidget(),
+            
+          ],
+        ),
       ))
     );
   }

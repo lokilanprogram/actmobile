@@ -1,12 +1,19 @@
 import 'package:acti_mobile/configs/colors.dart';
-import 'package:acti_mobile/data/models/auth_codes.dart';
+import 'package:acti_mobile/data/models/auth_codes_model.dart';
+import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
+import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
+import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pinput/pinput.dart';
 
 class InputCodeScreen extends StatefulWidget {
-  final AuthCodes authCodes;
-  const InputCodeScreen({super.key, required this.authCodes});
+  final AuthCodesModel authCodes;
+  final String phone;
+  const InputCodeScreen(
+      {super.key, required this.authCodes, required this.phone});
 
   @override
   State<InputCodeScreen> createState() => _InputCodeScreenState();
@@ -14,6 +21,7 @@ class InputCodeScreen extends StatefulWidget {
 
 class _InputCodeScreenState extends State<InputCodeScreen> {
   late TextEditingController codeController;
+  bool isLoading = false;
   @override
   void initState() {
     setState(() {
@@ -21,66 +29,140 @@ class _InputCodeScreenState extends State<InputCodeScreen> {
     });
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.white,
-      body: GestureDetector(
-        onTap: (){
-          FocusScope.of(context).unfocus();
-        },
-        child: SafeArea(child:  Stack(
+    return BlocListener<ActiBloc, ActiState>(
+      listener: (context, state) {
+        if(state is ActiVerifiedState){
+          setState(() {
+            isLoading = false;
+          });
+           Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => InitialScreen(
+                      )));
+
+        }
+        if(state is ActiVerifiedErrorState){
+          setState(() {
+            isLoading = false;
+          });
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка')));
+
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body:isLoading ? LoaderWidget(): GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: SafeArea(
+              child: Stack(
             children: [
-              Align(alignment: Alignment.topCenter,
-                child: Container(height: MediaQuery.of(context).size.height * 0.35,
+              Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.35,
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage("assets/images/image_background.png",),
+                      image: AssetImage(
+                        "assets/images/image_background.png",
+                      ),
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 120,left: 45, right: 45),
+                padding: const EdgeInsets.only(top: 120, left: 45, right: 45),
                 child: Column(
                   children: [
-                    Align(alignment: Alignment.topCenter, child: SvgPicture.asset('assets/icons/icon_acti.svg')),
-               SizedBox(height: 30,),
-                Text('На ваш номер телефона поступит звонок',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontFamily: 'Gilroy',color: authBlueColor,fontSize: 18),),
-                SizedBox(height: 10,),
-                Text('Введите последние 4 цифры номера\n(можете не принимать звонок)',
-                    textAlign: TextAlign.center, 
-                    style: TextStyle(fontFamily: 'Gilroy',fontSize: 13),),
-                    SizedBox(height: 15,),
-                Pinput(length: 4,defaultPinTheme: PinTheme(width: 56,
-  height: 56,
-  textStyle: TextStyle(fontSize: 20, color: Color.fromRGBO(30, 60, 87, 1), fontWeight: FontWeight.w600),
-  decoration: BoxDecoration(color: Colors.white,
-    border: Border.all(color: Color.fromRGBO(234, 239, 243, 1)),
-    borderRadius: BorderRadius.circular(10),
-  ),
-                ),
-                controller: codeController,
-                    onCompleted: (pin) => print(pin),
-                  ),
-                  SizedBox(height: 15,),
-                  SvgPicture.asset('assets/texts/text_support.svg'),
-                  SizedBox(height: 15,),
-                  Container(height: 59, width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(25),color: mainBlueColor),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-                          child: Center(child: Text('Войти',style: TextStyle(color: Colors.white,fontFamily: 'Inter'),)),
+                    Align(
+                        alignment: Alignment.topCenter,
+                        child: SvgPicture.asset('assets/icons/icon_acti.svg')),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    Text(
+                      'На ваш номер телефона поступит звонок',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          color: authBlueColor,
+                          fontSize: 18),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      'Введите последние 4 цифры номера\n(можете не принимать звонок)',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontFamily: 'Gilroy', fontSize: 13),
+                    ),
+                    SizedBox(
+                      height: 15,
+                    ),
+                    Pinput(
+                      length: 4,
+                      defaultPinTheme: PinTheme(
+                        width: 56,
+                        height: 56,
+                        textStyle: TextStyle(
+                            fontSize: 20,
+                            color: Color.fromRGBO(30, 60, 87, 1),
+                            fontWeight: FontWeight.w600),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(
+                              color: Color.fromRGBO(234, 239, 243, 1)),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                ],
+                      controller: codeController,
+                      onCompleted: (pin) => print(pin),
+                    ),
+                    SizedBox(
+                      height: 15,
+                    ),
+                    SvgPicture.asset('assets/texts/text_support.svg'),
+                    SizedBox(
+                      height: 15,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          isLoading = true;
+                        });
+                        context.read<ActiBloc>().add(ActiVerifyEvent(
+                            phone: widget.phone, authCodes: widget.authCodes));
+                      },
+                      child: Container(
+                        height: 59,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                            color: mainBlueColor),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 14),
+                          child: Center(
+                              child: Text(
+                            'Войти',
+                            style: TextStyle(
+                                color: Colors.white, fontFamily: 'Inter'),
+                          )),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               )
             ],
-          
-        )),
+          )),
+        ),
       ),
     );
   }

@@ -44,7 +44,7 @@ class EventsCreateScreen extends StatelessWidget {
                         child: PopNavButton(
                           text: 'Далее',
                           function: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsSelectScreen()));
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsSelectScreen(fromUpdate: false,)));
                           
                           },
                         ),

@@ -1,12 +1,6 @@
 import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
-import 'package:acti_mobile/presentation/screens/auth/input_code/input_code.dart';
-import 'package:acti_mobile/presentation/screens/auth/input_loading/input_loading.dart';
-import 'package:acti_mobile/presentation/screens/auth/input_phone/input_phone.dart';
-import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
-import 'package:acti_mobile/presentation/screens/onbording/events_around/events_around_screen.dart';
-import 'package:acti_mobile/presentation/screens/onbording/events_create/events_create_screen.dart';
-import 'package:acti_mobile/presentation/screens/onbording/events_list/events_list_screen.dart';
-import 'package:acti_mobile/presentation/screens/onbording/events_select/events_select_screen.dart';
+import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -24,11 +18,18 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ActiBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ActiBloc>(
+          create: (context) => ActiBloc(),
+        ),
+         BlocProvider<ProfileBloc>(
+          create: (context) => ProfileBloc(),
+        ),
+        ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: const InputPhoneScreen(),
+        home: const InitialScreen(),
       ),
     );
   }

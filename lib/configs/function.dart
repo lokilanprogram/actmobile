@@ -1,5 +1,4 @@
-  import 'package:acti_mobile/presentation/screens/maps/map/widgets/card_event_on_map.dart';
-import 'package:acti_mobile/presentation/screens/maps/map/widgets/events_home_widget.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/widgets/card_event_on_map.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'dart:ui' as ui;

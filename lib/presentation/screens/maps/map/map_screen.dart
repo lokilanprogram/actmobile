@@ -2,7 +2,7 @@ import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/events_home_widget.dart';
-import 'package:acti_mobile/presentation/screens/profile/profile_menu/my_events/my_events_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/my_events_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -61,7 +61,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Stack(

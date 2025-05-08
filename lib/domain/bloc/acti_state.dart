@@ -5,8 +5,25 @@ abstract class ActiState {}
 final class ActiInitial extends ActiState {}
 
 class ActiRegisteredState extends ActiState{
-  final AuthCodes authCodes;
+  final AuthCodesModel authCodes;
+  final String phone;
 
-  ActiRegisteredState({required this.authCodes});
+  ActiRegisteredState({required this.authCodes, required this.phone, });
 }
 class ActiRegisteredErrorState extends ActiState{}
+
+class ActiVerifiedState extends ActiState{}
+
+class ActiVerifiedErrorState extends ActiState{}
+
+class ActiGotOnbordingState extends ActiState {
+  final ListOnbordingModel listOnbordingModel;
+
+  ActiGotOnbordingState({required this.listOnbordingModel});
+}
+
+class ActiGotOnbordingErrorState extends ActiState {}
+
+class ActiSavedOnbordingState extends ActiState {}
+
+class ActiSavedOnbordingErrorState extends ActiState {}

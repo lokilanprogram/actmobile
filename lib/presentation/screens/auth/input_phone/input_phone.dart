@@ -5,7 +5,7 @@ import 'package:acti_mobile/presentation/screens/auth/input_loading/input_loadin
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class InputPhoneScreen extends StatefulWidget {
   const InputPhoneScreen({super.key});
@@ -16,12 +16,16 @@ class InputPhoneScreen extends StatefulWidget {
 
 class _InputPhoneScreenState extends State<InputPhoneScreen> {
   final phoneController = TextEditingController();
+  final phoneFormatter = MaskTextInputFormatter(
+  mask: '+7 ###-###-##-##',
+  filter: {"#": RegExp(r'[0-9]')},
+);
   @override
   Widget build(BuildContext context) {
     return BlocListener<ActiBloc, ActiState>(
       listener: (context, state) {
         if(state is ActiRegisteredState){
-          Navigator.push(context, MaterialPageRoute(builder: (_)=> InputCodeScreen(authCodes: state.authCodes,)));
+          Navigator.push(context, MaterialPageRoute(builder: (_)=> InputCodeScreen(authCodes: state.authCodes,phone: state.phone,)));
         }
         if(state is ActiRegisteredErrorState){
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка')));
@@ -85,6 +89,7 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                           borderRadius: BorderRadius.circular(25)),
                       child: TextFormField(
                         controller: phoneController,
+                        inputFormatters: [phoneFormatter],
                         decoration: InputDecoration(
                           hintText: 'Телефон',
                           hintStyle: TextStyle(

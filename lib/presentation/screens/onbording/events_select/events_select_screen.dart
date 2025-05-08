@@ -1,82 +1,184 @@
-import 'package:acti_mobile/configs/events.dart';
+import 'package:acti_mobile/data/models/list_onbording_model.dart';
+import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_start/events_start_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/widgets/pop_nav_button.dart';
+import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class EventsSelectScreen extends StatelessWidget {
-  const EventsSelectScreen({super.key});
+class EventsSelectScreen extends StatefulWidget {
+  final bool fromUpdate;
+  const EventsSelectScreen({super.key, required this.fromUpdate});
+
+  @override
+  State<EventsSelectScreen> createState() => _EventsSelectScreenState();
+}
+
+class _EventsSelectScreenState extends State<EventsSelectScreen> {
+  bool isLoading = false;
+  late ListOnbordingModel listOnbordingModel;
+  List<EventOnboarding> listOnboarding = [];
+  late List<bool> selected;
+
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
+
+  initialize() {
+    setState(() {
+      isLoading = true;
+    });
+    context.read<ActiBloc>().add(ActiGetOnbordingEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-          children: [
-            Container(
+    return BlocListener<ActiBloc, ActiState>(
+      listener: (context, state) {
+        if(state  is ActiSavedOnbordingState){
+          setState(() {
+            isLoading = false;
+          });
+          Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsStartScreen()));
+        }
+          if(state is ActiSavedOnbordingErrorState){
+          setState(() {
+            isLoading = false;
+          });
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка')));
+        }
+         if(state is ActiGotOnbordingState){
+          setState(() {
+  isLoading = false;
+  listOnbordingModel = state.listOnbordingModel;
+  selected = List<bool>.filled(listOnbordingModel.categories.length, false);
+});
+        }
+        if(state is ActiGotOnbordingErrorState){
+        setState(() {
+        isLoading = false;
+       });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка')));
+
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: isLoading
+            ? LoaderWidget()
+            : Stack(
+                children: [
+                  Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage("assets/images/image_select_event.png",),
+                        image: AssetImage(
+                          "assets/images/image_select_event.png",
+                        ),
                         fit: BoxFit.cover,
                       ),
                     ),
                   ),
-       Padding(
-  padding: EdgeInsets.only(
-    right: 40,
-    left: 40,
-  ),
-  child: SingleChildScrollView(physics: NeverScrollableScrollPhysics(),
-    child: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-           GridView.count(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 6,
-              crossAxisSpacing: 24,
-              childAspectRatio: 3.5,
-              children: events
-                  .map((event) => InkWell(
-                    onTap: (){
-                      print(event.name);
-                    },
-                    child: SvgPicture.asset(event.iconPath)))
-                  .toList(),
-            ),
-          
-          Center(child: SvgPicture.asset('assets/texts/text_select_event.svg')),
-          const SizedBox(height: 55),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: 40,
+                      left: 40,
+                    ),
+                    child: SingleChildScrollView(
+                      physics: NeverScrollableScrollPhysics(),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                           GridView.count(
+  shrinkWrap: true,
+  physics: NeverScrollableScrollPhysics(),
+  crossAxisCount: 2,
+  mainAxisSpacing: 20,
+  crossAxisSpacing: 12,
+  childAspectRatio: 3.5,
+  children: List.generate(listOnbordingModel.categories.length, (index) {
+    final event = listOnbordingModel.categories[index];
+    final isSelected = selected[index];
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          selected[index] = !selected[index];
+          if (selected[index]) {
+            listOnboarding.add(event);
+          } else {
+            listOnboarding.remove(event);
+          }
+        });
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          color: isSelected ? Colors.blue : Colors.white,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
             children: [
-              PopNavButton(
-                text: 'Назад',
-                function: () {
-                  Navigator.pop(context);
-                },
-              ),
-              PopNavButton(
-                text: 'Далее',
-                function: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsStartScreen()));
-                },
+              Image.network(event.iconPath, width: 18, height: 23,color: isSelected ? Colors.white:null,),
+              SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  event.name,
+                  style: TextStyle(
+                    fontFamily: 'Gilroy',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: isSelected ? Colors.white : Colors.black,
+                  ),
+                ),
               ),
             ],
-          )
-        ],
-      ),
-    ),
-  ),
-)
-
-         
-          ],
+          ),
         ),
-      
+      ),
+    );
+  }),
+)
+,
+                            Center(
+                                child: SvgPicture.asset(
+                                    'assets/texts/text_select_event.svg')),
+                            const SizedBox(height: 25),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                PopNavButton(
+                                  text: 'Назад',
+                                  function: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                PopNavButton(
+                                  text:widget.fromUpdate? 'Сохранить': 'Далее',
+                                  function:widget.fromUpdate?(){
+                                    Navigator.pop(context, listOnboarding);
+                                  }: () {
+                                    setState(() {
+                                      isLoading = true;
+                                    });
+                                    context.read<ActiBloc>().add(ActiSaveOnbordingEvent(listOnboarding:listOnboarding));
+                                  },
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+      ),
     );
   }
 }
-

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
-import 'package:acti_mobile/presentation/screens/auth/input_loading/rotating_icon.dart';
+import 'package:acti_mobile/presentation/widgets/rotating_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
