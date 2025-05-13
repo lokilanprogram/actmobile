@@ -1,9 +1,10 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
-import 'package:acti_mobile/presentation/screens/maps/map/widgets/events_home_widget.dart';
-import 'package:acti_mobile/presentation/screens/profile/my_events/my_events_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/event/widgets/events_home_map_widget.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
+import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -29,7 +30,7 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     initialize();
-    sheetController.addListener(() {
+    sheetController.addListener(() async {
     if (sheetController.size <= 0.5) {
      setState(() {
        showEvents = false;
@@ -63,7 +64,7 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoaderWidget()
           : Stack(
               children: [
                 if (selectedIndex == 0)
@@ -90,7 +91,7 @@ class _MapScreenState extends State<MapScreen> {
                  DraggableScrollableSheet(controller: sheetController,
                       initialChildSize: 0.8, // стартовая высота
                       builder: (context, scrollController) {
-                        return EventsHomeListWidget(scrollController: scrollController);
+                        return EventsHomeListOnMapWidget(scrollController: scrollController);
                       },
                     ),
                 selectedIndex== 3?Positioned(
@@ -100,22 +101,26 @@ class _MapScreenState extends State<MapScreen> {
                     onTap: (){
                       Navigator.push(context, MaterialPageRoute(builder: (context)=> MyEventsScreen()));
                     },
-                    child: Container(  height: 65,
-                                width: MediaQuery.of(context).size.width * 0.8,
-                                decoration: BoxDecoration(
-                                  color: mainBlueColor,
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                  SvgPicture.asset('assets/icons/icon_event_bar.svg'),
-                                  SizedBox(width: 10,),
-                                  Text('Мои события',style: TextStyle(color: Colors.white,
-                                  fontFamily: 'Gilroy',fontSize: 17,fontWeight: FontWeight.bold),)
-                                ],),
-                      
-                      
+                    child: Material(
+                      elevation: 1.2,
+                      borderRadius: BorderRadius.circular(25),
+                      child: Container(  height: 59,
+                                  width: MediaQuery.of(context).size.width * 0.8,
+                                  decoration: BoxDecoration(
+                                    color: mainBlueColor,
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                    SvgPicture.asset('assets/icons/icon_event_bar.svg'),
+                                    SizedBox(width: 10,),
+                                    Text('Мои события',style: TextStyle(color: Colors.white,
+                                    fontFamily: 'Gilroy',fontSize: 17,fontWeight: FontWeight.bold),)
+                                  ],),
+                        
+                        
+                      ),
                     ),
                   ),
                 ):Container(),
@@ -129,11 +134,6 @@ class _MapScreenState extends State<MapScreen> {
                         setState(() {
                           selectedIndex = index;
                         });
-                        if(selectedIndex == 0){
-                          setState(() {
-                          showEvents = true;
-                          });
-                        }
                       },
                     ),
                   ),

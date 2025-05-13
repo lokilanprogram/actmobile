@@ -20,36 +20,41 @@ class CustomNavBar extends StatelessWidget {
       'assets/drawer/chats.svg',
     ];
 
-    return Container(
-      height: 65,
-      width: MediaQuery.of(context).size.width * 0.8,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          for (int i = 0; i < icons.length; i++)
-            GestureDetector(
-              onTap: () => onTabSelected(i),
-              child: SvgPicture.asset(
-                icons[i],
-                colorFilter: ColorFilter.mode(
-                  selectedIndex == i ? mainBlueColor: Colors.grey,
-                  BlendMode.srcIn,
+    return Material(elevation: 1.2,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(25)
+    ),
+      child: Container(
+        height: 65,
+        width: MediaQuery.of(context).size.width * 0.8,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            for (int i = 0; i < icons.length; i++)
+              GestureDetector(
+                onTap: () => onTabSelected(i),
+                child: SvgPicture.asset(
+                  icons[i],
+                  colorFilter: ColorFilter.mode(
+                    selectedIndex == i ? mainBlueColor: Colors.grey,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
+            GestureDetector(
+              onTap: () => onTabSelected(3),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundImage: AssetImage('assets/drawer/image.png'),
+                backgroundColor: selectedIndex == 3 ? Colors.blue : Colors.grey.shade300,
+              ),
             ),
-          GestureDetector(
-            onTap: () => onTabSelected(3),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundImage: AssetImage('assets/drawer/image.png'),
-              backgroundColor: selectedIndex == 3 ? Colors.blue : Colors.grey.shade300,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

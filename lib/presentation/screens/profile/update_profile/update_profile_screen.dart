@@ -1,14 +1,20 @@
+import 'dart:io';
+
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_select/events_select_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/update_profile/toggle.dart';
 import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
 
 class UpdateProfileScreen extends StatefulWidget {
   final ProfileModel profileModel;
@@ -20,13 +26,19 @@ class UpdateProfileScreen extends StatefulWidget {
 
 class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   bool isOrganizationRepresentative = false;
-  bool isLoading = false;
+  final _formKey = GlobalKey<FormState>();
   String _selectedTab = 'my';
   late List<EventOnboarding> selectedCategories;
   late TextEditingController nameController;
   late TextEditingController surnameController;
+  late TextEditingController cityController;
   late TextEditingController bioController;
   late TextEditingController emailController;
+  XFile? image;
+  bool isLoading = false;
+  bool _showTooltip = false;
+  bool isUpdatedPhoto = false;
+  
 
   @override
   void initState() {
@@ -37,6 +49,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   initialize() {
     setState(() {
       nameController = TextEditingController(text: widget.profileModel.name);
+      cityController = TextEditingController(text:  widget.profileModel.city);
       surnameController =
           TextEditingController(text: widget.profileModel.surname);
       bioController = TextEditingController(text: widget.profileModel.bio);
@@ -54,6 +67,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
           setState(() {
             isLoading = false;
           });
+          if(widget.profileModel.email != state.profileModel.email){
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Проверьте почту и перейдите по ссылке для активации'),backgroundColor: Colors.green,));
+          }
           Navigator.pop(context, state.profileModel);
         }
         if(state is ProfileUpdatedErrorState){
@@ -64,6 +80,15 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         }
       },
       child: Scaffold(
+        bottomNavigationBar:
+          Padding(
+            padding: EdgeInsets.only(bottom: 60,right: 30,left: 30),
+            child: CustomNavBar(selectedIndex: 4, onTabSelected: (index){
+              if(index == 0){
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                MapScreen()));
+              }
+            })),
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
@@ -71,290 +96,281 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             padding: const EdgeInsets.only(left: 30),
             child: IconButton(
               onPressed: () {
-                Navigator.pop(context);
+                if(!widget.profileModel.isProfileCompleted){
+                  Navigator.push(context, MaterialPageRoute(builder: (_)=> MapScreen()));
+                }else{
+                  Navigator.pop(context);
+                }
               },
-              icon: Icon(Icons.arrow_back_ios, size: 22),
+              icon: SvgPicture.asset('assets/icons/icon_back.svg'),
             ),
           ),
-          title: Text(
-            'Профиль',
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w300,
-              fontSize: 28,
-            ),
+          title: Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: SvgPicture.asset('assets/texts/text_profile.svg'),
           ),
           actions: [
             Padding(
-              padding: const EdgeInsets.only(right: 30),
+              padding: const EdgeInsets.only(right: 20),
               child: IconButton(
                 onPressed: () {
-                  setState(() {
+                 if(_formKey.currentState!.validate()){
+                  _formKey.currentState!.save();
+                   setState(() {
                     isLoading = true;
                   });
                   context.read<ProfileBloc>().add(ProfileUpdateEvent(
                     profileModel: ProfileModel(id: widget.profileModel.id,
                      name: nameController.text.trim(), surname: surnameController.text.trim(), email: 
                      emailController.text.trim(), 
+                     city: cityController.text.trim(),
+                     isEmailVerified: widget.profileModel.isEmailVerified,
+                     isProfileCompleted: widget.profileModel.isProfileCompleted,
                      bio: bioController.text.trim(), 
-                     isOrganization: isOrganizationRepresentative, photoUrl: widget.profileModel.photoUrl, 
+                     isOrganization: isOrganizationRepresentative, photoUrl: image?.path , 
                      status: widget.profileModel.status, categories: selectedCategories)
                   ));
+                 }
                 },
-                icon: SvgPicture.asset('assets/icons/icon_success_edit.svg'),
+                icon: Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+                  child: SvgPicture.asset('assets/icons/icon_success_edit.svg'),
+                ),
               ),
             ),
           ],
         ),
         body: isLoading
             ? LoaderWidget()
-            : SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 20, right: 20, top: 10, bottom: 10),
-                  child: ListView(
-                    children: [
-                      Center(
-                        child: editableAvatar(widget.profileModel.photoUrl??'assets/images/image_profile.png',
-                            () {
-                          // действие редактирования фото
-                          print("Редактировать фото");
+            : Form(
+              key: _formKey,
+              child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                        left: 30, right: 30, top: 10, bottom: 10),
+                    child: ListView(
+                      children: [
+                        Center(
+                          child: 
+                         editableAvatar(
+                            isUpdatedPhoto ? image!.path :(widget.profileModel.photoUrl??'assets/images/image_profile.png'),
+                              () async{
+                             final xfile = await ImagePicker()
+                                            .pickImage(
+                                                source: ImageSource.gallery);
+                                        if (xfile != null) {
+                                          setState(() {
+                                            image = xfile;
+                                            isUpdatedPhoto = true;
+                                          });
+                                        } 
+                          },isUpdatedPhoto),
+                        ),
+                        const SizedBox(height: 30),
+              
+                        // Новые виджеты добавлены здесь:
+                        Text(
+                          'Имя',
+                          style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400),
+                        ),
+                        SizedBox(height: 4),
+                        TextInputNameWidget(controller: nameController,text: 'Введите имя',
+                        validator: (val){
+                          if(val!.isEmpty){
+                          return 'Заполните имя';
+                          }
                         }),
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Новые виджеты добавлены здесь:
-                      Text(
-                        'Имя',
-                        style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      SizedBox(height: 4),
-                      TextFormField(
-                        style: TextStyle(fontSize: 18, fontFamily: 'Inter'),
-                        controller: nameController,
-                        decoration: InputDecoration(
-                          hintText: 'Введите имя',
-                          hintStyle: hintTextStyleEdit,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[100],
+                        SizedBox(height: 16),
+                        Text('Фамилия (необязательно)',
+                            style: titleTextStyleEdit),
+                        SizedBox(height: 4),
+                        TextInputNameWidget(controller: surnameController,text: 'Введите фамилию',
+                        validator: (val){
+                          if(val!.isEmpty){
+                          return 'Заполните фамилию';
+                          }
+                        },),
+                        SizedBox(height: 16),
+                       Row(
+                           crossAxisAlignment: CrossAxisAlignment.center,
+                           children: [
+                             Text(
+                               'Представитель организации / ИП',
+                               style: TextStyle(
+                                 fontFamily: 'Inter',
+                                 fontSize: 13,
+                                 color: mainBlueColor,
+                               ),
+                             ),
+                             SizedBox(width: 8),
+                             OrgToggleTooltip(),
+                             SizedBox(width: 24),
+                             _buildSwitch(),
+                           ],
+                         ),
+                       
+                        SizedBox(height: 16),
+                        Text('Ваш город (Населённый пункт)',
+                            style: titleTextStyleEdit),
+                        SizedBox(height: 4),
+                        TextInputWidget(controller: cityController, text: 'Введите город',validator: null,),
+                        SizedBox(height: 16),
+                        Text('Адрес эл. почты', style: titleTextStyleEdit),
+                        SizedBox(height: 4),
+                        TextInputWidget(controller: emailController, text: 'E-mail',validator: (val){
+                          if(val!.isEmpty){
+                            return 'Заполните e-mail';
+                          }
+                        },),
+                        SizedBox(height: 16),
+                        Text(
+                          'О себе',
+                          style: titleTextStyleEdit,
                         ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Фамилия (необязательно)',
-                          style: titleTextStyleEdit),
-                      SizedBox(height: 4),
-                      TextFormField(
-                        style: TextStyle(fontSize: 18, fontFamily: 'Inter'),
-                        controller: surnameController,
-                        decoration: InputDecoration(
-                          hintText: 'Введите фамилию',
-                          hintStyle: hintTextStyleEdit,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide.none,
+                        SizedBox(height: 4),
+                        TextFormField(
+                          style: TextStyle(fontSize: 11, fontFamily: 'Inter'),
+                          maxLines: 3,
+                          controller: bioController,
+                          decoration: InputDecoration(
+                            hintText: 'Напишите что-нибудь о себе...',
+                            hintStyle: hintTextStyleEdit,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[100],
                           ),
-                          filled: true,
-                          fillColor: Colors.grey[100],
                         ),
-                      ),
-                      SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Text(
-                            'Представитель организации / ИП',
-                            style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 13,
-                                color: mainBlueColor),
-                          ),
-                          SizedBox(width: 8),
-                          SvgPicture.asset('assets/icons/icon_info.svg'),
-                          SizedBox(width: 24),
-                          _buildSwitch()
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Text('Ваш город (Населённый пункт)',
-                          style: titleTextStyleEdit),
-                      SizedBox(height: 4),
-                      TextFormField(
-                        style: TextStyle(fontSize: 18, fontFamily: 'Inter'),
-                        decoration: InputDecoration(
-                          hintText: 'Введите город',
-                          hintStyle: hintTextStyleEdit,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[100],
+                        SizedBox(height: 16),
+                        Text(
+                          'Скрыть мероприятия:',
+                          style: titleTextStyleEdit,
                         ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Адрес эл. почты', style: titleTextStyleEdit),
-                      SizedBox(height: 4),
-                      TextFormField(
-                        style: TextStyle(fontSize: 18, fontFamily: 'Inter'),
-                        controller: emailController,
-                        decoration: InputDecoration(
-                          hintStyle: hintTextStyleEdit,
-                          hintText: 'E-mail',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'О себе',
-                        style: titleTextStyleEdit,
-                      ),
-                      SizedBox(height: 4),
-                      TextFormField(
-                        style: TextStyle(fontSize: 18, fontFamily: 'Inter'),
-                        maxLines: 3,
-                        controller: bioController,
-                        decoration: InputDecoration(
-                          hintText: 'Напишите что-нибудь о себе...',
-                          hintStyle: hintTextStyleEdit,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Скрыть мероприятия:',
-                        style: titleTextStyleEdit,
-                      ),
-                      SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedTab = 'my';
-                                });
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 20),
-                                decoration: BoxDecoration(
-                                    color: _selectedTab == 'my'
-                                        ? mainBlueColor
-                                        : Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(25)),
-                                child: Center(
-                                  child: Text(
-                                    'Мои',
-                                    style: TextStyle(
-                                        color: _selectedTab == 'my'
-                                            ? Colors.white
-                                            : Colors.black,
-                                        fontSize: 13,
-                                        fontFamily: 'Inter'),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedTab = 'my';
+                                  });
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 20),
+                                  decoration: BoxDecoration(
+                                      color: _selectedTab == 'my'
+                                          ? mainBlueColor
+                                          : Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(25)),
+                                  child: Center(
+                                    child: Text(
+                                      'Мои',
+                                      style: TextStyle(
+                                          color: _selectedTab == 'my'
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontSize: 13,
+                                          fontFamily: 'Inter'),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedTab = 'visited';
-                                });
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 20),
-                                decoration: BoxDecoration(
-                                    color: _selectedTab == 'visited'
-                                        ? mainBlueColor
-                                        : Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(25)),
-                                child: Center(
-                                  child: Text(
-                                    'Посещённые',
-                                    style: TextStyle(
-                                        color: _selectedTab == 'visited'
-                                            ? Colors.white
-                                            : Colors.black,
-                                        fontSize: 13,
-                                        fontFamily: 'Inter'),
+                            SizedBox(width: 25,),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedTab = 'visited';
+                                  });
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 20),
+                                  decoration: BoxDecoration(
+                                      color: _selectedTab == 'visited'
+                                          ? mainBlueColor
+                                          : Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(25)),
+                                  child: Center(
+                                    child: Text(
+                                      'Посещённые',
+                                      style: TextStyle(
+                                          color: _selectedTab == 'visited'
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontSize: 13,
+                                          fontFamily: 'Inter'),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Ваши увлечения:', style: titleTextStyleEdit),
-                          TextButton(
-                            onPressed: ()async {
-                            final result = await   Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsSelectScreen(fromUpdate: true,)));
-                             if (result != null && result is List<EventOnboarding>) {
-  setState(() {
-    selectedCategories = result;
-  });
-}
-                            },
-                            child: Text(
-                              'Изменить',
-                              style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: mainBlueColor),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Ваши увлечения:', style: titleTextStyleEdit),
+                            TextButton(
+                              onPressed: ()async {
+                              final result = await   Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsSelectScreen(fromUpdate: true,)));
+                               if (result != null && result is List<EventOnboarding>) {
+                setState(() {
+                  selectedCategories = result;
+                });
+              }
+                              },
+                              child: Text(
+                                'Изменить',
+                                style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: mainBlueColor),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      Center(
-                        child: Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: selectedCategories
-                                .map((event) => buildInterestChip(event.name))
-                                .toList()),
-                      ),
-                    ],
+                          ],
+                        ),
+                        Center(
+                          child: Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: selectedCategories
+                                  .map((event) => buildInterestChip(event.name))
+                                  .toList()),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+            ),
       ),
     );
   }
 
-  Widget editableAvatar(String imagePath, VoidCallback onEdit) {
+  Widget editableAvatar(String imagePath, VoidCallback onEdit, bool isUpdatedImage) {
     return Stack(
       children: [
         CircleAvatar(
           radius: 50,
-          backgroundImage:imagePath == 'assets/images/image_profile.png'? AssetImage(imagePath):NetworkImage(imagePath),
+          backgroundImage:isUpdatedImage ? FileImage(File(imagePath)): (imagePath 
+          == 'assets/images/image_profile.png'? 
+          AssetImage(imagePath):NetworkImage(imagePath)),
         ),
         Positioned(
           bottom: 0,
-          right: 0,
+          right: 0,       
+          
           child: GestureDetector(
             onTap: onEdit,
             child: Container(
@@ -419,20 +435,66 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     );
   }
 
-  Widget _buildInterestButton(String label) {
-    return ElevatedButton(
-      onPressed: () {
-        // TODO: implement interest selection action
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.grey[100],
-        foregroundColor: Colors.black,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
-          side: BorderSide(color: Colors.grey[400]!),
+}
+
+class TextInputWidget extends StatelessWidget {
+  const TextInputWidget({
+    super.key,
+    required this.controller, required this.text,required this.validator,
+  });
+
+  final TextEditingController controller;
+  final String text;
+  final String? Function(String?)? validator;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      style: TextStyle(fontSize: 11, fontFamily: 'Inter'),
+      controller: controller,
+      validator: validator,
+      decoration: InputDecoration(
+        
+        hintText: text,
+        hintStyle: hintTextStyleEdit,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: BorderSide.none,
         ),
+        filled: true,
+        fillColor: Colors.grey[100],
       ),
-      child: Text(label),
+    );
+  }
+}
+
+class TextInputNameWidget extends StatelessWidget {
+  const TextInputNameWidget({
+    super.key,
+    required this.controller, required this.text,required this.validator,
+  });
+
+  final TextEditingController controller;
+  final String text;
+  final String? Function(String?)? validator;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      style: TextStyle(fontSize: 18, fontFamily: 'Inter'),
+      controller: controller,
+      validator: validator,
+      decoration: InputDecoration(
+        
+        hintText: text,
+        hintStyle: hintTextStyleEdit,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: Colors.grey[100],
+      ),
     );
   }
 }

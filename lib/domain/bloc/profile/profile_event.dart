@@ -10,3 +10,12 @@ class ProfileUpdateEvent extends ProfileEvent {
 
   ProfileUpdateEvent({required this.profileModel});
 }
+
+class ProfileGetListEventsEvent extends ProfileEvent {
+}
+
+class ProfileGetEventDetailEvent extends ProfileEvent {
+  final String eventId;
+
+  ProfileGetEventDetailEvent({required this.eventId});
+}

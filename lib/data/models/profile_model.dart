@@ -15,22 +15,28 @@ class ProfileModel {
     String? name;
     String? surname;
     String? email;
+    String? city;
     String? bio;
     bool isOrganization;
     String? photoUrl;
     String status;
     List<EventOnboarding> categories;
+    bool isEmailVerified;
+    bool isProfileCompleted;
 
     ProfileModel({
         required this.id,
         required this.name,
         required this.surname,
         required this.email,
+        required this.city,
         required this.bio,
         required this.isOrganization,
         required this.photoUrl,
         required this.status,
         required this.categories,
+        required this.isEmailVerified,
+        required this.isProfileCompleted,
     });
 
     factory ProfileModel.fromJson(Map<String, dynamic> json) => ProfileModel(
@@ -38,11 +44,14 @@ class ProfileModel {
         name: json["name"],
         surname: json["surname"],
         email: json["email"],
+        city: json["city"],
         bio: json["bio"],
         isOrganization: json["is_organization"],
         photoUrl: json["photo_url"],
         status: json["status"],
         categories: List<EventOnboarding>.from(json["categories"].map((x) => EventOnboarding.fromJson(x))),
+        isEmailVerified: json["is_email_verified"],
+        isProfileCompleted: json["is_profile_completed"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -50,11 +59,14 @@ class ProfileModel {
         "name": name,
         "surname": surname,
         "email": email,
+        "city": city,
         "bio": bio,
         "is_organization": isOrganization,
         "photo_url": photoUrl,
         "status": status,
         "categories": List<dynamic>.from(categories.map((x) => x.toJson())),
+        "is_email_verified": isEmailVerified,
+        "is_profile_completed": isProfileCompleted,
     };
 }
 
