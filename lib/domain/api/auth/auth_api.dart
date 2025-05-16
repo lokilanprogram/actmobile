@@ -1,8 +1,6 @@
 import 'dart:convert';
-
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
-import 'package:acti_mobile/data/models/auth_codes_model.dart';
 import 'package:acti_mobile/data/models/token_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -28,7 +26,26 @@ Future<TokenModel?> authRefreshToken() async {
   }
   return null;
 }
- Future<AuthCodesModel?> authRegister(String phone) async {
+
+Future<bool> authLogout() async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+    final response = await http.post(
+    Uri.parse('$API/api/v1/auth/logout'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      "Content-Type": "application/json",
+    },
+  );
+   if (response.statusCode == 200) {
+    return true;
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return false;
+}
+ Future<bool> authRegister(String phone) async {
   final response = await http.post(
     Uri.parse('$API/api/v1/auth/register'),
     headers: {
@@ -37,15 +54,12 @@ Future<TokenModel?> authRefreshToken() async {
     body: jsonEncode(<String, dynamic>{'phone': phone}),
   );
 
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    final detail = data['detail'] as String;
-    return AuthCodesModel.fromDetail(detail);
-  } else {
-    throw Exception('Error: ${response.body}');
-  }
+  if (response.statusCode == 200 || response.statusCode == 204) {
+    return true;
+  } 
+  return false;
 }
- Future<TokenModel?> authVerify(String phone, String smsCode, String phoneCode) async {
+ Future<TokenModel?> authVerify(String phone,String phoneCode) async {
   final response = await http.post(
     Uri.parse('$API/api/v1/auth/verify'),
     headers: {
@@ -53,8 +67,7 @@ Future<TokenModel?> authRefreshToken() async {
     },
     body: jsonEncode(<String, dynamic>{
       "phone": phone,
-  "code": smsCode,
-  "call_last_digits": phoneCode
+    "call_last_digits": phoneCode
     }),
   );
 

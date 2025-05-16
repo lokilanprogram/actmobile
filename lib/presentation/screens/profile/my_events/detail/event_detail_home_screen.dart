@@ -1,7 +1,10 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
-import 'package:acti_mobile/presentation/screens/maps/event/widgets/popup_event_buttons.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/requests/event_request_screen.dart';
+import 'package:acti_mobile/presentation/widgets/error_widget.dart';
+import 'package:acti_mobile/presentation/widgets/popup_event_buttons.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,7 +21,8 @@ class EventDetailHomeScreen extends StatefulWidget {
 
 class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
   bool isLoading = false;
-  late EventModel eventModel;
+  bool isError = false; 
+  late EventModel organizedEvent;
   @override
   void initState() {
     initialize();
@@ -38,23 +42,38 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
+        if(state is ProfileCanceledActivityState){
+          setState(() {
+            isLoading = false;
+          });
+           Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Мероприятие завершено')));
+        }
         if(state is ProfileGotEventDetailState){
           setState(() {
             isLoading = false;
-            eventModel = state.eventModel;
+            isError = false;
+            organizedEvent = state.eventModel;
           });
         }
 
         if(state is ProfileGotEventDetailErrorState){
           setState(() {
             isLoading = false;
+            isError = true;
           });
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка')));
         }
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        body:isLoading ? LoaderWidget(): Column(
+        body:isError ? ErrorWidgetWithRetry(
+  onRetry: ()async {
+    setState(() {
+      isLoading = true;
+    });
+   await initialize();
+  },
+) :isLoading ? LoaderWidget(): Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
@@ -65,7 +84,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                       children: [
                         // Фото
                         Image.network(
-                          'http://93.183.81.104${eventModel.photos!.first}',
+                          'http://93.183.81.104${organizedEvent.photos!.first}',
                           width: double.infinity,
                           height:200,
                           fit: BoxFit.cover,
@@ -73,7 +92,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                         Positioned(
                             top: 50,
                             right: 20,
-                            child: PopUpEventButtons(function: () async {})),
+                            child: PopUpPublicUserButtons(blockFunction: () async {},userName: 'default',userId: '',)),
                 
                         // Индикаторы
                         Positioned(
@@ -126,8 +145,19 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                     SizedBox(
                                       width: 15,
                                     ),
-                                   eventModel.price == 0 ?  buildTag('Бесплатное') 
+                                   Row(
+                                    children: [
+                                      organizedEvent.price == 0 ?  buildTag('Бесплатное') 
                                    :Container(),
+                                     SizedBox(
+                                      width: 5,
+                                    ),
+                                   organizedEvent.creator.isOrganization != null ? (
+                                    organizedEvent.creator.isOrganization! ?buildTag('Компания'):Container()
+                                   ):
+                                   Container() 
+                                    ],
+                                   ),
                                    Spacer(),
                                    Padding(
                                      padding: const EdgeInsets.only(right: 30),
@@ -144,13 +174,13 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                      CircleAvatar(
                                       radius: 20,
                                       backgroundImage:  NetworkImage(
-                                        '${eventModel.creator.photoUrl}'), // Заменить на нужную
+                                        '${organizedEvent.creator.photoUrl}'), // Заменить на нужную
                                     ),
                                     const SizedBox(width: 10),
                                      Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(eventModel.creator.name,
+                                        Text(organizedEvent.creator.name,
                                             style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 17.8,
@@ -166,18 +196,26 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                 ),
                                 SizedBox(height: 15,),
                       Center(
-                        child: Material(color: Colors.white,
-                          elevation: 1.2,
-                          borderRadius: BorderRadius.circular(25),
-                          child: SizedBox(height: 59,
-                                             width: MediaQuery.of(context).size.height * 0.4,
-                                             child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                children: [
-                                                Text('Заявки',style: TextStyle(color: mainBlueColor,
-                                                fontFamily: 'Inter',fontSize: 22, fontWeight: FontWeight.bold),),
-                                                SvgPicture.asset('assets/icons/icon_next_blue.svg')
-                                               ],),
-                                             ),
+                        child: InkWell(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (_)
+                            => EventRequestScreen(
+                              eventId: organizedEvent.id,
+                              participants: organizedEvent.participants,)));
+                          },
+                          child: Material(color: Colors.white,
+                            elevation: 1.2,
+                            borderRadius: BorderRadius.circular(25),
+                            child: SizedBox(height: 59,
+                                               width: MediaQuery.of(context).size.height * 0.4,
+                                               child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                  children: [
+                                                  Text('Заявки',style: TextStyle(color: mainBlueColor,
+                                                  fontFamily: 'Inter',fontSize: 22, fontWeight: FontWeight.bold),),
+                                                  SvgPicture.asset('assets/icons/icon_next_blue.svg')
+                                                 ],),
+                                               ),
+                          ),
                         ),
                       ),    
                       SizedBox(height: 30,),
@@ -198,7 +236,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                   'assets/icons/icon_time.svg',
                                   false,
                                   'Дата и время',
-                                  '${DateFormat('dd.MM.yyyy').format(eventModel.dateStart)} | ${eventModel.timeStart.substring(0,5)} – ${eventModel.timeEnd.substring(0,5)}',
+                                  '${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)} | ${organizedEvent.timeStart.substring(0,5)} – ${organizedEvent.timeEnd.substring(0,5)}',
                                   trailing: '40 мин',
                                 ),
                                  const SizedBox(height: 20),
@@ -208,7 +246,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                   'assets/icons/icon_location.svg',
                                   true,
                                   'Место',
-                                  eventModel.address,
+                                  organizedEvent.address,
                                 ),
                       
                                 const SizedBox(height: 20),
@@ -224,7 +262,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                  const SizedBox(height: 20),
                                 // Описание
                                  Text(
-                                  eventModel.description,
+                                  organizedEvent.description,
                                   style: TextStyle(
                                       fontSize: 16, fontFamily: 'Gilroy', height: 1),
                                 ),
@@ -252,7 +290,21 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
     return SizedBox(height: 59,
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              showCancelActivityDialog(context, (){
+                              setState(() {
+                                isLoading = true;
+                              });
+                              context.read<ProfileBloc>().
+                              add(ProfileCancelActivityEvent(eventId: organizedEvent.id, isRecurring: false));
+                              },(){
+                              setState(() {
+                                isLoading = true;
+                              });
+                              context.read<ProfileBloc>().
+                              add(ProfileCancelActivityEvent(eventId: organizedEvent.id, isRecurring: true));
+                              });
+                            },
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               backgroundColor: Colors.red,

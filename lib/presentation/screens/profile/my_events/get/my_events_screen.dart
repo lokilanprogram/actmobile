@@ -1,10 +1,10 @@
 import 'package:acti_mobile/data/models/profile_event_model.dart';
-import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/widget/my_events_card.dart';
+import 'package:acti_mobile/presentation/widgets/activity_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/app_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/tab_bar_widget.dart';
@@ -21,8 +21,8 @@ class MyEventsScreen extends StatefulWidget {
 
 class _MyEventsScreenState extends State<MyEventsScreen> {
   bool isLoading = false;
-  late ProfileEventModels profileEventModels;
-  late ProfileModel profileModel;
+  bool isVerified = false;
+  ProfileEventModels? profileEventModels;
   @override
   void initState() {
     initialize();
@@ -33,23 +33,21 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
     setState(() {
       isLoading = true;
     });
-    context.read<ProfileBloc>().add(ProfileGetEvent());
+    context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
+        if(state is ProfileAcceptedUserOnActivityState){
+          initialize();
+        }
         if(state is ProfileGotListEventsState){
           setState(() {
-            profileEventModels = state.profileEventsModels;
-            context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
-          });
-        }
-        if(state is ProfileGotState){
-          setState(() {
             isLoading = false;
-            profileModel = state.profileModel;
+            isVerified = state.isVerified;
+            profileEventModels = state.profileEventsModels;
           });
         }
           if(state is ProfileGotListEventsErrorState){
@@ -60,101 +58,79 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
         }
       },
       child: Scaffold(backgroundColor: Colors.white,
-          appBar: AppBarWidget(title: 'События',),
-          bottomNavigationBar:
-          Padding(
-            padding: EdgeInsets.only(bottom: 60,right: 30,left: 30),
-            child: SizedBox(height: 200,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  InkWell(
-                      onTap: (){
-                      profileModel.isEmailVerified ?  Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                        CreateEventScreen())): 
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Проверьте почту и перейдите по ссылке для активации'),
-                        backgroundColor: Colors.green,));
-                      },
-                      child: Material(
-                        elevation: 1.2,
-                        borderRadius: BorderRadius.circular(25),
-                        child: Container(  height: 59,
-                                    width: MediaQuery.of(context).size.width * 0.8,
-                                    decoration: BoxDecoration(
-                                      color: Color.fromRGBO(98, 207, 102, 1),
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                      SvgPicture.asset('assets/icons/icon_add.svg'),
-                                      SizedBox(width: 10,),
-                                      Text('Создать активность',style: TextStyle(color: Colors.white,
-                                      fontFamily: 'Gilroy',fontSize: 17,fontWeight: FontWeight.bold),)
-                                    ],),
-                          
-                          
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 15,),
-                  CustomNavBar(selectedIndex: 4, onTabSelected: (index){
-                    if(index == 0){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                      MapScreen()));
-                    }
-                  }),
-                ],
-              ),
-            )),
+          appBar:isLoading?null: AppBarWidget(title: 'События',),
+          extendBody: true,
           body: isLoading
               ? LoaderWidget()
-              : SafeArea(
-                  child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 20, right: 20, top: 10, bottom: 10),
-                  child: ListView(
-                    children: [
-                      TabBarWidget(),
-                      SizedBox(
-                        height: 25,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(25)),
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(25),
-                                  borderSide: BorderSide.none),
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: Colors.grey,
+              : Stack(
+                children: [
+                  Positioned.fill(
+                    child: SafeArea(
+                        child: Padding(
+                        padding: const EdgeInsets.only(
+                            left: 20, right: 20, top: 10, bottom: 10),
+                        child: ListView(
+                          children: [
+                            TabBarWidget(),
+                            SizedBox(
+                              height: 25,
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(25)),
+                              child: TextFormField(
+                                decoration: InputDecoration(
+                                    border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(25),
+                                        borderSide: BorderSide.none),
+                                    prefixIcon: Icon(
+                                      Icons.search,
+                                      color: Colors.grey,
+                                    ),
+                                    hintText: 'Поиск',
+                                    hintStyle: TextStyle(
+                                        fontFamily: 'Gilroy',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w400)),
                               ),
-                              hintText: 'Поиск',
-                              hintStyle: TextStyle(
-                                  fontFamily: 'Gilroy',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400)),
+                            ),
+                            SizedBox(
+                              height: 25,
+                            ),
+                           profileEventModels!= null? Column(
+                            children: profileEventModels!.events.map((event){
+                              return MyCardEventWidget(
+                                isPublicUser: false,
+                                organizedEvent: event,
+                              );
+                            }).toList(),
+                           ):Container()
+                          ],
                         ),
-                      ),
-                      SizedBox(
-                        height: 25,
-                      ),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        primary: true,
-                        itemCount: profileEventModels.events.length,
-                        itemBuilder: 
-                      (context,index){
-                        return MyCardEventWidget(
-                          profileEventModel: profileEventModels.events[index],
-                        );
-                      })
-                    ],
+                      )),
                   ),
-                ))),
+                  Align(alignment: Alignment.bottomCenter,
+                    child: Padding(
+                    padding: EdgeInsets.only(bottom: 60),
+                                child: Container(decoration: BoxDecoration(color: Colors.transparent),
+                                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ActivityBarWidget(isVerified: isVerified),
+                        SizedBox(height: 15,),
+                      CustomNavBarWidget(selectedIndex: 4, onTabSelected: (index){
+                        if(index == 0){
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                          MapScreen()));
+                        }
+                      }),
+                    ],
+                                    ),
+                                ),),
+                  ),
+                ],
+              )),
     );
   }
 }

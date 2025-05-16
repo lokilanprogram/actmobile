@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:acti_mobile/data/models/event_model.dart';
+
 ProfileEventModels welcomeFromJson(String str) => ProfileEventModels.fromJson(json.decode(str));
 
 String welcomeToJson(ProfileEventModels data) => json.encode(data.toJson());
@@ -12,7 +14,7 @@ class ProfileEventModels {
     int total;
     int limit;
     int offset;
-    List<ProfileEventModel> events;
+    List<OrganizedEventModel> events;
 
     ProfileEventModels({
         required this.total,
@@ -25,7 +27,7 @@ class ProfileEventModels {
         total: json["total"],
         limit: json["limit"],
         offset: json["offset"],
-        events: List<ProfileEventModel>.from(json["events"].map((x) => ProfileEventModel.fromJson(x))),
+        events: List<OrganizedEventModel>.from(json["events"].map((x) => OrganizedEventModel.fromJson(x))),
     );
 
     Map<String, dynamic> toJson() => {
@@ -36,7 +38,7 @@ class ProfileEventModels {
     };
 }
 
-class ProfileEventModel {
+class OrganizedEventModel {
     String id;
     String title;
     String description;
@@ -56,9 +58,9 @@ class ProfileEventModel {
     List<String> restrictions;
     bool isRecurring;
     Creator creator;
-    List<dynamic> participants;
+    List<Participant> participants;
 
-    ProfileEventModel({
+    OrganizedEventModel({
         required this.id,
         required this.title,
         required this.description,
@@ -81,7 +83,7 @@ class ProfileEventModel {
         required this.participants,
     });
 
-    factory ProfileEventModel.fromJson(Map<String, dynamic> json) => ProfileEventModel(
+    factory OrganizedEventModel.fromJson(Map<String, dynamic> json) => OrganizedEventModel(
         id: json["id"],
         title: json["title"],
         description: json["description"],
@@ -101,7 +103,7 @@ class ProfileEventModel {
         restrictions: List<String>.from(json["restrictions"].map((x) => x)),
         isRecurring: json["is_recurring"],
         creator: Creator.fromJson(json["creator"]),
-        participants: List<dynamic>.from(json["participants"].map((x) => x)),
+        participants: List<Participant>.from(json["participants"].map((x) => Participant.fromJson(x))),
     );
 
     Map<String, dynamic> toJson() => {

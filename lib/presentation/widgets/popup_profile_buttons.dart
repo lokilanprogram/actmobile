@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class PopUpProfileButtons extends StatelessWidget {
-  final Function function;
+  final Function editFunction;
+  final Function deleteFunction;
   const PopUpProfileButtons({
-    super.key, required this.function,
+    super.key, required this.editFunction,required this.deleteFunction
   });
 
   @override
@@ -19,7 +20,7 @@ class PopUpProfileButtons extends StatelessWidget {
             PopupMenuItem<int>(
               value: 0,
               onTap: (){
-                function();
+                editFunction();
               },
               child: Row(
                 children:  [
@@ -45,6 +46,9 @@ class PopUpProfileButtons extends StatelessWidget {
             ),
             PopupMenuItem<int>(
               value: 2,
+              onTap: (){
+                deleteFunction();
+              },
               child: Row(
                 children:  [
                   SvgPicture.asset('assets/icons/icon_exit.svg'),

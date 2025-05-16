@@ -2,11 +2,11 @@ import 'package:acti_mobile/configs/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-class CustomNavBar extends StatelessWidget {
+class CustomNavBarWidget extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onTabSelected;
 
-  const CustomNavBar({
+  const CustomNavBarWidget({
     super.key,
     required this.selectedIndex,
     required this.onTabSelected,
@@ -20,16 +20,16 @@ class CustomNavBar extends StatelessWidget {
       'assets/drawer/chats.svg',
     ];
 
-    return Material(elevation: 1.2,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(25)
-    ),
+    return Material(
+      elevation: 8,
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(50),
       child: Container(
         height: 65,
         width: MediaQuery.of(context).size.width * 0.8,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(50),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -39,8 +39,9 @@ class CustomNavBar extends StatelessWidget {
                 onTap: () => onTabSelected(i),
                 child: SvgPicture.asset(
                   icons[i],
+                  height: 28,
                   colorFilter: ColorFilter.mode(
-                    selectedIndex == i ? mainBlueColor: Colors.grey,
+                    selectedIndex == i ? mainBlueColor : Colors.lightBlue.withOpacity(0.5),
                     BlendMode.srcIn,
                   ),
                 ),
@@ -48,9 +49,9 @@ class CustomNavBar extends StatelessWidget {
             GestureDetector(
               onTap: () => onTabSelected(3),
               child: CircleAvatar(
-                radius: 18,
+                radius: 20,
                 backgroundImage: AssetImage('assets/drawer/image.png'),
-                backgroundColor: selectedIndex == 3 ? Colors.blue : Colors.grey.shade300,
+                backgroundColor: Colors.transparent,
               ),
             ),
           ],

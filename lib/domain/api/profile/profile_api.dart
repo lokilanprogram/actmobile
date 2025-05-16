@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
+import 'package:acti_mobile/data/models/public_user_model.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
 import 'package:dio/dio.dart';
 import 'package:acti_mobile/configs/constants.dart';
@@ -29,6 +30,26 @@ class ProfileApi {
   }
   return null;
 }
+
+Future<bool?> blockUser(String userId) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+    final response = await http.post(
+    Uri.parse('$API/api/v1/users/$userId/block'),
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken'
+    },
+  );
+   if (response.statusCode == 200) {
+    print(response.body);
+    return true; 
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return null;
+}
 Future<ProfileEventModels?> getProfileListEvents() async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){
@@ -48,6 +69,27 @@ Future<ProfileEventModels?> getProfileListEvents() async {
   return null;
 }
 
+Future<PublicUserModel?> getPublicUser(String userId) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+    final response = await http.get(
+    Uri.parse('$API/api/v1/users/$userId'),
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken'
+    },
+  );
+   if (response.statusCode == 200) {
+      return PublicUserModel.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return null;
+}
+
+
+
 Future<List<SimiliarUsersModel>?> getSimiliarUsers() async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){
@@ -63,25 +105,6 @@ Future<List<SimiliarUsersModel>?> getSimiliarUsers() async {
       return jsonList
           .map((json) => SimiliarUsersModel.fromJson(json))
           .toList();
-  } else {
-    throw Exception('Error: ${response.body}');
-  }
-  }
-  return null;
-}
-
-Future<EventModel?> getProfileEvent(String eventId) async {
-  final accessToken = await storage.read(key: accessStorageToken);
-  if(accessToken != null){
-    final response = await http.get(
-    Uri.parse('$API/api/v1/events/$eventId'),
-    headers: {
-      "Content-Type": "application/json",
-      'Authorization': 'Bearer $accessToken'
-    },
-  );
-   if (response.statusCode == 200) {
-     return EventModel.fromJson(jsonDecode(response.body));
   } else {
     throw Exception('Error: ${response.body}');
   }

@@ -29,10 +29,12 @@ class EventModel {
     String creatorId;
     String categoryId;
     DateTime createdAt;
-    List<dynamic> participants;
+    List<Participant> participants;
     int freeSlots;
     Category category;
     Creator creator;
+    String join_status;
+    
 
     EventModel({
         required this.title,
@@ -46,6 +48,7 @@ class EventModel {
         required this.status,
         required this.price,
         required this.slots,
+        required this.join_status,
         required this.latitude,
         required this.longitude,
         required this.photos,
@@ -66,6 +69,7 @@ class EventModel {
         description: json["description"],
         type: json["type"],
         address: json["address"],
+        join_status: json["join_status"],
         dateStart: DateTime.parse(json["date_start"]),
         dateEnd: DateTime.parse(json["date_end"]),
         timeStart: json["time_start"],
@@ -82,7 +86,7 @@ class EventModel {
         creatorId: json["creator_id"],
         categoryId: json["category_id"],
         createdAt: DateTime.parse(json["created_at"]),
-        participants: List<dynamic>.from(json["participants"].map((x) => x)),
+        participants: List<Participant>.from(json["participants"].map((x) => Participant.fromJson(x))),
         freeSlots: json["free_slots"],
         category: Category.fromJson(json["category"]),
         creator: Creator.fromJson(json["creator"]),
@@ -142,14 +146,17 @@ class Category {
 
 class Creator {
     String id;
-    String phone;
+    String? phone;
     String name;
     String surname;
-    String bio;
+    String? bio;
     String email;
     String status;
-    double rating;
+    double? rating;
     String? photoUrl;
+    bool? isOrganization;
+    DateTime? blockShownUntil;
+    bool? hasRecentBan;
 
     Creator({
         required this.id,
@@ -161,6 +168,9 @@ class Creator {
         required this.status,
         required this.rating,
         required this.photoUrl,
+        required this.isOrganization,
+        required this.blockShownUntil,
+        required this.hasRecentBan,
     });
 
     factory Creator.fromJson(Map<String, dynamic> json) => Creator(
@@ -173,6 +183,10 @@ class Creator {
         status: json["status"],
         rating: json["rating"],
         photoUrl: json["photo_url"],
+        isOrganization: json["is_organization"],
+        blockShownUntil:json["block_shown_until"]!= null?
+         DateTime.parse(json["block_shown_until"]):null,
+        hasRecentBan: json["has_recent_ban"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -185,5 +199,49 @@ class Creator {
         "status": status,
         "rating": rating,
         "photo_url": photoUrl,
+        "is_organization": isOrganization,
+        "block_shown_until": blockShownUntil.toString(),
+        "has_recent_ban": hasRecentBan,
     };
+}
+
+class Participant {
+    String id;
+    String status;
+    DateTime joinAt;
+    Creator user;
+
+    Participant({
+        required this.id,
+        required this.status,
+        required this.joinAt,
+        required this.user,
+    });
+
+    factory Participant.fromJson(Map<String, dynamic> json) => Participant(
+        id: json["id"],
+        status: json["status"],
+        joinAt: DateTime.parse(json["join_at"]),
+        user: Creator.fromJson(json["user"]),
+    );
+
+    Map<String, dynamic> toJson() => {
+        "id": id,
+        "status": status,
+        "join_at": joinAt.toIso8601String(),
+        "user": user.toJson(),
+    };
+
+    Participant copyWith({
+    String? id,
+    String? status,
+    DateTime? joinAt,
+    Creator? user,
+  }) {
+    return Participant(
+      id: id ?? this.id,
+      status: status ?? this.status,
+      user: user ?? this.user, joinAt: joinAt??this.joinAt,
+    );
+  }
 }

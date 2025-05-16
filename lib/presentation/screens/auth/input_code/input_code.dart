@@ -1,8 +1,6 @@
 import 'package:acti_mobile/configs/colors.dart';
-import 'package:acti_mobile/data/models/auth_codes_model.dart';
 import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
-import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,10 +8,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pinput/pinput.dart';
 
 class InputCodeScreen extends StatefulWidget {
-  final AuthCodesModel authCodes;
   final String phone;
   const InputCodeScreen(
-      {super.key, required this.authCodes, required this.phone});
+      {super.key,required this.phone});
 
   @override
   State<InputCodeScreen> createState() => _InputCodeScreenState();
@@ -25,7 +22,7 @@ class _InputCodeScreenState extends State<InputCodeScreen> {
   @override
   void initState() {
     setState(() {
-      codeController = TextEditingController(text: widget.authCodes.smsCode);
+      codeController = TextEditingController();
     });
     super.initState();
   }
@@ -137,7 +134,7 @@ class _InputCodeScreenState extends State<InputCodeScreen> {
                           isLoading = true;
                         });
                         context.read<ActiBloc>().add(ActiVerifyEvent(
-                            phone: widget.phone, authCodes: widget.authCodes));
+                            phone: widget.phone,code: codeController.text.trim()));
                       },
                       child: Container(
                         height: 59,

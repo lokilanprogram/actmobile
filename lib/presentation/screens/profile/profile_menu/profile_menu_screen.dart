@@ -3,7 +3,9 @@ import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
-import 'package:acti_mobile/presentation/screens/profile/profile_menu/widgets/popup_profile_buttons.dart';
+import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
+import 'package:acti_mobile/presentation/widgets/popup_profile_buttons.dart';
 import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +42,12 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) async {
+        if(state is ProfileLogoutState){
+          setState(() {
+            isLoading = false;
+          });
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>InitialScreen()));
+        }
         if (state is ProfileGotState) {
           setState(() {
             isLoading = false;
@@ -66,6 +74,14 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
             }
           }
         }
+        if(state is ProfileLogoutErrorState){
+          setState(() {
+            isLoading = false;
+          });
+          
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Ошибка')));
+        }
         if (state is ProfileGotErrorState) {
           setState(() {
             isLoading = false;
@@ -78,12 +94,8 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
           ? LoaderWidget()
           : Scaffold(
             body: SingleChildScrollView(
-                child: Stack(
+                child: Column(
                   children: [
-                    Container(
-                      height: MediaQuery.of(context).size.height,
-                      decoration: BoxDecoration(color: Colors.white),
-                    ),
                     Stack(
                       children: [
                         ClipRRect(
@@ -119,7 +131,13 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                             top: 77,
                             right: 20,
                             child: PopUpProfileButtons(
-                              function: () async {
+                              deleteFunction: (){
+                                setState(() {
+                                  isLoading = true;
+                                });
+                                context.read<ProfileBloc>().add(ProfileLogoutEvent());
+                              },
+                              editFunction: () async {
                                 final result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -134,7 +152,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                               },
                             )),
                         Positioned(
-                          bottom: 60,
+                          bottom: 30,
                           left: 20,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,15 +178,29 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                             ],
                           ),
                         ),
+                          Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20)
+                            ),
+                            color: Colors.white
+                          ),
+                        )
+                      ),
                       ],
                     ),
-                    Positioned(
-                      top: 300,
-                      child: Container(
+                    Container(
                         width: MediaQuery.of(context).size.width,
                         height: MediaQuery.of(context).size.height,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 25, vertical: 20),
+                            horizontal: 25, vertical: 5),
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.vertical(
@@ -187,6 +219,19 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                 color: mainBlueColor,
                               ),
                             ),
+                            SizedBox(height: 10,),
+                            const Text(
+                              'О себе',
+                              style: TextStyle(
+                                fontSize: 16.67,
+                                fontFamily: 'Gilroy',
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                            ),
+                            Text(profileModel.bio =='' ?'...':profileModel.bio!,style: TextStyle(
+                              fontFamily: 'Inter',fontSize: 12
+                            ),),
                             const SizedBox(height: 15),
                             // Interests
                             Center(
@@ -212,11 +257,25 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                             const SizedBox(height: 15),
                             // Similar users row
                             Center(
-                              child: buildNoUsers(),
+                              child: Card(elevation: 1.2,shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25)
+                              ),
+                              color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 5,bottom: 5),
+                                  child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                                    children: similiarUsersModel.map((user)=>
+                                  GestureDetector(
+                                    onTap: (){
+                                      Navigator.push(context, MaterialPageRoute(builder: (context)=> PublicUserScreen(userId: user.id)));
+                                    },
+                                    child: buildAvatar(user.photoUrl, user.name))).toList(),),
+                                ),
+                              )
                               ),
                           ],
                         ),
-                      ),
+                      
                     ),
                   ],
                 ),
@@ -245,14 +304,14 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
   }
 
   // Avatar widget
-  Widget buildAvatar(String path, String name) {
+  Widget buildAvatar(String? path, String name) {
     return Padding(
       padding: const EdgeInsets.only(right: 20),
       child: Column(
         children: [
-          CircleAvatar(
-            backgroundImage: AssetImage(path),
-            radius: 28,
+          CircleAvatar(           
+             backgroundImage: path == null? AssetImage('assets/images/image_profile.png'):NetworkImage(path),
+            radius: 32,
           ),
           SizedBox(
             height: 10,

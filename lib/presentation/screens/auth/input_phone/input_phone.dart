@@ -24,9 +24,6 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ActiBloc, ActiState>(
       listener: (context, state) {
-        if(state is ActiRegisteredState){
-          Navigator.push(context, MaterialPageRoute(builder: (_)=> InputCodeScreen(authCodes: state.authCodes,phone: state.phone,)));
-        }
         if(state is ActiRegisteredErrorState){
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка')));
         }

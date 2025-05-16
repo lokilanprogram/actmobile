@@ -29,15 +29,16 @@ class _InitialScreenState extends State<InitialScreen> {
     await Future.delayed(Duration(seconds: 1)).then((_) async {
       if (accessToken != null && refreshToken != null) {
         try{
-          await AuthApi().authRefreshToken().then((token){
-          if(token != null){
-            if(isOnboardingCompleted!=null){
+        //   await AuthApi().authRefreshToken().then((token){
+        //   if(token != null){
+           
+        //   }
+        //  });
+         if(isOnboardingCompleted!=null){
             Navigator.push(context, MaterialPageRoute(builder: (_)=>MapScreen()));
             }else{
               Navigator.push(context, MaterialPageRoute(builder: (_)=>EventsAroundScreen()));
             }
-          }
-         });
         }catch(e){
           await deleteAuthTokens();
           Navigator.push(context, MaterialPageRoute(builder: (_)=>InputPhoneScreen()));

@@ -5,10 +5,9 @@ abstract class ActiState {}
 final class ActiInitial extends ActiState {}
 
 class ActiRegisteredState extends ActiState{
-  final AuthCodesModel authCodes;
   final String phone;
 
-  ActiRegisteredState({required this.authCodes, required this.phone, });
+  ActiRegisteredState({required this.phone, });
 }
 class ActiRegisteredErrorState extends ActiState{}
 

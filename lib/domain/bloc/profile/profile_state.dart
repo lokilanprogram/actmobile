@@ -22,14 +22,45 @@ class ProfileUpdatedState extends ProfileState {
 
 class ProfileUpdatedErrorState extends ProfileState {}
 
+class ProfileLogoutState extends ProfileState{}
+class ProfileLogoutErrorState extends ProfileState{}
+
 
 class ProfileGotListEventsState extends ProfileState {
-  final ProfileEventModels profileEventsModels;
+  final ProfileEventModels? profileEventsModels;
+  final bool isVerified;
 
-  ProfileGotListEventsState({required this.profileEventsModels});
+  ProfileGotListEventsState({required this.profileEventsModels, required this.isVerified});
 
 }
 
+class ProfileJoinedState extends ProfileState{
+  final EventModel eventModel;
+  ProfileJoinedState({required this.eventModel});
+}
+
+class ProfileJoinedErrorState extends ProfileState{
+  final String errorText;
+
+  ProfileJoinedErrorState({required this.errorText});
+}
+
+class ProfileReportedEventState extends ProfileState{
+}
+class ProfileReportedEventErrorState extends ProfileState{
+  final String errorText;
+
+  ProfileReportedEventErrorState({required this.errorText});
+}
+class ProfileLeftState extends ProfileState{
+  final EventModel eventModel;
+  ProfileLeftState({required this.eventModel});}
+
+class ProfileLeftErrorState extends ProfileState{
+  final String errorText;
+
+  ProfileLeftErrorState({required this.errorText});
+}
 class ProfileGotListEventsErrorState extends ProfileState {}
 
 class ProfileGotEventDetailState extends ProfileState {
@@ -39,3 +70,40 @@ class ProfileGotEventDetailState extends ProfileState {
 }
 
 class ProfileGotEventDetailErrorState extends ProfileState {}
+
+class ProfileGotPublicUserState extends ProfileState {
+  final PublicUserModel publicUserModel;
+
+  ProfileGotPublicUserState({required this.publicUserModel});
+}
+
+class ProfileGotPublicUserErrorState extends ProfileState {}
+
+class ProfileAcceptedUserOnActivityState extends ProfileState{
+  final String userId;
+  final List<Participant> participants;
+
+  ProfileAcceptedUserOnActivityState({required this.userId, required this.participants});
+}
+
+class ProfileAcceptedUserOnActivityErrorState extends ProfileState{}
+
+class ProfileBlockedUserState extends ProfileState {}
+
+class ProfileBlockedUserErrorState extends ProfileState {}
+
+class ProfileReportedUserState extends ProfileState {}
+
+class ProfileReportedUserErrorState extends ProfileState {
+  final String errorText;
+
+  ProfileReportedUserErrorState({required this.errorText});
+}
+
+class ProfileCanceledActivityState extends ProfileState {}
+
+class ProfileCanceledActivityErrorState extends ProfileState {
+  final String errorText;
+
+  ProfileCanceledActivityErrorState({required this.errorText});
+}

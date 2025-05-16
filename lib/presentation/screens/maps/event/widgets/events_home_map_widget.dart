@@ -1,5 +1,5 @@
 import 'package:acti_mobile/configs/colors.dart';
-import 'package:acti_mobile/presentation/screens/maps/event/screen/event_detail_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 

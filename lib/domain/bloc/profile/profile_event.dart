@@ -19,3 +19,63 @@ class ProfileGetEventDetailEvent extends ProfileEvent {
 
   ProfileGetEventDetailEvent({required this.eventId});
 }
+
+class ProfileGetPublicUserEvent extends ProfileEvent {
+  final String userId;
+
+  ProfileGetPublicUserEvent({required this.userId});
+}
+
+class ProfileJoinEvent extends ProfileEvent {
+  final String eventId;
+
+  ProfileJoinEvent({required this.eventId});
+}
+
+class ProfileLeaveEvent extends ProfileEvent {
+  final String eventId;
+
+  ProfileLeaveEvent({required this.eventId});
+}
+
+class ProfileBlockUserEvent extends ProfileEvent {
+  final String userId;
+
+  ProfileBlockUserEvent({required this.userId});
+}
+
+class ProfileReportUser extends ProfileEvent {
+  final String? imageUrl;
+  final String userId;
+  final String title;
+
+  ProfileReportUser({required this.imageUrl, required this.userId,
+  required this.title});
+}
+
+class ProfileReportEvent extends ProfileEvent {
+  final String? imageUrl;
+  final String eventId;
+  final String title;
+  final String? comment;
+
+  ProfileReportEvent({required this.imageUrl, required this.eventId,
+  required this.title, required this.comment});
+}
+
+class ProfileAcceptUserOnActivityEvent extends ProfileEvent {
+  final String eventId; 
+  final String userId;
+  final String status;
+
+  ProfileAcceptUserOnActivityEvent({required this.eventId,required this.status, required this.userId});
+}
+
+class ProfileCancelActivityEvent extends ProfileEvent{
+  final String eventId;
+  final bool isRecurring;
+
+  ProfileCancelActivityEvent({required this.eventId, required this.isRecurring});
+}
+
+class ProfileLogoutEvent extends ProfileEvent {}

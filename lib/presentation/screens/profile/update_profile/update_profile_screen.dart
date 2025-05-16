@@ -34,10 +34,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   late TextEditingController cityController;
   late TextEditingController bioController;
   late TextEditingController emailController;
-  XFile? image;
   bool isLoading = false;
-  bool _showTooltip = false;
   bool isUpdatedPhoto = false;
+  XFile? image;
   
 
   @override
@@ -80,17 +79,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         }
       },
       child: Scaffold(
-        bottomNavigationBar:
-          Padding(
-            padding: EdgeInsets.only(bottom: 60,right: 30,left: 30),
-            child: CustomNavBar(selectedIndex: 4, onTabSelected: (index){
-              if(index == 0){
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                MapScreen()));
-              }
-            })),
         backgroundColor: Colors.white,
-        appBar: AppBar(
+        appBar:isLoading?null:  AppBar(
           backgroundColor: Colors.white,
           leading: Padding(
             padding: const EdgeInsets.only(left: 30),
@@ -144,215 +134,232 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             ? LoaderWidget()
             : Form(
               key: _formKey,
-              child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 30, right: 30, top: 10, bottom: 10),
-                    child: ListView(
-                      children: [
-                        Center(
-                          child: 
-                         editableAvatar(
-                            isUpdatedPhoto ? image!.path :(widget.profileModel.photoUrl??'assets/images/image_profile.png'),
-                              () async{
-                             final xfile = await ImagePicker()
-                                            .pickImage(
-                                                source: ImageSource.gallery);
-                                        if (xfile != null) {
-                                          setState(() {
-                                            image = xfile;
-                                            isUpdatedPhoto = true;
-                                          });
-                                        } 
-                          },isUpdatedPhoto),
-                        ),
-                        const SizedBox(height: 30),
-              
-                        // Новые виджеты добавлены здесь:
-                        Text(
-                          'Имя',
-                          style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400),
-                        ),
-                        SizedBox(height: 4),
-                        TextInputNameWidget(controller: nameController,text: 'Введите имя',
-                        validator: (val){
-                          if(val!.isEmpty){
-                          return 'Заполните имя';
-                          }
-                        }),
-                        SizedBox(height: 16),
-                        Text('Фамилия (необязательно)',
-                            style: titleTextStyleEdit),
-                        SizedBox(height: 4),
-                        TextInputNameWidget(controller: surnameController,text: 'Введите фамилию',
-                        validator: (val){
-                          if(val!.isEmpty){
-                          return 'Заполните фамилию';
-                          }
-                        },),
-                        SizedBox(height: 16),
-                       Row(
-                           crossAxisAlignment: CrossAxisAlignment.center,
-                           children: [
-                             Text(
-                               'Представитель организации / ИП',
-                               style: TextStyle(
-                                 fontFamily: 'Inter',
-                                 fontSize: 13,
-                                 color: mainBlueColor,
-                               ),
-                             ),
-                             SizedBox(width: 8),
-                             OrgToggleTooltip(),
-                             SizedBox(width: 24),
-                             _buildSwitch(),
-                           ],
-                         ),
-                       
-                        SizedBox(height: 16),
-                        Text('Ваш город (Населённый пункт)',
-                            style: titleTextStyleEdit),
-                        SizedBox(height: 4),
-                        TextInputWidget(controller: cityController, text: 'Введите город',validator: null,),
-                        SizedBox(height: 16),
-                        Text('Адрес эл. почты', style: titleTextStyleEdit),
-                        SizedBox(height: 4),
-                        TextInputWidget(controller: emailController, text: 'E-mail',validator: (val){
-                          if(val!.isEmpty){
-                            return 'Заполните e-mail';
-                          }
-                        },),
-                        SizedBox(height: 16),
-                        Text(
-                          'О себе',
-                          style: titleTextStyleEdit,
-                        ),
-                        SizedBox(height: 4),
-                        TextFormField(
-                          style: TextStyle(fontSize: 11, fontFamily: 'Inter'),
-                          maxLines: 3,
-                          controller: bioController,
-                          decoration: InputDecoration(
-                            hintText: 'Напишите что-нибудь о себе...',
-                            hintStyle: hintTextStyleEdit,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey[100],
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Скрыть мероприятия:',
-                          style: titleTextStyleEdit,
-                        ),
-                        SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedTab = 'my';
-                                  });
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 12, horizontal: 20),
-                                  decoration: BoxDecoration(
-                                      color: _selectedTab == 'my'
-                                          ? mainBlueColor
-                                          : Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(25)),
-                                  child: Center(
-                                    child: Text(
-                                      'Мои',
-                                      style: TextStyle(
-                                          color: _selectedTab == 'my'
-                                              ? Colors.white
-                                              : Colors.black,
-                                          fontSize: 13,
-                                          fontFamily: 'Inter'),
-                                    ),
-                                  ),
-                                ),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: 30, right: 30, top: 10, bottom: 10),
+                          child: ListView(
+                            children: [
+                              Center(
+                                child: 
+                               editableAvatar(
+                                  isUpdatedPhoto ? image!.path :(widget.profileModel.photoUrl??'assets/images/image_profile.png'),
+                                    () async{
+                                   final xfile = await ImagePicker()
+                                                  .pickImage(
+                                                      source: ImageSource.gallery);
+                                              if (xfile != null) {
+                                                setState(() {
+                                                  image = xfile;
+                                                  isUpdatedPhoto = true;
+                                                });
+                                              } 
+                                },isUpdatedPhoto),
                               ),
-                            ),
-                            SizedBox(width: 25,),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedTab = 'visited';
-                                  });
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 12, horizontal: 20),
-                                  decoration: BoxDecoration(
-                                      color: _selectedTab == 'visited'
-                                          ? mainBlueColor
-                                          : Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(25)),
-                                  child: Center(
-                                    child: Text(
-                                      'Посещённые',
-                                      style: TextStyle(
-                                          color: _selectedTab == 'visited'
-                                              ? Colors.white
-                                              : Colors.black,
-                                          fontSize: 13,
-                                          fontFamily: 'Inter'),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Ваши увлечения:', style: titleTextStyleEdit),
-                            TextButton(
-                              onPressed: ()async {
-                              final result = await   Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsSelectScreen(fromUpdate: true,)));
-                               if (result != null && result is List<EventOnboarding>) {
-                setState(() {
-                  selectedCategories = result;
-                });
-              }
-                              },
-                              child: Text(
-                                'Изменить',
+                              const SizedBox(height: 30),
+                    
+                              // Новые виджеты добавлены здесь:
+                              Text(
+                                'Имя',
                                 style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: mainBlueColor),
+                                    fontWeight: FontWeight.w400),
                               ),
-                            ),
-                          ],
+                              SizedBox(height: 4),
+                              TextInputNameWidget(controller: nameController,text: 'Введите имя',
+                              validator: (val){
+                                if(val!.isEmpty){
+                                return 'Заполните имя';
+                                }
+                              }),
+                              SizedBox(height: 16),
+                              Text('Фамилия (необязательно)',
+                                  style: titleTextStyleEdit),
+                              SizedBox(height: 4),
+                              TextInputNameWidget(controller: surnameController,text: 'Введите фамилию',
+                              validator: (val){
+                                if(val!.isEmpty){
+                                return 'Заполните фамилию';
+                                }
+                              },),
+                              SizedBox(height: 16),
+                             Row(
+                                 crossAxisAlignment: CrossAxisAlignment.center,
+                                 children: [
+                                   Text(
+                                     'Представитель организации / ИП',
+                                     style: TextStyle(
+                                       fontFamily: 'Inter',
+                                       fontSize: 13,
+                                       color: mainBlueColor,
+                                     ),
+                                   ),
+                                   SizedBox(width: 8),
+                                   OrgToggleTooltip(),
+                                   SizedBox(width: 24),
+                                   _buildSwitch(),
+                                 ],
+                               ),
+                             
+                              SizedBox(height: 16),
+                              Text('Ваш город (Населённый пункт)',
+                                  style: titleTextStyleEdit),
+                              SizedBox(height: 4),
+                              TextInputWidget(controller: cityController, text: 'Введите город',validator: null,),
+                              SizedBox(height: 16),
+                              Text('Адрес эл. почты', style: titleTextStyleEdit),
+                              SizedBox(height: 4),
+                              TextInputWidget(controller: emailController, text: 'E-mail',validator: (val){
+                                if(val!.isEmpty){
+                                  return 'Заполните e-mail';
+                                }
+                              },),
+                              SizedBox(height: 16),
+                              Text(
+                                'О себе',
+                                style: titleTextStyleEdit,
+                              ),
+                              SizedBox(height: 4),
+                              TextFormField(
+                                style: TextStyle(fontSize: 11, fontFamily: 'Inter'),
+                                maxLines: 3,
+                                controller: bioController,
+                                decoration: InputDecoration(
+                                  hintText: 'Напишите что-нибудь о себе...',
+                                  hintStyle: hintTextStyleEdit,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.grey[100],
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'Скрыть мероприятия:',
+                                style: titleTextStyleEdit,
+                              ),
+                              SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedTab = 'my';
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 12, horizontal: 20),
+                                        decoration: BoxDecoration(
+                                            color: _selectedTab == 'my'
+                                                ? mainBlueColor
+                                                : Colors.grey[200],
+                                            borderRadius: BorderRadius.circular(25)),
+                                        child: Center(
+                                          child: Text(
+                                            'Мои',
+                                            style: TextStyle(
+                                                color: _selectedTab == 'my'
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                                fontSize: 13,
+                                                fontFamily: 'Inter'),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 25,),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedTab = 'visited';
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 12, horizontal: 20),
+                                        decoration: BoxDecoration(
+                                            color: _selectedTab == 'visited'
+                                                ? mainBlueColor
+                                                : Colors.grey[200],
+                                            borderRadius: BorderRadius.circular(25)),
+                                        child: Center(
+                                          child: Text(
+                                            'Посещённые',
+                                            style: TextStyle(
+                                                color: _selectedTab == 'visited'
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                                fontSize: 13,
+                                                fontFamily: 'Inter'),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Ваши увлечения:', style: titleTextStyleEdit),
+                                  TextButton(
+                                    onPressed: ()async {
+                                    final result = await   Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsSelectScreen(fromUpdate: true,)));
+                                     if (result != null && result is List<EventOnboarding>) {
+                      setState(() {
+                        selectedCategories = result;
+                      });
+                    }
+                                    },
+                                    child: Text(
+                                      'Изменить',
+                                      style: TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: mainBlueColor),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Center(
+                                child: Wrap(
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    children: selectedCategories
+                                        .map((event) => buildInterestChip(event.name))
+                                        .toList()),
+                              ),
+                            ],
+                          ),
                         ),
-                        Center(
-                          child: Wrap(
-                              spacing: 10,
-                              runSpacing: 10,
-                              children: selectedCategories
-                                  .map((event) => buildInterestChip(event.name))
-                                  .toList()),
-                        ),
-                      ],
-                    ),
+                      ),
                   ),
-                ),
+                  Align(
+           alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 60),
+                child: CustomNavBarWidget(selectedIndex: 4, onTabSelected: (index){
+                if(index == 0){
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                  MapScreen()));
+                }
+              }),
+            )),
+                ],
+              ),
             ),
       ),
     );

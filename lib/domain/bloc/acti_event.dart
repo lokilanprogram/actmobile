@@ -8,11 +8,13 @@ class ActiRegisterEvent extends ActiEvent {
   ActiRegisterEvent({required this.phone});
 }
 
+
+
 class ActiVerifyEvent extends ActiEvent {
   final String phone;
-  final AuthCodesModel authCodes;
+  final String code;
 
-  ActiVerifyEvent({required this.phone, required this.authCodes});
+  ActiVerifyEvent({required this.phone, required this.code});
 }
 class ActiGetOnbordingEvent extends ActiEvent {}
 

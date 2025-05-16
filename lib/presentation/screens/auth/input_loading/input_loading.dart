@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
+import 'package:acti_mobile/presentation/screens/auth/input_code/input_code.dart';
 import 'package:acti_mobile/presentation/widgets/rotating_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,6 +36,7 @@ class _InputLoadingScreenState extends State<InputLoadingScreen> {
           if (_remainingSeconds > 0) {
             _remainingSeconds--;
           } else {
+            Navigator.push(context, MaterialPageRoute(builder: (context)=> InputCodeScreen(phone: widget.phone,)));
             _timer!.cancel();
           }
         });
@@ -72,7 +74,8 @@ class _InputLoadingScreenState extends State<InputLoadingScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(fontFamily: 'Gilroy',color: Colors.black,fontSize: 18),),
                 SizedBox(height: 5,),
-                Text('00:${_remainingSeconds.toString()}',
+                Text(_remainingSeconds < 10?'00:0${_remainingSeconds.toString()}'
+                : '00:${_remainingSeconds.toString()}',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontFamily: 'Gilroy',color: Colors.black,fontSize: 20),),
                 SizedBox(height: 10,),

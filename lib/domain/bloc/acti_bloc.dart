@@ -1,6 +1,5 @@
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
-import 'package:acti_mobile/data/models/auth_codes_model.dart';
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
 import 'package:acti_mobile/domain/api/auth/auth_api.dart';
 import 'package:acti_mobile/domain/api/onbording/onbording_api.dart';
@@ -17,15 +16,17 @@ class ActiBloc extends Bloc<ActiEvent, ActiState> {
     on<ActiRegisterEvent>((event, emit)async {
       try{
         final normalizedphone = normalizePhone(event.phone);
-      final authCodes = await AuthApi().authRegister(normalizedphone);
-      if(authCodes!=null){
-        print(authCodes.toString());
-        emit(ActiRegisteredState(authCodes: authCodes,phone: normalizedphone));
+      final isRegistered = await AuthApi().authRegister(normalizedphone);
+      if(isRegistered){
+        print(isRegistered.toString());
+        emit(ActiRegisteredState(phone: normalizedphone));
       }
       }catch(e){
         emit(ActiRegisteredErrorState());
       }
     });
+
+  
     on<ActiGetOnbordingEvent>((event, emit)async {
       try{
       final onbording = await OnbordingApi().getOnbording();
@@ -52,7 +53,7 @@ class ActiBloc extends Bloc<ActiEvent, ActiState> {
 
     on<ActiVerifyEvent>((event, emit)async {
       try{
-        final token = await AuthApi().authVerify(event.phone, event.authCodes.smsCode, event.authCodes.phoneCode);
+        final token = await AuthApi().authVerify(normalizePhone(event.phone), event.code);
       if(token!=null){
         await writeAuthTokens(token.accessToken, token.refreshToken);
         print(token.toString());

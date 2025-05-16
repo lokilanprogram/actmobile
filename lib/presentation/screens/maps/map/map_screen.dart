@@ -128,7 +128,7 @@ class _MapScreenState extends State<MapScreen> {
                   alignment: Alignment.bottomCenter,
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 60),
-                    child: CustomNavBar(
+                    child: CustomNavBarWidget(
                       selectedIndex: selectedIndex,
                       onTabSelected: (int index) async {
                         setState(() {
