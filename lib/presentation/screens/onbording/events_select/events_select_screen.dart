@@ -97,7 +97,7 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
   shrinkWrap: true,
   physics: NeverScrollableScrollPhysics(),
   crossAxisCount: 2,
-  mainAxisSpacing: 20,
+  mainAxisSpacing: 10,
   crossAxisSpacing: 12,
   childAspectRatio: 3.5,
   children: List.generate(listOnbordingModel.categories.length, (index) {
@@ -145,10 +145,14 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
   }),
 )
 ,
-                            Center(
-                                child: SvgPicture.asset(
-                                    'assets/texts/text_select_event.svg')),
-                            const SizedBox(height: 25),
+                            const SizedBox(height: 45),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: Center(
+                                  child: SvgPicture.asset(
+                                      'assets/texts/text_select_event.svg')),
+                            ),
+                            const SizedBox(height: 55),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [

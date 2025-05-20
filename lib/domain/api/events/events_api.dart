@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:acti_mobile/data/models/create_event_model.dart';
 import 'package:dio/dio.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
@@ -88,6 +89,70 @@ class EventsApi {
   }
   return false;
 }
+
+
+Future<bool?> createEvent({
+  required CreateEventModel event,
+}) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  FormData formData;
+  List<MultipartFile> photos = [];
+
+
+  // Добавим изображения
+  for (final photo in event.photos) {
+    final file = File(photo.path);
+            final bytes = file.readAsBytesSync();
+           final type = file.path.split('.').last;
+            final multipartFile = MultipartFile.fromBytes(
+              bytes,
+              filename: file.path.split('/').last,
+        contentType: DioMediaType('image', type),
+            );
+            photos.add(multipartFile);
+  }
+ formData = FormData.fromMap({
+      'title':event.title,
+      'description':event.description,
+      'type':event.type,
+      'address':event.address,
+      'date_start':event.dateStart,
+      'time_start':event.timeStart.substring(0,8),
+      'time_end':event.timeEnd.substring(0,8),
+      'price':event.price.toString(),
+      'latitude':0,
+      'longitude':0,
+      'create_group_chat':event.isGroupChat.toString(),
+      'restrictions':[
+        event.is18plus ? 'isAdults': null,
+        event.isUnlimited ? 'isUnlimited':null,
+        event.withAnimals ? 'withAnimals':null,
+      ],
+      'category_id':event.categoryId,
+      'is_recurring':event.isRecurring.toString(),
+      'update_recurring':event.isRecurring.toString(),
+      'slots':event.isUnlimited? 0:event.slots.toString(),
+      'photos':photos,
+        });
+  final response = await dio.post(
+    '$API/api/v1/events',
+    data: formData,
+    options: Options(
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'multipart/form-data',
+      },
+    ),
+  );
+  print(response.data);
+
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    return true;
+  } else {
+    throw Exception('Failed to create event: ${response.statusCode} ${response.data}');
+  }
+}
+
 
  Future<bool?> reportUser(String? imagePath,String title, String userId) async {
     MultipartFile multipartFile;

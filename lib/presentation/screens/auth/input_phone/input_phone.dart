@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:pinput/pinput.dart';
 
 class InputPhoneScreen extends StatefulWidget {
   const InputPhoneScreen({super.key});
@@ -16,6 +17,7 @@ class InputPhoneScreen extends StatefulWidget {
 
 class _InputPhoneScreenState extends State<InputPhoneScreen> {
   final phoneController = TextEditingController();
+  int phoneLentgh = 0;
   final phoneFormatter = MaskTextInputFormatter(
   mask: '+7 ###-###-##-##',
   filter: {"#": RegExp(r'[0-9]')},
@@ -86,6 +88,11 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                           borderRadius: BorderRadius.circular(25)),
                       child: TextFormField(
                         controller: phoneController,
+                        onChanged: (val){
+                          setState(() {
+                            phoneLentgh = phoneController.length;
+                          });
+                        },
                         inputFormatters: [phoneFormatter],
                         decoration: InputDecoration(
                           hintText: 'Телефон',
@@ -106,54 +113,27 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                     SizedBox(
                       height: 15,
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        InkWell(
-                          onTap: (){
-                             Navigator.push(context, MaterialPageRoute(builder: (_)=> InputLoadingScreen(phone: phoneController.text.trim())));
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(25),
-                                color: mainBlueColor),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 30, vertical: 14),
+                  InkWell(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> InputLoadingScreen(phone: phoneController.text.trim())));
+                      },
+                      child: Container(
+                        height: 59,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                            color: mainBlueColor),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 14),
+                          child: Center(
                               child: Text(
-                                'Мне 18 лет',
-                                style: TextStyle(
-                                    color: Colors.white, fontFamily: 'Inter'),
-                              ),
-                            ),
-                          ),
+                            'Далее',
+                            style: TextStyle(
+                                color: Colors.white, fontFamily: 'Inter'),
+                          )),
                         ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        InkWell(
-                          onTap: (){
-                             Navigator.push(context, MaterialPageRoute(builder: (_)=> InputLoadingScreen(phone: phoneController.text.trim())));},
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: mainBlueColor),
-                              borderRadius: BorderRadius.circular(25),
-                              color: Colors.white,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 30,
-                                vertical: 14,
-                              ),
-                              child: Text(
-                                'Мне 18 лет',
-                                style: TextStyle(
-                                    color: mainBlueColor, fontFamily: 'Inter'),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                     SizedBox(
                       height: 20,

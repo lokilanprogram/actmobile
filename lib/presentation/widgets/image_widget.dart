@@ -27,7 +27,7 @@ class OverlappingAvatars extends StatelessWidget {
           child: CircleAvatar(
             radius: radius - 1.5,
             backgroundImage: imageUrls[i] != null
-                ? NetworkImage(imageUrls[i]!)
+                ? NetworkImage('http://93.183.81.104${imageUrls[i]!}')
                 : AssetImage('assets/images/image_profile.png')
                     as ImageProvider,
             onBackgroundImageError: (_, __) {},

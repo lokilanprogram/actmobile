@@ -9,55 +9,62 @@ class EventsCreateScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-          children: [
-            Container(
+      body: Container(
+
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage("assets/images/image_create_event.png",),
+                        image: AssetImage(
+                          "assets/images/background.png",),
                         fit: BoxFit.cover,
                       ),
                     ),
-                  ),
-         Padding(
-            padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.6,right: 40,left: 40),
-             child: Align(
-               child: Column(mainAxisAlignment: MainAxisAlignment.center,crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SvgPicture.asset('assets/texts/text_create_event.svg'),
-                  SizedBox(height: 10,),
-                  SvgPicture.asset('assets/texts/text_find_friends.svg'),
-                  SizedBox(height: 30,),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: SafeArea(
+          child: Column(
+              children: [
+             Padding(
+                padding: EdgeInsets.only(right: 40,left: 40,),
+                 child: Align(
+                   child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: PopNavButton(
-                          text: 'Назад',
-                          function: (){
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: PopNavButton(
-                          text: 'Далее',
-                          function: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsSelectScreen(fromUpdate: false,)));
-                          
-                          },
-                        ),
-                      ),
+                      SizedBox(height: 25,),
+                      Center(child: Image.asset('assets/images/image_events_example.png')),
+                      SizedBox(height: 45,),
+                      SvgPicture.asset('assets/texts/text_create_event.svg'),
+                      SizedBox(height: 10,),
+                      SvgPicture.asset('assets/texts/text_find_friends.svg'),
+                      SizedBox(height: 30,),
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: PopNavButton(
+                              text: 'Назад',
+                              function: (){
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: PopNavButton(
+                              text: 'Далее',
+                              function: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsSelectScreen(fromUpdate: false,)));
+                              
+                              },
+                            ),
+                          ),
+                        ],
+                      )
                     ],
-                  )
-                ],
+                   ),
+                 ),
                ),
-             ),
-           ),
-         
-          ],
+             
+              ],
+            ),
         ),
+      ),
       
     );
   }

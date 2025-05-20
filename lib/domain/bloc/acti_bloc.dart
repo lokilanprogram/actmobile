@@ -1,7 +1,9 @@
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/data/models/create_event_model.dart';
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
 import 'package:acti_mobile/domain/api/auth/auth_api.dart';
+import 'package:acti_mobile/domain/api/events/events_api.dart';
 import 'package:acti_mobile/domain/api/onbording/onbording_api.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:bloc/bloc.dart';
@@ -61,6 +63,19 @@ class ActiBloc extends Bloc<ActiEvent, ActiState> {
       }
       }catch(e){
         emit(ActiVerifiedErrorState());
+      }
+    });
+
+        on<ActiCreateActivityEvent>((event, emit)async {
+      try{
+        final isCreated = await EventsApi().createEvent(event: event.createEventModel);
+        if(isCreated!=null){
+        emit(ActiCreatedActivityState());
+        }else{
+        emit(ActiCreatedActivityErrorState());
+        }
+      }catch(e){
+        emit(ActiCreatedActivityErrorState());
       }
     });
   }

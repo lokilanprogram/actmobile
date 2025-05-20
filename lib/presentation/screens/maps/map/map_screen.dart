@@ -69,6 +69,7 @@ class _MapScreenState extends State<MapScreen> {
               children: [
                 if (selectedIndex == 0)
                   MapWidget(
+                    styleUri: 'mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj',
                     cameraOptions: CameraOptions(
                       zoom: currentZoom,
                       center: Point(
@@ -94,32 +95,34 @@ class _MapScreenState extends State<MapScreen> {
                         return EventsHomeListOnMapWidget(scrollController: scrollController);
                       },
                     ),
-                selectedIndex== 3?Positioned(
-                  bottom: 140,
-                  left: 40,
-                  child: InkWell(
-                    onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=> MyEventsScreen()));
-                    },
-                    child: Material(
-                      elevation: 1.2,
-                      borderRadius: BorderRadius.circular(25),
-                      child: Container(  height: 59,
-                                  width: MediaQuery.of(context).size.width * 0.8,
-                                  decoration: BoxDecoration(
-                                    color: mainBlueColor,
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                    SvgPicture.asset('assets/icons/icon_event_bar.svg'),
-                                    SizedBox(width: 10,),
-                                    Text('Мои события',style: TextStyle(color: Colors.white,
-                                    fontFamily: 'Gilroy',fontSize: 17,fontWeight: FontWeight.bold),)
-                                  ],),
-                        
-                        
+                selectedIndex== 3?Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: 140),
+                    child: InkWell(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> MyEventsScreen()));
+                      },
+                      child: Material(
+                        elevation: 1.2,
+                        borderRadius: BorderRadius.circular(25),
+                        child: Container(  height: 59,
+                                    width: MediaQuery.of(context).size.width * 0.8,
+                                    decoration: BoxDecoration(
+                                      color: mainBlueColor,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                      SvgPicture.asset('assets/icons/icon_event_bar.svg'),
+                                      SizedBox(width: 10,),
+                                      Text('Мои события',style: TextStyle(color: Colors.white,
+                                      fontFamily: 'Gilroy',fontSize: 17,fontWeight: FontWeight.bold),)
+                                    ],),
+                          
+                          
+                        ),
                       ),
                     ),
                   ),
@@ -179,7 +182,9 @@ class _MapScreenState extends State<MapScreen> {
           ),
           InkWell(
             onTap: () async {
-              await addUserIconToStyle(mapboxMap!);
+              await mapboxMap!.setCamera(CameraOptions(
+  center: Point(coordinates: Position(currentPosition.longitude, currentPosition.latitude)),
+  zoom: currentZoom));
             },
             child: SvgPicture.asset('assets/left_drawer/my_location.svg'),
           ),
@@ -189,7 +194,10 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _onMapCreated(MapboxMap mapboxMap) async {
-    this.mapboxMap = mapboxMap;
+    setState(() {
+      this.mapboxMap = mapboxMap;
+    });
+  await mapboxMap.loadStyleURI('mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj');
     await addPoint(
       mapboxMap,
       LatLngInfo(latitude: 37.33233120, longitude: -122.0302022),

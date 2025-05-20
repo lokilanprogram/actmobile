@@ -4,11 +4,10 @@ import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MapboxOptions.setAccessToken(
-      'pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d3I0aTIxaW01MmtxejRvZ2xjcTdkIn0.anabmk9LvdPr59DxH9cB3Q');
+      'pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg');
   runApp(const MyApp());
 }
 

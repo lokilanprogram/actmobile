@@ -100,7 +100,7 @@ class CardEventWidget extends StatelessWidget {
                      SvgPicture.asset('assets/icons/icon_people.svg'),
                      SizedBox(width: 10),
                      Text(
-                       'Свободно 5 из 10 мест',
+                       'Свободно  из 10 мест',
                        style: TextStyle(fontSize: 11,
                          color: mainBlueColor,
                          fontWeight: FontWeight.w600,

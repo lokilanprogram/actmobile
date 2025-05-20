@@ -23,7 +23,7 @@ class EventModel {
     double latitude;
     double longitude;
   List<String>? photos;
-    List<String> restrictions;
+    List<String>? restrictions;
     bool isRecurring;
     String id;
     String creatorId;
@@ -80,7 +80,7 @@ class EventModel {
         latitude: json["latitude"]?.toDouble(),
         longitude: json["longitude"]?.toDouble(),
         photos: List<String>.from(json["photos"].map((x) => x)),
-        restrictions: List<String>.from(json["restrictions"].map((x) => x)),
+        restrictions: json['restrictions']!= null? List<String>.from(json["restrictions"]!.map((x) => x)):null,
         isRecurring: json["is_recurring"],
         id: json["id"],
         creatorId: json["creator_id"],
@@ -107,7 +107,7 @@ class EventModel {
         "latitude": latitude,
         "longitude": longitude,
         "photos": photos,
-        "restrictions": List<dynamic>.from(restrictions.map((x) => x)),
+        "restrictions": List<dynamic>.from(restrictions!.map((x) => x)),
         "is_recurring": isRecurring,
         "id": id,
         "creator_id": creatorId,

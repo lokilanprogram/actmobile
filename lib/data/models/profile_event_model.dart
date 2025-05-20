@@ -100,7 +100,7 @@ class OrganizedEventModel {
         price: json["price"],
         status: json["status"],
         photos: List<String>.from(json["photos"].map((x) => x)),
-        restrictions: List<String>.from(json["restrictions"].map((x) => x)),
+        restrictions:json['restrictions']!=null?  List<String>.from(json["restrictions"].map((x) => x)):[],
         isRecurring: json["is_recurring"],
         creator: Creator.fromJson(json["creator"]),
         participants: List<Participant>.from(json["participants"].map((x) => Participant.fromJson(x))),
@@ -137,7 +137,7 @@ class Creator {
     String city;
     String bio;
     bool isOrganization;
-    String photoUrl;
+    String? photoUrl;
     String status;
     bool isEmailVerified;
     bool isProfileCompleted;

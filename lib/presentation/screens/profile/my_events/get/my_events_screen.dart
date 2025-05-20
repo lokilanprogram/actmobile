@@ -2,14 +2,12 @@ import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
-import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/widget/my_events_card.dart';
 import 'package:acti_mobile/presentation/widgets/activity_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/app_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/tab_bar_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MyEventsScreen extends StatefulWidget {
@@ -41,6 +39,9 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
         if(state is ProfileAcceptedUserOnActivityState){
+          initialize();
+        }
+        if(state is ProfileCanceledActivityState){
           initialize();
         }
         if(state is ProfileGotListEventsState){

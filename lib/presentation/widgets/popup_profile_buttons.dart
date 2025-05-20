@@ -15,7 +15,7 @@ class PopUpProfileButtons extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          offset: const Offset(-10, 50),
+          offset: const Offset(-10, 30),
           itemBuilder: (BuildContext context) => [
             PopupMenuItem<int>(
               value: 0,

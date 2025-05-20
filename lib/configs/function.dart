@@ -178,7 +178,7 @@ void showReportEventBottomSheet(BuildContext context,String eventId) {
   );
 }
 
-void showAlertOKDialog(BuildContext context, String title) {
+void showAlertOKDialog(BuildContext context, String subtitle,{bool isTitled = false, String title = ''} ) {
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -191,13 +191,20 @@ void showAlertOKDialog(BuildContext context, String title) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-               Text(
+              isTitled?Text(
                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18.35, fontWeight: FontWeight.w700,
+                fontFamily: 'Inter'),
+              ):Container(),
+               SizedBox(height:isTitled ? 8: 0),
+               Text(
+               subtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300,
                 fontFamily: 'Inter'),
               ),
-              const SizedBox(height: 24),
+               SizedBox(height:isTitled ? 14: 24),
               SizedBox(
                 width: double.infinity,
                 height: 59,

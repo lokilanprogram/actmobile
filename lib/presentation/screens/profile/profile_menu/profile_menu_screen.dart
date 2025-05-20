@@ -50,7 +50,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
         }
         if (state is ProfileGotState) {
           setState(() {
-            isLoading = false;
             profileModel = state.profileModel;
             similiarUsersModel = state.similiarUsersModel;
           });
@@ -73,6 +72,10 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
               });
             }
           }
+          setState(() {
+    
+            isLoading = false;
+          });
         }
         if(state is ProfileLogoutErrorState){
           setState(() {
@@ -229,7 +232,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                 color: Colors.black,
                               ),
                             ),
-                            Text(profileModel.bio =='' ?'...':profileModel.bio!,style: TextStyle(
+                            Text(profileModel.bio ==''|| profileModel.bio==null ?'...':profileModel.bio!,style: TextStyle(
                               fontFamily: 'Inter',fontSize: 12
                             ),),
                             const SizedBox(height: 15),
@@ -257,22 +260,18 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                             const SizedBox(height: 15),
                             // Similar users row
                             Center(
-                              child: Card(elevation: 1.2,shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25)
-                              ),
-                              color: Colors.white,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 5,bottom: 5),
-                                  child: Row(mainAxisAlignment: MainAxisAlignment.center,
-                                    children: similiarUsersModel.map((user)=>
-                                  GestureDetector(
-                                    onTap: (){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context)=> PublicUserScreen(userId: user.id)));
-                                    },
-                                    child: buildAvatar(user.photoUrl, user.name))).toList(),),
+                              child: similiarUsersModel.isEmpty?buildNoUsers():SizedBox(
+                                width: MediaQuery.of(context).size.width*0.8,
+                                child: Card(elevation: 1.2,shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25)
                                 ),
+                                
+                                color: Colors.white,
+                                child: buildSimiliarUsers(context),),
                               )
+                              
                               ),
+                              
                           ],
                         ),
                       
@@ -284,23 +283,38 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
     );
   }
 
+  Padding buildSimiliarUsers(BuildContext context) {
+    return Padding(
+                                padding: const EdgeInsets.only(top: 5,bottom: 5,left: 10, right:10),
+                                child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                                    children: similiarUsersModel.take(4).map((user)=>
+                                  GestureDetector(
+                                    onTap: (){
+                                      Navigator.push(context, MaterialPageRoute(builder: (context)=> PublicUserScreen(userId: user.id)));
+                                    },
+                                    child: buildAvatar(user.photoUrl, user.name))).toList(),),
+                              );
+  }
+
   Widget buildNoUsers(){
-    return Card(
-         shape: RoundedRectangleBorder(
-        side: BorderSide(color: Colors.white70, width: 1),
-        borderRadius: BorderRadius.circular(30),
-      ),
-        elevation: 1.2,
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal:25, vertical: 20),
-          child: Text('Здесь скоро появится список людей со схожими интересами',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontFamily: 'Gilroy',fontSize: 15, color: mainBlueColor,
-          fontWeight: FontWeight.w500),),
+    return SizedBox(width: MediaQuery.of(context).size.width* 0.8,
+      child: Card(
+           shape: RoundedRectangleBorder(
+          side: BorderSide(color: Colors.white70, width: 1),
+          borderRadius: BorderRadius.circular(30),
         ),
-      );
+          elevation: 1.2,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal:25, vertical: 20),
+            child: Text('Здесь скоро появится список людей со схожими интересами',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontFamily: 'Gilroy',fontSize: 15, color: mainBlueColor,
+            fontWeight: FontWeight.w500),),
+          ),
+        ),
+    );
   }
 
   // Avatar widget

@@ -26,3 +26,7 @@ class ActiGotOnbordingErrorState extends ActiState {}
 class ActiSavedOnbordingState extends ActiState {}
 
 class ActiSavedOnbordingErrorState extends ActiState {}
+
+class ActiCreatedActivityState extends ActiState {}
+
+class ActiCreatedActivityErrorState extends ActiState {}

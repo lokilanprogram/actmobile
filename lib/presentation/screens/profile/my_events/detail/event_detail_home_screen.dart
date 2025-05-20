@@ -42,6 +42,9 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
+        if(state is ProfileAcceptedUserOnActivityState){
+          initialize();
+        }
         if(state is ProfileCanceledActivityState){
           setState(() {
             isLoading = false;
@@ -173,8 +176,9 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                   children: [
                                      CircleAvatar(
                                       radius: 20,
-                                      backgroundImage:  NetworkImage(
-                                        '${organizedEvent.creator.photoUrl}'), // Заменить на нужную
+                                      backgroundImage: organizedEvent.creator.photoUrl!= null?  NetworkImage(
+                                        '${organizedEvent.creator.photoUrl}'):
+                                        AssetImage('assets/images/image_profile.png'), // Заменить на нужную
                                     ),
                                     const SizedBox(width: 10),
                                      Column(
@@ -255,7 +259,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                 infoRow(
                                   'assets/icons/icon_people.svg',
                                   false,
-                                  'Свободно 5 из 10 мест',
+                                  'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
                                   '',
                                 ),
                       

@@ -1,4 +1,10 @@
+import 'dart:io';
+import 'package:http/http.dart' show get;
+import 'package:mime/mime.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 
 final List<Map<String, String>> complainSpam = [
   {'title': 'Вредоносные ссылки', 'subtitle': 'Организатор размещает ссылки на вредоносные и подозрительные ресурсы'},
@@ -36,6 +42,30 @@ final List<Map<String, String>> complainPhoto = [
   {'title': 'Детская эротика или порнография'},
   {'title': 'Другое'},
 ];
+ Future<XFile> getImageXFileByUrl(String url) async {
+    Directory tempDir = await getTemporaryDirectory();
+    String tempPath = tempDir.path;
+    String fileName = "image${DateTime.now().millisecondsSinceEpoch}";
+    File fileWrite = new File("$tempPath/$fileName");
+    Uri uri = Uri.parse(url);
+    final response = await get(uri);
+    fileWrite.writeAsBytesSync(response.bodyBytes);
+    final mimeType = lookupMimeType("$tempPath/$fileName", headerBytes: [0xFF, 0xD8]);
+    final type = mimeType?.split("/");
+    final file = XFile("$tempPath/$fileName", mimeType: mimeType);
+    return file;
+  }
+String formatDate(String inputDate) {
+  // Разделяем строку по точкам
+  List<String> parts = inputDate.split('.');
+  if (parts.length != 3) return inputDate;
+
+  String day = parts[0].padLeft(2, '0');
+  String month = parts[1].padLeft(2, '0');
+  String year = '2024'; // Здесь задаём нужный год
+
+  return '$day.$month.$year';
+}
 
 const API = 'http://93.183.81.104';
 
@@ -48,4 +78,35 @@ const titleTextStyleEdit = TextStyle(fontFamily: 'Inter',fontSize: 13,fontWeight
 String capitalize(String input) {
   if (input.isEmpty) return input;
   return input[0].toUpperCase() + input.substring(1);
+}
+String utcDate(String date){
+    // Указываем формат входной строки
+  DateFormat inputFormat = DateFormat('dd.MM.yyyy');
+  DateTime dateTime = inputFormat.parse(date);
+
+  // Выводим в формате "yyyy-MM-dd"
+  DateFormat outputFormat = DateFormat('yyyy-MM-dd');
+  String formatted = outputFormat.format(dateTime);
+  return formatted;
+}
+String utcTime(String time){
+
+List<String> parts = time.split(':');
+int hour = int.parse(parts[0]);
+int minute = int.parse(parts[1]);
+
+// 2. Создадим DateTime (например, сегодняшняя дата)
+DateTime now = DateTime.now().toUtc();
+DateTime dateTimeUtc = DateTime.utc(
+  now.year,
+  now.month,
+  now.day,
+  hour,
+  minute,
+);
+
+// 3. Преобразуем в ISO строку
+String utcString = dateTimeUtc.toIso8601String();
+String timeOnlyUtc = utcString.substring(11); 
+return timeOnlyUtc;
 }

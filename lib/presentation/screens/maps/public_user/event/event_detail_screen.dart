@@ -49,6 +49,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             isLoading = false;
             isJoined = true;
           });
+          context.read<ProfileBloc>().add(ProfileGetPublicUserEvent(userId: organizedEvent.creatorId));
         }
 
         if(state is ProfileLeftState){
@@ -57,6 +58,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             isLoading = false;
             isJoined = false;
           });
+          context.read<ProfileBloc>().add(ProfileGetPublicUserEvent(userId: organizedEvent.creatorId));
         }
         if(state is ProfileGotEventDetailState){
           setState(() {
@@ -231,9 +233,16 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               ],
                             ),
                             const Spacer(),
-             OverlappingAvatars(
-              imageUrls:organizedEvent.participants.map
-              ((user)=>user.user.photoUrl).toList()),
+             GestureDetector(
+              onTap: (){
+                setState(() {
+                  
+                });
+              },
+               child: OverlappingAvatars(
+                imageUrls:organizedEvent.participants.where((user)=>user.status=='confirmed').map
+                ((user)=>user.user.photoUrl).toList()),
+             ),
                           ],
                         ),
           
@@ -241,7 +250,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           padding: const EdgeInsets.only(top: 10, bottom: 15),
                           child: Divider(),
                         ),
-                        // Заголовок
+                        Column(crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Заголовок
                          Text(
                           organizedEvent.title ,
                           style: TextStyle(
@@ -285,7 +296,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         infoRow(
                           'assets/icons/icon_people.svg',
                           false,
-                          'Свободно 5 из 10 мест',
+                       'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
                           '',
                         ),
           
@@ -303,6 +314,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         const SizedBox(height: 40),
           
                         // Кнопка
+                          ],
+                        ),
                         SizedBox(
                           height: 59,
                           width: double.infinity,

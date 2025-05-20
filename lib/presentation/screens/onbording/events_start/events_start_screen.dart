@@ -1,6 +1,5 @@
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
-import 'package:acti_mobile/presentation/screens/onbording/events_create/events_create_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/widgets/pop_nav_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';

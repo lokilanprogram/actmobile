@@ -23,3 +23,9 @@ class ActiSaveOnbordingEvent extends ActiEvent {
 
   ActiSaveOnbordingEvent({required this.listOnboarding});
 }
+
+class ActiCreateActivityEvent extends ActiEvent{
+  final CreateEventModel  createEventModel;
+
+  ActiCreateActivityEvent({required this.createEventModel});
+}

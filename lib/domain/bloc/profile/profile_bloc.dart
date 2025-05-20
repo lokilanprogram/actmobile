@@ -201,17 +201,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           emit(ProfileReportedUserState());
         }
       } catch (e) {
-        final jsonStr = e.toString().replaceFirst('Error: ', '');
-        // Удаляем префикс "Exception: "
-        String cleanJson = jsonStr.replaceFirst('Exception: ', '');
-
-        // Парсим строку как JSON
-        Map<String, dynamic> data = json.decode(cleanJson);
-
-        // Достаём значение по ключу "detail"
-        String detail = data['detail'];
-        emit(ProfileReportedUserErrorState(errorText: detail));
+        emit(ProfileReportedUserErrorState(errorText: 'Произошла ошибка'));
       }
     });
+    
   }
 }

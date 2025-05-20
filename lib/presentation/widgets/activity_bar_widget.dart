@@ -15,7 +15,7 @@ class ActivityBarWidget extends StatelessWidget {
     return InkWell(
         onTap: (){
         isVerified ?  Navigator.push(context, MaterialPageRoute(builder: (context)=>
-          CreateEventScreen())): 
+          CreateEventScreen(organizedEventModel: null,))): 
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Проверьте почту и перейдите по ссылке для активации'),
           backgroundColor: Colors.green,));
         },

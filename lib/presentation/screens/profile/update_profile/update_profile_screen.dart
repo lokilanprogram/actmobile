@@ -104,7 +104,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
               padding: const EdgeInsets.only(right: 20),
               child: IconButton(
                 onPressed: () {
-                 if(_formKey.currentState!.validate()){
+                if(selectedCategories.isEmpty){
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Выберите увлечения')));
+                }else if(_formKey.currentState!.validate()){
                   _formKey.currentState!.save();
                    setState(() {
                     isLoading = true;
@@ -175,6 +177,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 if(val!.isEmpty){
                                 return 'Заполните имя';
                                 }
+                                return null;
                               }),
                               SizedBox(height: 16),
                               Text('Фамилия (необязательно)',
@@ -342,6 +345,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         .map((event) => buildInterestChip(event.name))
                                         .toList()),
                               ),
+                              SizedBox(height: 100,),
                             ],
                           ),
                         ),

@@ -1,6 +1,7 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/detail/event_detail_home_screen.dart';
 import 'package:acti_mobile/presentation/widgets/image_widget.dart';
 import 'package:flutter/material.dart';
@@ -61,7 +62,34 @@ class MyCardEventWidget extends StatelessWidget {
                           ),
                           SizedBox(width: 5,),
                       Row(children: [SvgPicture.asset('assets/icons/icon_adult.svg'),   
-                      InkWell(onTap: (){}, child: Icon(Icons.more_vert))   ],)               
+                      PopupMenuButton<int>(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          offset: const Offset(-20, 5),
+          itemBuilder: (BuildContext context) => [
+            PopupMenuItem<int>(
+              value: 0,
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                CreateEventScreen(organizedEventModel: organizedEvent)));
+              },
+              child: Row(
+                children:  [
+                  SvgPicture.asset('assets/icons/icon_edit.svg'),
+                  SizedBox(width: 10),
+                  Text("Редактировать",style: TextStyle(
+                    fontFamily: 'Gilroy',fontSize: 12.93,
+                    color: Colors.black
+                  ),),
+                ],
+              ),
+            ),
+          ],
+          child: const Icon(Icons.more_vert, color: Colors.black),
+        )
+                      ],)               
                         ],
                       ),
                             SizedBox(height: 5,),
@@ -83,7 +111,7 @@ height: 45,                        child: Text(organizedEvent.description,style:
                     ),
                             SizedBox(height: 5,),
              OverlappingAvatars(
-              imageUrls:organizedEvent.participants.map
+              imageUrls:organizedEvent.participants.where((user)=>user.status=='confirmed').map
               ((user)=>user.user.photoUrl).toList()),
                             SizedBox(height:   10,),
                 Row(
