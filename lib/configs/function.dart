@@ -178,7 +178,106 @@ void showReportEventBottomSheet(BuildContext context,String eventId) {
   );
 }
 
-void showAlertOKDialog(BuildContext context, String subtitle,{bool isTitled = false, String title = ''} ) {
+void  showKidsAlertDialog(BuildContext context, String? subtitle,{bool isTitled = false, String title = ''} ) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    barrierColor: Colors.black.withOpacity(0.5),
+    builder: (context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          padding: EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Заголовок
+              Text(
+                'Будьте бдительны',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16),
+              // Текст с выделением
+              RichText(
+                textAlign: TextAlign.left,
+                text: TextSpan(
+                  style: TextStyle(fontSize: 16, color: Colors.black87),
+                  children: [
+                    TextSpan(
+                      text: 'Выбирая этот фильтр вы позволяете прийти на событие с детьми. ',
+                       style: TextStyle(
+                      fontWeight: FontWeight.w300,fontFamily: 'Inter_Light',fontSize: 14
+                    )
+                    ),
+                    TextSpan(
+                      text: 'Дети — это здорово! ',
+                      style: TextStyle(fontWeight: FontWeight.w500,fontFamily: 'Inter',fontSize: 14),
+                    ),
+                       TextSpan(
+                      text: 'Но важно помнить, ',
+                      style: TextStyle(fontWeight: FontWeight.w500,fontFamily: 'Inter',fontSize: 14),
+                    ),
+                    TextSpan(
+                      text:
+                          'что такие события требуют немного больше заботы:\n\n'
+                          '— Убедитесь, что формат подходит для детей;\n'
+                          '— Постарайтесь избегать тем и контента, не предназначенных для детей;\n'
+                          '— Соблюдайте правила безопасности и действующие законы.',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w300,fontFamily: 'Inter_Light',fontSize: 14
+                    )
+                    ),
+                    TextSpan(
+                      text: '\n\nОрганизатор всегда задаёт тон мероприятию — пусть оно будет комфортным и безопасным для всех, особенно для самых маленьких!',
+                         style: TextStyle(
+                      fontWeight: FontWeight.w300,fontFamily: 'Inter_Light',fontSize: 14
+                    )
+                    )
+                  ],
+                ),
+              ),
+              SizedBox(height: 24),
+              // Кнопка
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue, // Цвет кнопки
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(
+                    'Понимаю',
+                    style: TextStyle(fontSize: 16, color: Colors.white,fontFamily: 'Inter'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+
+}
+
+
+void  showAlertOKDialog(BuildContext context, String? subtitle,{bool isTitled = false, String title = ''} ) {
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -198,7 +297,7 @@ void showAlertOKDialog(BuildContext context, String subtitle,{bool isTitled = fa
                 fontFamily: 'Inter'),
               ):Container(),
                SizedBox(height:isTitled ? 8: 0),
-               Text(
+             subtitle == null?Container(): Text(
                subtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300,
@@ -235,7 +334,8 @@ void showAlertOKDialog(BuildContext context, String subtitle,{bool isTitled = fa
   );
 }
 
-void showCancelActivityDialog(BuildContext context, Function cancelAll, Function cancelOne) {
+void showCancelActivityDialog(BuildContext context,String desctiption,String optionOne, 
+String optionTwo,  Function cancelOne, Function cancelAll) {
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -253,9 +353,9 @@ void showCancelActivityDialog(BuildContext context, Function cancelAll, Function
                     Navigator.pop(context);
                   }, icon: Icon(Icons.close))),
                  Text(
-                  'Вы хотите отменить  одно мероприятие или всю серию?',
+                  desctiption,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w100,
                   color: Colors.black,
                   fontFamily: 'Inter'),
                 ),
@@ -263,13 +363,29 @@ void showCancelActivityDialog(BuildContext context, Function cancelAll, Function
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(
-                    child: ActionDialogWidget(
-                          function: (){
-                            Navigator.pop(context);
-                            cancelOne();
-                           },
-                          text: 'Одно',
-                        ),
+                    child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: mainBlueColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 5),
+        ),
+        onPressed: () {
+         Navigator.pop(context);
+         cancelOne();
+        },
+        child:  Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            optionOne,
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500,
+            color: Colors.white,
+            fontFamily: 'Inter'),
+          ),
+        ),
+      
+    ),
                   ),
                   SizedBox(width: 20,),
                         Expanded(
@@ -279,16 +395,16 @@ void showCancelActivityDialog(BuildContext context, Function cancelAll, Function
             side: BorderSide(color: Colors.blue),
             borderRadius: BorderRadius.circular(30),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 5),
         ),
         onPressed: () {
           Navigator.pop(context);
           cancelAll();
         },
         child:  Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            'Все',
+            optionTwo,
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500,
             color: Colors.blue,
             fontFamily: 'Inter'),
@@ -381,13 +497,13 @@ class ActionDialogWidget extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 10),
         ),
         onPressed: () {
           function();
         },
         child:  Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
             text,
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500,

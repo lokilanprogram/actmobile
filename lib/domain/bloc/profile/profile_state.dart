@@ -28,14 +28,15 @@ class ProfileLogoutErrorState extends ProfileState{}
 
 class ProfileGotListEventsState extends ProfileState {
   final ProfileEventModels? profileEventsModels;
+  final ProfileEventModels? profileVisitedEventsModels;
   final bool isVerified;
 
-  ProfileGotListEventsState({required this.profileEventsModels, required this.isVerified});
+  ProfileGotListEventsState({required this.profileVisitedEventsModels, required this.profileEventsModels, required this.isVerified});
 
 }
 
 class ProfileJoinedState extends ProfileState{
-  final EventModel eventModel;
+  final OrganizedEventModel eventModel;
   ProfileJoinedState({required this.eventModel});
 }
 
@@ -53,7 +54,7 @@ class ProfileReportedEventErrorState extends ProfileState{
   ProfileReportedEventErrorState({required this.errorText});
 }
 class ProfileLeftState extends ProfileState{
-  final EventModel eventModel;
+  final OrganizedEventModel eventModel;
   ProfileLeftState({required this.eventModel});}
 
 class ProfileLeftErrorState extends ProfileState{
@@ -64,7 +65,7 @@ class ProfileLeftErrorState extends ProfileState{
 class ProfileGotListEventsErrorState extends ProfileState {}
 
 class ProfileGotEventDetailState extends ProfileState {
-  final EventModel eventModel;
+  final OrganizedEventModel eventModel;
 
   ProfileGotEventDetailState({required this.eventModel});
 }

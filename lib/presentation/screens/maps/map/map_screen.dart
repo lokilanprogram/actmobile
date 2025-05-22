@@ -1,11 +1,13 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/function.dart';
+import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/events_home_map_widget.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geolocator;
@@ -23,20 +25,21 @@ class _MapScreenState extends State<MapScreen> {
   late geolocator.Position currentPosition;
   double currentZoom = 16;
   bool isLoading = false;
-  bool showEvents = false; 
-   DraggableScrollableController sheetController = DraggableScrollableController();
+  bool showEvents = false;
+  DraggableScrollableController sheetController =
+      DraggableScrollableController();
 
   @override
   void initState() {
     super.initState();
     initialize();
     sheetController.addListener(() async {
-    if (sheetController.size <= 0.5) {
-     setState(() {
-       showEvents = false;
-     });
-    }
-  });
+      if (sheetController.size <= 0.5) {
+        setState(() {
+          showEvents = false;
+        });
+      }
+    });
   }
 
   void initialize() async {
@@ -61,94 +64,116 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: isLoading
-          ? const LoaderWidget()
-          : Stack(
-              children: [
-                if (selectedIndex == 0)
-                  MapWidget(
-                    styleUri: 'mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj',
-                    cameraOptions: CameraOptions(
-                      zoom: currentZoom,
-                      center: Point(
-                        coordinates: Position(
-                          currentPosition.longitude,
-                          currentPosition.latitude,
+    return BlocListener<ProfileBloc, ProfileState>(
+      listener: (context, state) {
+        if(state is ProfileUpdatedState){
+          initialize();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: isLoading
+            ? const LoaderWidget()
+            : Stack(
+                children: [
+                  if (selectedIndex == 0)
+                    MapWidget(
+                      styleUri:
+                          'mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj',
+                      cameraOptions: CameraOptions(
+                        zoom: currentZoom,
+                        center: Point(
+                          coordinates: Position(
+                            currentPosition.longitude,
+                            currentPosition.latitude,
+                          ),
                         ),
                       ),
-                    ),
-                    key: const ValueKey("MapWidget"),
-                    onMapCreated: _onMapCreated,
-                  )
-                else
-                  screens[selectedIndex],
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: buildMapControls(),
-                ),
-                if (showEvents)
-                 DraggableScrollableSheet(controller: sheetController,
+                      key: const ValueKey("MapWidget"),
+                      onMapCreated: _onMapCreated,
+                    )
+                  else
+                    screens[selectedIndex],
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: buildMapControls(),
+                  ),
+                  if (showEvents)
+                    DraggableScrollableSheet(
+                      controller: sheetController,
                       initialChildSize: 0.8, // стартовая высота
                       builder: (context, scrollController) {
-                        return EventsHomeListOnMapWidget(scrollController: scrollController);
+                        return EventsHomeListOnMapWidget(
+                            scrollController: scrollController);
                       },
                     ),
-                selectedIndex== 3?Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: 140),
-                    child: InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=> MyEventsScreen()));
-                      },
-                      child: Material(
-                        elevation: 1.2,
-                        borderRadius: BorderRadius.circular(25),
-                        child: Container(  height: 59,
-                                    width: MediaQuery.of(context).size.width * 0.8,
-                                    decoration: BoxDecoration(
-                                      color: mainBlueColor,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                      SvgPicture.asset('assets/icons/icon_event_bar.svg'),
-                                      SizedBox(width: 10,),
-                                      Text('Мои события',style: TextStyle(color: Colors.white,
-                                      fontFamily: 'Gilroy',fontSize: 17,fontWeight: FontWeight.bold),)
-                                    ],),
-                          
-                          
-                        ),
+                  selectedIndex == 3
+                      ? Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: EdgeInsets.only(bottom: 140),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            MyEventsScreen()));
+                              },
+                              child: Material(
+                                elevation: 1.2,
+                                borderRadius: BorderRadius.circular(25),
+                                child: Container(
+                                  height: 59,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.8,
+                                  decoration: BoxDecoration(
+                                    color: mainBlueColor,
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SvgPicture.asset(
+                                          'assets/icons/icon_event_bar.svg'),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Text(
+                                        'Мои события',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Gilroy',
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.bold),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      : Container(),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 60),
+                      child: CustomNavBarWidget(
+                        selectedIndex: selectedIndex,
+                        onTabSelected: (int index) async {
+                          setState(() {
+                            selectedIndex = index;
+                          });
+                        },
                       ),
                     ),
                   ),
-                ):Container(),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 60),
-                    child: CustomNavBarWidget(
-                      selectedIndex: selectedIndex,
-                      onTabSelected: (int index) async {
-                        setState(() {
-                          selectedIndex = index;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
+      ),
     );
   }
-
-
-
-
 
   Widget buildMapControls() {
     if (selectedIndex != 0) return SizedBox.shrink();
@@ -183,8 +208,10 @@ class _MapScreenState extends State<MapScreen> {
           InkWell(
             onTap: () async {
               await mapboxMap!.setCamera(CameraOptions(
-  center: Point(coordinates: Position(currentPosition.longitude, currentPosition.latitude)),
-  zoom: currentZoom));
+                  center: Point(
+                      coordinates: Position(
+                          currentPosition.longitude, currentPosition.latitude)),
+                  zoom: currentZoom));
             },
             child: SvgPicture.asset('assets/left_drawer/my_location.svg'),
           ),
@@ -197,7 +224,8 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       this.mapboxMap = mapboxMap;
     });
-  await mapboxMap.loadStyleURI('mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj');
+    await mapboxMap
+        .loadStyleURI('mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj');
     await addPoint(
       mapboxMap,
       LatLngInfo(latitude: 37.33233120, longitude: -122.0302022),

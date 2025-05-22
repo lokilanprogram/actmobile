@@ -25,7 +25,13 @@ class ActiSaveOnbordingEvent extends ActiEvent {
 }
 
 class ActiCreateActivityEvent extends ActiEvent{
-  final CreateEventModel  createEventModel;
+  final AlterEventModel  createEventModel;
 
   ActiCreateActivityEvent({required this.createEventModel});
+}
+
+class ActiUpdateActivityEvent extends ActiEvent{
+  final AlterEventModel  alterEventModel;
+
+  ActiUpdateActivityEvent({required this.alterEventModel});
 }

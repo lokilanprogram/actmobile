@@ -122,7 +122,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         final profile = await ProfileApi().getProfile();
         if(profile != null){
         final events = await ProfileApi().getProfileListEvents();
-        emit(ProfileGotListEventsState(profileEventsModels: events,isVerified: profile.isEmailVerified));
+        final visitedEvents = await ProfileApi().getProfileVisitedListEvents();
+        emit(ProfileGotListEventsState(
+          profileVisitedEventsModels: visitedEvents,
+          profileEventsModels: events,isVerified: profile.isEmailVerified));
         }
       } catch (e) {
         emit(ProfileGotListEventsErrorState());

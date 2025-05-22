@@ -1,6 +1,8 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
+import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/widgets/image_widget.dart';
 import 'package:acti_mobile/presentation/widgets/popup_event_buttons.dart';
@@ -22,7 +24,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   bool isLoading = false;
   bool isJoined = false;
   bool isBlocked = false;
-  late EventModel organizedEvent;
+  late OrganizedEventModel organizedEvent;
 
   @override
   void initState() {
@@ -49,7 +51,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             isLoading = false;
             isJoined = true;
           });
-          context.read<ProfileBloc>().add(ProfileGetPublicUserEvent(userId: organizedEvent.creatorId));
+          context.read<ProfileBloc>().add(ProfileGetPublicUserEvent(userId: organizedEvent.creatorId!));
+          context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
         }
 
         if(state is ProfileLeftState){
@@ -58,7 +61,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             isLoading = false;
             isJoined = false;
           });
-          context.read<ProfileBloc>().add(ProfileGetPublicUserEvent(userId: organizedEvent.creatorId));
+          context.read<ProfileBloc>().add(ProfileGetPublicUserEvent(userId: organizedEvent.creatorId!));
+          context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
         }
         if(state is ProfileGotEventDetailState){
           setState(() {
@@ -103,7 +107,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 children: [
                   // вото
                   Image.network(
-                    'http://93.183.81.104${organizedEvent.photos!.first}',
+                    organizedEvent.photos!.first,
                     width: double.infinity,
                     height: 260,
                     fit: BoxFit.cover,
@@ -271,7 +275,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           false,
                           'Дата и время',
                           '${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)} | ${organizedEvent.timeStart.substring(0,5)} – ${organizedEvent.timeEnd.substring(0,5)}',
-                          trailing: '40 мин',
+                          trailing: formatDuration(organizedEvent.timeStart, organizedEvent.timeEnd),
                         ),
           
                         Padding(
@@ -296,7 +300,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         infoRow(
                           'assets/icons/icon_people.svg',
                           false,
-                       'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
+                          organizedEvent.restrictions!= null?
+                                 (organizedEvent.restrictions!
+                                 .any((restrict)=>restrict == 'isUnlimited') ?'Неограниченно' :'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест'):
+                                 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
                           '',
                         ),
           

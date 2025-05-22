@@ -4,8 +4,10 @@ import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/create_event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
+import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/widgets/app_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
+import 'package:acti_mobile/presentation/widgets/selector_day_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,12 +31,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   bool isOnline = false;
   bool isRecurring = false;
   bool is18plus = false;
+  bool isKidsAllowed = false;
   bool isPetFriendly = false;
   bool isUnlimited = false;
   bool isGroupChat = false;
   bool isLoading = true;
   int peopleCount = 10;
-  int startSelectedHour = 18;
+  int startSelectedHour = 17;
   int startSelectedMinute = 0;
   int endSelectedHour = 18;
   int endSelectedMinute = 0;
@@ -54,6 +57,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   final _formKey = GlobalKey<FormState>();
   late List<EventOnboarding> eventCategories; 
+  List<String> deletedImages = [];
+  String? recurringDay = 'Вторник';
   final dateFormatter = MaskTextInputFormatter(
   mask: '##.##.####',
   filter: {"#": RegExp(r'[0-9]')},
@@ -72,21 +77,24 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     });
   }
 
-    final List<XFile> _images = [];
+    final List<String> _images = [];
   final picker = ImagePicker();
 
   Future<void> _pickImage() async {
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
       setState(() {
-        _images.add(picked);
+        _images.add(picked.path);
       });
     }
   }
 
-  void _removeImage(int index) {
+  void _removeImage(String imagePath) {
     setState(() {
-      _images.removeAt(index);
+      if(imagePath.contains('http://93.183.81.104')){
+      deletedImages.add(imagePath);
+    }
+      _images.removeWhere((image)=>image ==imagePath);
     });
   }
 
@@ -100,22 +108,41 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
      setState(() {
       isLoading = true;
     });
-    context.read<ActiBloc>().add(ActiGetOnbordingEvent());
     final event = widget.organizedEventModel;
  
     if(event!=null){
-  // Преобразуем строку в DateTime
-DateTime startParsedTime = DateFormat("HH:mm:ss").parse(event.timeStart);
-DateTime endParsedTime = DateFormat("HH:mm:ss").parse(event.timeEnd);
+    DateTime startParsedTime = DateFormat("HH:mm:ss").parse(event.timeStart);
+    DateTime endParsedTime = DateFormat("HH:mm:ss").parse(event.timeEnd);
 
-// Получаем часы и минуты
-int startHourIndex = startParsedTime.hour;
-int startMinuteIndex = startParsedTime.minute;
-int endHourIndex = endParsedTime.hour;
-int endMinuteIndex = endParsedTime.minute;
+    int startHourIndex = startParsedTime.hour;
+    int startMinuteIndex = startParsedTime.minute;
+    int endHourIndex = endParsedTime.hour;
+    int endMinuteIndex = endParsedTime.minute;
         for(var photo in event.photos){
-         final xFileNet = await getImageXFileByUrl('http://93.183.81.104$photo');
-         _images.add(xFileNet);
+         _images.add(photo);
+        }
+        for(var restrict in event.restrictions){
+          if(restrict == 'isAdults'){
+            setState(() {
+              is18plus = true;
+            });
+          }
+          if(restrict == 'isKidsAllowed'){
+            setState(() {
+              isKidsAllowed = true;
+            });
+          }
+            if(restrict == 'withAnimals'){
+            setState(() {
+              isPetFriendly = true;
+            });
+          }
+            if(restrict == 'isUnlimited'){
+            setState(() {
+              isUnlimited = true;
+              peopleCount = 0;
+            });
+          }
         }
       setState(() {
         titleController.text = event.title;
@@ -140,15 +167,16 @@ setState(() {
   
 });
     }
+    context.read<ActiBloc>().add(ActiGetOnbordingEvent());
   }
 
- 
+    String errorText = '';
  @override
   Widget build(BuildContext context) {
        List<Widget> bottomGrid = [];
     if (_images.length > 1) {
       for (int i = 1; i < _images.length; i++) {
-        bottomGrid.add(_buildImage(_images[i], i, 80, 80));
+        bottomGrid.add(_buildImage(_images[i], 80, 80));
       }
     }
     return BlocListener<ActiBloc, ActiState>(
@@ -160,7 +188,22 @@ setState(() {
           Navigator.pop(context);
           showAlertOKDialog(context, 'Ваше событие отредактировано и отправлено на проверку. Будет опубликовано после модерации.', isTitled: true, title: 'Событие на проверке!');
         }
+        if(state is ActiUpdatedActivityState){
+          context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
+          setState(() {
+            isLoading = false;
+          });
+          Navigator.pop(context, widget.organizedEventModel);
+          showAlertOKDialog(context, 'Ваше событие успешно отредактировано.', isTitled: true, title: 'Событие отредактировано');
+        }
         if(state is ActiCreatedActivityErrorState){
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка')));
+        }
+
+         if(state is ActiUpdatedActivityErrorState){
           setState(() {
             isLoading = false;
           });
@@ -169,7 +212,11 @@ setState(() {
         if(state is ActiGotOnbordingState){
           setState(() {
            isLoading = false;
-            eventCategories = state.listOnbordingModel.categories;
+           eventCategories = state.listOnbordingModel.categories;
+            selectedCategory = widget.organizedEventModel!= null? state.
+            listOnbordingModel.categories.firstWhere
+            ((category)=>category.id==widget.organizedEventModel!.
+            category_id):null;
           });
         }
           if(state is ActiGotOnbordingErrorState){
@@ -181,7 +228,8 @@ setState(() {
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: AppBarWidget(title: "Создание активности"),
+        appBar:isLoading?null: AppBarWidget(title:widget.organizedEventModel!=
+        null? 'Обновление активности': "Создание активности"),
         body:isLoading?LoaderWidget(): SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(key: _formKey,
@@ -198,7 +246,7 @@ setState(() {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildImage(_images[0], 0,MediaQuery.of(context).size.height * 0.24, 118),
+                _buildImage(_images[0],MediaQuery.of(context).size.height * 0.24, 118),
                 const SizedBox(width: 14),
                 _buildSmallAddButton(),
               ],
@@ -221,28 +269,22 @@ setState(() {
                   style: TextStyle(fontFamily: 'Inter', fontSize: 13),
                 ),
                 const SizedBox(height: 8),
-                _buildTextField((val){
-                  if(val!.isEmpty){
-                    return 'Заполните название';
-                  }
-                  return null;
-                },"Введите название вашего события",controller: titleController),
+                _buildTextField("Введите название вашего события",controller: titleController),
                 const SizedBox(height: 20),
                 _buildSwitchTile("Событие ОНЛАЙН", isOnline,
                     (v) => setState(() => isOnline = v)),
+                isOnline ? Padding(
+                  padding: const EdgeInsets.only(top: 5,bottom: 5,left: 5),
+                  child: Text('Для онлайн-события укажите в описании ссылку на подключение или иной способ доступа.',
+                  style: TextStyle(fontFamily: 'Inter',fontSize: 13,fontWeight: FontWeight.w300,color: Color.fromRGBO(137 ,137, 137,1),height: 1),),
+                ):Container(),
                 const SizedBox(height: 14),
-                Padding(
+               !isOnline  ? Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     children: [
                       Expanded(
                         child: TextFormField(
-                          
-                            validator: (val){
-                              if(val!.isEmpty){
-                                return 'Заполните адрес';
-                              }
-                            },
                             maxLines: 1,controller: addressController,
                             decoration: InputDecoration(
                               fillColor: Colors.grey[200],
@@ -272,12 +314,12 @@ setState(() {
                       )
                     ],
                   ),
-                ),
-                const SizedBox(height: 14),
+                ):Container(),
+                 SizedBox(height:isOnline ? 0: 14),
                 _buildSwitchTile("Повторяющееся событие", isRecurring,
                     (v) => setState(() => isRecurring = v)),
                 const SizedBox(height: 14),
-                Padding(
+               !isRecurring?  Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     children: [
@@ -286,12 +328,7 @@ setState(() {
   maxLines: 1,
   controller: dateController,
   inputFormatters: [dateFormatter],
-  validator: (val) {
-    if (val!.isEmpty) {
-      return 'Заполните адрес';
-    }
-    return null;
-  },
+  
   decoration: InputDecoration(
     hintText: 'Дата',
     hintStyle: TextStyle(
@@ -299,6 +336,7 @@ setState(() {
       fontSize: 16,
       fontWeight: FontWeight.w400,
     ),
+    
     filled: true,
     fillColor: Colors.grey[200],
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
@@ -330,7 +368,11 @@ setState(() {
                       )
                     ],
                   ),
-                ),
+                ):DayOfWeekSelector(selectedDay:recurringDay!,onChanged: (val){
+                  setState(() {
+                    recurringDay = val!;
+                  });
+                }),
                 const SizedBox(height: 28),
                 Text(
                   'Время начала:',
@@ -351,43 +393,47 @@ setState(() {
                   style: TextStyle(fontFamily: 'Inter', fontSize: 13),
                 ),
                 const SizedBox(height: 8),
-                _buildTextField((val){
-                  if(val!.isEmpty){
-                    return 'Заполните цену';
-                  }
-                  return null;
-                },"Введите цену",isPrice: true, suffixText: "₽",controller: priceController),
+                _buildTextField("Введите цену",isPrice: true, suffixText: "₽",controller: priceController),
                 const SizedBox(height: 24),
                 _buildSwitchTile("Ограничение 18+", is18plus,
                     (v) => setState(() => is18plus = v)),
+                const SizedBox(height: 10),
+                _buildSwitchTile("Можно с детьми", isKidsAllowed,
+                    (v) {
+                      setState(() => isKidsAllowed = v);
+                      if(isKidsAllowed){
+                        showKidsAlertDialog(context, '');
+                      }
+                    }),
                 const SizedBox(height: 10),
                 _buildSwitchTile("Можно с животными", isPetFriendly,
                     (v) => setState(() => isPetFriendly = v)),
                 const SizedBox(height: 10),
                 _buildSwitchTile("Количество человек неограниченно", isUnlimited,
                     (v) => setState(() => isUnlimited = v)),
-                const SizedBox(height: 24),
-                 Text(
-                  'Количество человек',
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 13),
-                ),
-                const SizedBox(height: 8),
-                _buildPeopleCounter(),
-                const SizedBox(height: 24),
-                _buildSwitchTile("Создать групповой чат", isGroupChat,
-                    (v) => setState(() => isGroupChat = v)),
-                const SizedBox(height: 24),
+                 SizedBox(height:isUnlimited? 0: 24),
+                isUnlimited == true?Container(): Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     Text(
+                      'Количество человек',
+                      style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                                     ),
+                                     const SizedBox(height: 8),
+                     _buildPeopleCounter(),
+                   ],
+                 ),
+                 SizedBox(height:isUnlimited? 10: 24),
+                widget.organizedEventModel==null?  _buildSwitchTile("Создать групповой чат", isGroupChat,
+                    (v) => setState(() => isGroupChat = v)):Container(),
+                 SizedBox(height:widget.organizedEventModel!= null?
+                 12: 24),
                  Text(
                   'Описание',
                   style: TextStyle(fontFamily: 'Inter', fontSize: 13),
                 ),
                 const SizedBox(height: 8),
-                _buildTextField((val){
-                  if(val!.isEmpty){
-                    return 'Заполните описание';
-                  }
-                  return null;
-                },"Опишите ваше событие", maxLines: 4,controller: descriptionController),
+                _buildTextField("Опишите ваше событие", maxLines: 4,controller: descriptionController),
                 const SizedBox(height: 28),
                    Text(
                   'Категория:',
@@ -517,26 +563,25 @@ setState(() {
   }
 
   Widget _buildTextField(
-  final String? Function(String?)? validator, String label, {int maxLines = 1,bool isPrice = false, String? suffixText,required TextEditingController controller}) {
+ String label, {int maxLines = 1,bool isPrice = false, String? suffixText,required TextEditingController controller}) {
     return TextFormField(
           inputFormatters:isPrice? [FilteringTextInputFormatter.digitsOnly]:null,
           maxLines: maxLines,controller: controller,
           keyboardType: isPrice? TextInputType.number:null,
-          validator: validator,
           decoration: InputDecoration(
     filled: true,
     fillColor: Colors.grey[200],
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none),
-              suffixIcon: suffixText != null
+              suffix: suffixText != null
                   ? Padding(
-                      padding: const EdgeInsets.only(top: 10, right: 10),
-                      child: Text(
-                        suffixText,
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 14),
-                      ),
-                    )
+                    padding: const EdgeInsets.only(right: 20),
+                    child: Text(
+                              suffixText,
+                              style: TextStyle(fontFamily: 'Inter', fontSize: 14),
+                            ),
+                  )
                   : null,
               suffixStyle: TextStyle(color: Colors.black),
               hintText: label, 
@@ -651,15 +696,26 @@ setState(() {
     Widget _buildSaveButton() {
     return SizedBox(height: 59,
       child: ElevatedButton(
-        onPressed: () {
-          if(_formKey.currentState!.validate()){
-            _formKey.currentState!.save();
-        final timeStart = utcTime('$startSelectedHour:$startSelectedMinute');
+        onPressed: () async {
+          if(dateController.text.isEmpty && !isRecurring){
+            showAlertOKDialog(context,null,isTitled: true,title:  'Выберите дату');
+          }else if(titleController.text.isEmpty){
+              showAlertOKDialog(context,null,isTitled: true,title:  'Заполните название события');
+          }else if(addressController.text.isEmpty && isOnline == false){
+              showAlertOKDialog(context,null,isTitled: true,title:  'Заполните адрес');
+          } else if(peopleCount == 0 && isUnlimited == false){
+              showAlertOKDialog(context,null,isTitled: true,title:  'В событие должен быть минимум 1 человек');
+          }else if(descriptionController.text.isEmpty){
+              showAlertOKDialog(context,null,isTitled: true,title:  'Заполните описание');
+          }
+          else{
+            final timeStart = utcTime('$startSelectedHour:$startSelectedMinute');
         final timeEnd = utcTime('$endSelectedHour:$endSelectedMinute');
-        final dateStart = utcDate(dateController.text.trim());
+        final dateStart =dateController.text.isNotEmpty? utcDate(dateController.text.trim()):null;
         final now = DateTime.now();
 
-// 1. Получаем дату
+if(!isRecurring){
+  // 1. Получаем дату
 final selectedDate = DateFormat('dd.MM.yyyy').parse(dateController.text.trim());
 
 // 2. Собираем DateTime из даты + времени
@@ -678,8 +734,6 @@ final endDateTime = DateTime(
   endSelectedHour,
   endSelectedMinute,
 );
-
-// 3. Проверки
 if (startDateTime.isAfter(endDateTime)) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(content: Text('Время начала должно быть раньше времени конца')),
@@ -696,29 +750,38 @@ if (startDateTime.isAfter(endDateTime)) {
             setState(() {
             isLoading = true;
           });
-          context.read<ActiBloc>().add(ActiCreateActivityEvent(
-            createEventModel: CreateEventModel(
-              isGroupChat: isGroupChat,
-              isUnlimited: isUnlimited,
-              is18plus: is18plus,
-              withAnimals: isPetFriendly,
-              price:double.parse( priceController.text.trim()),
-              slots: peopleCount,
-              title:
-             titleController.text.trim(), description: descriptionController.text.trim(), type: isOnline?'online':'offline',
-              address: addressController.text.trim(), dateStart: dateStart, timeStart:
-               timeStart, timeEnd: timeEnd, isRecurring: isRecurring, 
-               categoryId: selectedCategory!.id, updateRecurring: false,
-               photos:_images )
+          context.read<ActiBloc>().add(widget.organizedEventModel !=null?
+          ActiUpdateActivityEvent(
+            alterEventModel: eventmodel(dateStart, timeStart, timeEnd)
+          ):ActiCreateActivityEvent(
+            createEventModel: eventmodel(dateStart, timeStart, timeEnd)
           ));
           }else{
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Выберите категорию')));
           }
+}else{
+  if (_images.isEmpty) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Выберите фотографию')),
+  );
+} else if(selectedCategory != null){
+         await Future.delayed(Duration(seconds: 2)).then((val){
+            setState(() {
+            isLoading = true;
+          });
+          context.read<ActiBloc>().add(widget.organizedEventModel !=null?
+          ActiUpdateActivityEvent(
+            alterEventModel: eventmodel(dateStart, timeStart, timeEnd)
+          ):ActiCreateActivityEvent(
+            createEventModel: eventmodel(dateStart, timeStart, timeEnd)
+          ));
+          });
+          }else{
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Выберите категорию')));
           }
-  
-           
-          
+}
 
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Color.fromRGBO(98, 207, 102,1),
@@ -731,17 +794,41 @@ if (startDateTime.isAfter(endDateTime)) {
     );
   }
 
-   Widget _buildImage(XFile image, int index, double width,double height) {
+    AlterEventModel eventmodel(String? dateStart, String timeStart, String timeEnd) {
+      return AlterEventModel(
+        isOnline: isOnline,
+        isKidsAllowed: isKidsAllowed,
+        recurringDay: getNextDateForWeekday(recurringDay),
+        deletedImages: deletedImages,
+        id: widget.organizedEventModel?.id,
+            isGroupChat: isGroupChat,
+            isUnlimited: isUnlimited,
+            is18plus: is18plus,
+            withAnimals: isPetFriendly,
+            price:priceController.text.trim()!= ''?double.parse(priceController.text.trim()):
+            null,
+            slots: peopleCount,
+            title:
+           titleController.text.trim(), description: descriptionController.text.trim(), type: isOnline?'online':'offline',
+            address: addressController.text.trim(), dateStart: dateStart, timeStart:
+             timeStart, timeEnd: timeEnd, isRecurring: isRecurring, 
+             categoryId: selectedCategory!.id, updateRecurring: false,
+             images:_images );
+    }
+
+   Widget _buildImage(String imagePath, double width,double height) {
     return Padding(
       padding: const EdgeInsets.only(left: 3),
       child: Stack(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.file(
-              File(image.path),
+            child:imagePath.contains('http://93.183.81.104')?
+            Image.network(imagePath, width: width,height: height,
+            fit: BoxFit.cover,): Image.file(
+              File(imagePath),
               width: width,
-              height: height,
+              height: height, 
               fit: BoxFit.cover,
             ),
           ),
@@ -749,7 +836,7 @@ if (startDateTime.isAfter(endDateTime)) {
             top: 0,
             right: 0,
             child: GestureDetector(
-              onTap: () => _removeImage(index),
+              onTap: () => _removeImage(imagePath),
               child: Container(width: 20,
               height: 20,
                 decoration: const BoxDecoration(

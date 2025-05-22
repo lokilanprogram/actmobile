@@ -55,7 +55,7 @@ Future<bool> authLogout() async {
   );
 
   if (response.statusCode == 200 || response.statusCode == 204) {
-    return true;
+    print(response.statusCode);
   } 
   return false;
 }

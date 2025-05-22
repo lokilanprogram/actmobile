@@ -42,6 +42,7 @@ class OrganizedEventModel {
     String id;
     String title;
     String description;
+    String category_id;
     String type;
     String address;
     DateTime dateStart;
@@ -50,8 +51,8 @@ class OrganizedEventModel {
     String timeEnd;
     int slots;
     int freeSlots;
-    double latitude;
-    double longitude;
+    double? latitude;
+    double? longitude;
     double price;
     String status;
     List<String> photos;
@@ -59,8 +60,13 @@ class OrganizedEventModel {
     bool isRecurring;
     Creator creator;
     List<Participant> participants;
+    String? join_status;
+  String? creatorId;
 
     OrganizedEventModel({
+      required this.creatorId,
+      required this.join_status,
+      required this.category_id,
         required this.id,
         required this.title,
         required this.description,
@@ -85,6 +91,9 @@ class OrganizedEventModel {
 
     factory OrganizedEventModel.fromJson(Map<String, dynamic> json) => OrganizedEventModel(
         id: json["id"],
+        creatorId: json['creator_id'],
+        join_status: json['join_status'],
+        category_id: json["category_id"],
         title: json["title"],
         description: json["description"],
         type: json["type"],
@@ -131,22 +140,26 @@ class OrganizedEventModel {
 }
 
 class Creator {
+    String? id;
     String name;
-    String surname;
-    String email;
-    String city;
-    String bio;
-    bool isOrganization;
+    String? surname;
+    String? email;
+    String? city;
+    String? bio;
+    bool? isOrganization;
+    bool? hasRecentBan;
     String? photoUrl;
-    String status;
-    bool isEmailVerified;
-    bool isProfileCompleted;
+    String? status;
+    bool? isEmailVerified;
+    bool? isProfileCompleted;
 
     Creator({
+      required this.id,
         required this.name,
         required this.surname,
         required this.email,
         required this.city,
+        required this.hasRecentBan,
         required this.bio,
         required this.isOrganization,
         required this.photoUrl,
@@ -156,9 +169,11 @@ class Creator {
     });
 
     factory Creator.fromJson(Map<String, dynamic> json) => Creator(
+      id: json['id'],
         name: json["name"],
         surname: json["surname"],
         email: json["email"],
+        hasRecentBan: json["has_recent_ban"],
         city: json["city"],
         bio: json["bio"],
         isOrganization: json["is_organization"],

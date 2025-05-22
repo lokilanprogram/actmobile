@@ -1,19 +1,23 @@
 import 'package:image_picker/image_picker.dart';
 
-class CreateEventModel {
+class AlterEventModel {
+  final String? id;
   final String title;
   final String description;
   final String type;
   final String address;
-  final String dateStart;
+  final String? dateStart;
   final String? dateEnd;
   final String timeStart;
   final String timeEnd;
+  final String? recurringDay;
   final double? price;
   final int? slots;
   final bool is18plus;
+  final bool isOnline;
   final bool isGroupChat;
   final bool isUnlimited;
+  final bool isKidsAllowed;
   final bool withAnimals;
   final double? latitude;
   final double? longitude;
@@ -21,12 +25,18 @@ class CreateEventModel {
   final bool isRecurring;
   final String categoryId;
   final bool updateRecurring;
-  final List<XFile> photos;
+  final List<String> images;
+  final List<String> deletedImages;
 
-  CreateEventModel({
+  AlterEventModel({
+    required this.isOnline,
+    required this.deletedImages,
+    required this.id,
     required this.isGroupChat,
     required this.isUnlimited,
+    required this.isKidsAllowed,
     required this.is18plus, 
+    required this.recurringDay, 
     required this.withAnimals,
     required this.title,
     required this.description,
@@ -44,7 +54,7 @@ class CreateEventModel {
     required this.isRecurring,
     required this.categoryId,
     required this.updateRecurring,
-    required this.photos,
+    required this.images,
   });
 
   Map<String, dynamic> toJson() {

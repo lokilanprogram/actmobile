@@ -46,11 +46,12 @@ class _InputLoadingScreenState extends State<InputLoadingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(backgroundColor: Colors.white,
+    resizeToAvoidBottomInset: false,
       body: GestureDetector(
         onTap: (){
           FocusScope.of(context).unfocus();
         },
-        child: SafeArea(child:  Stack(
+        child:   Stack(
             children: [
               Align(alignment: Alignment.topCenter,
                 child: Container(height: MediaQuery.of(context).size.height * 0.35,
@@ -85,7 +86,7 @@ class _InputLoadingScreenState extends State<InputLoadingScreen> {
               )
             ],
           
-        )),
+        )
       ),
     );
   }

@@ -96,189 +96,185 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
       child: isLoading
           ? LoaderWidget()
           : Scaffold(
-            body: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(25),
-                              topLeft: Radius.circular(25),),
-                          child: profileModel.photoUrl != null
-                              ? Image.network(
-                                  profileModel.photoUrl!,
-                                  width: double.infinity,
-                                  height: 350,
-                                  fit: BoxFit.cover,
-                                )
-                              : Image.asset(
-                                  'assets/images/image_profile.png',
-                                  width: double.infinity,
-                                  height: 350,
-                                  fit: BoxFit.cover,
-                                ),
-                        ),
-                        Positioned(
-                          top: 77,
-                          left: 39,
-                          child: SvgPicture.asset('assets/icons/icon_back_white.svg')
-                        ),
-                        Positioned(
-                          top: 77,
-                          right: 60,
-                          child: Icon(Icons.notifications_none_outlined,
-                              color: Colors.white),
-                        ),
-                        Positioned(
-                            top: 77,
-                            right: 20,
-                            child: PopUpProfileButtons(
-                              deleteFunction: (){
-                                setState(() {
-                                  isLoading = true;
-                                });
-                                context.read<ProfileBloc>().add(ProfileLogoutEvent());
-                              },
-                              editFunction: () async {
-                                final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => UpdateProfileScreen(
-                                              profileModel: profileModel,
-                                            )));
-                                if (result != null && result is ProfileModel) {
-                                  setState(() {
-                                    profileModel = result;
-                                  });
-                                }
-                              },
-                            )),
-                        Positioned(
-                          bottom: 30,
-                          left: 20,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+            body: Stack(
+              children: [
+                Positioned.fill(
+                  child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Stack(
                             children: [
-                              Text(
-                                profileModel.name ?? 'Неизвестное имя',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                              profileModel.photoUrl != null
+                                    ? Image.network(
+                                        profileModel.photoUrl!,
+                                        width: double.infinity,
+                                        height: 350,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.asset(
+                                        'assets/images/image_profile.png',
+                                        width: double.infinity,
+                                        height: 350,
+                                        fit: BoxFit.cover,
+                                      ),
+                              Positioned(
+                                top: 77,
+                                right: 60,
+                                child: Icon(Icons.notifications_none_outlined,
+                                    color: Colors.white),
+                              ),
+                              Positioned(
+                                  top: 77,
+                                  right: 20,
+                                  child: PopUpProfileButtons(
+                                    deleteFunction: (){
+                                      setState(() {
+                                        isLoading = true;
+                                      });
+                                      context.read<ProfileBloc>().add(ProfileLogoutEvent());
+                                    },
+                                    editFunction: () async {
+                                      final result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (_) => UpdateProfileScreen(
+                                                    profileModel: profileModel,
+                                                  )));
+                                      if (result != null && result is ProfileModel) {
+                                        setState(() {
+                                          profileModel = result;
+                                        });
+                                      }
+                                    },
+                                  )),
+                              Positioned(
+                                bottom: 30,
+                                left: 20,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      profileModel.name ?? 'Неизвестное имя',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      capitalize(profileModel.status),
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                capitalize(profileModel.status),
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white70,
+                                Positioned(
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              child: Container(
+                                width: MediaQuery.of(context).size.width,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(20),
+                                    topRight: Radius.circular(20)
+                                  ),
+                                  color: Colors.white
                                 ),
-                              ),
+                              )
+                            ),
                             ],
                           ),
-                        ),
-                          Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          width: MediaQuery.of(context).size.width,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(20),
-                              topRight: Radius.circular(20)
-                            ),
-                            color: Colors.white
-                          ),
-                        )
-                      ),
-                      ],
-                    ),
-                    Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 25, vertical: 5),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(25),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Профиль',
-                              style: TextStyle(
-                                fontSize: 25,
-                                fontFamily: 'Gilroy',
-                                fontWeight: FontWeight.bold,
-                                color: mainBlueColor,
-                              ),
-                            ),
-                            SizedBox(height: 10,),
-                            const Text(
-                              'О себе',
-                              style: TextStyle(
-                                fontSize: 16.67,
-                                fontFamily: 'Gilroy',
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                            ),
-                            Text(profileModel.bio ==''|| profileModel.bio==null ?'...':profileModel.bio!,style: TextStyle(
-                              fontFamily: 'Inter',fontSize: 12
-                            ),),
-                            const SizedBox(height: 15),
-                            // Interests
-                            Center(
-                              child: Wrap(
-                                  spacing: 10,
-                                  runSpacing: 10,
-                                  children: profileModel.categories
-                                      .map((event) => buildInterestChip(event.name))
-                                      .toList()),
-                            ),
-                      
-                            const SizedBox(height: 25),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 0),
-                              child: const Text(
-                                'Похожие пользователи',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: 'Gilroy'),
-                              ),
-                            ),
-                            const SizedBox(height: 15),
-                            // Similar users row
-                            Center(
-                              child: similiarUsersModel.isEmpty?buildNoUsers():SizedBox(
-                                width: MediaQuery.of(context).size.width*0.8,
-                                child: Card(elevation: 1.2,shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25)
-                                ),
-                                
+                          Container(
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.height,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 25, vertical: 5),
+                              decoration: const BoxDecoration(
                                 color: Colors.white,
-                                child: buildSimiliarUsers(context),),
-                              )
-                              
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(25),
+                                ),
                               ),
-                              
-                          ],
-                        ),
-                      
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Профиль',
+                                    style: TextStyle(
+                                      fontSize: 25,
+                                      fontFamily: 'Gilroy',
+                                      fontWeight: FontWeight.bold,
+                                      color: mainBlueColor,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10,),
+                                  const Text(
+                                    'О себе',
+                                    style: TextStyle(
+                                      fontSize: 16.67,
+                                      fontFamily: 'Gilroy',
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  Text(profileModel.bio ==''|| profileModel.bio==null ?'...':profileModel.bio!,style: TextStyle(
+                                    fontFamily: 'Inter',fontSize: 12
+                                  ),),
+                                  const SizedBox(height: 15),
+                                  // Interests
+                                  Center(
+                                    child: Wrap(
+                                        spacing: 10,
+                                        runSpacing: 10,
+                                        children: profileModel.categories
+                                            .map((event) => buildInterestChip(event.name))
+                                            .toList()),
+                                  ),
+                            
+                                  const SizedBox(height: 25),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 0),
+                                    child: const Text(
+                                      'Похожие пользователи',
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          fontFamily: 'Gilroy'),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 15),
+                                  // Similar users row
+                                  Center(
+                                    child: similiarUsersModel.isEmpty?buildNoUsers():SizedBox(
+                                      width: MediaQuery.of(context).size.width*0.9,
+                                      child: Card(elevation: 1.2,shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(25)
+                                      ),
+                                      
+                                      color: Colors.white,
+                                      child: buildSimiliarUsers(context),),
+                                    )
+                                    
+                                    ),
+                                    
+                                ],
+                              ),
+                            
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
                 ),
-              ),
+              ],
+            ),
           ),
     );
   }

@@ -69,6 +69,25 @@ Future<ProfileEventModels?> getProfileListEvents() async {
   return null;
 }
 
+Future<ProfileEventModels?> getProfileVisitedListEvents() async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+    final response = await http.get(
+    Uri.parse('$API/api/v1/users/events/visited'),
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken'
+    },
+  );
+   if (response.statusCode == 200) {
+     return ProfileEventModels.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return null;
+}
+
 Future<PublicUserModel?> getPublicUser(String userId) async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){

@@ -68,7 +68,7 @@ class _OrgToggleTooltipState extends State<OrgToggleTooltip> {
         'assets/icons/icon_info.svg',
         width: 20,
         height: 20,
-        fit: BoxFit.contain,
+        fit: BoxFit.cover,
       ),
     );
   }

@@ -11,6 +11,7 @@ import 'package:acti_mobile/presentation/screens/onbording/events_select/events_
 import 'package:acti_mobile/presentation/screens/profile/update_profile/toggle.dart';
 import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -27,7 +28,7 @@ class UpdateProfileScreen extends StatefulWidget {
 class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   bool isOrganizationRepresentative = false;
   final _formKey = GlobalKey<FormState>();
-  String _selectedTab = 'my';
+  String _selectedTab = '';
   late List<EventOnboarding> selectedCategories;
   late TextEditingController nameController;
   late TextEditingController surnameController;
@@ -79,6 +80,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         }
       },
       child: Scaffold(
+  resizeToAvoidBottomInset: false,
         backgroundColor: Colors.white,
         appBar:isLoading?null:  AppBar(
           backgroundColor: Colors.white,
@@ -95,6 +97,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
               icon: SvgPicture.asset('assets/icons/icon_back.svg'),
             ),
           ),
+          centerTitle: true,
           title: Padding(
             padding: const EdgeInsets.only(top: 5),
             child: SvgPicture.asset('assets/texts/text_profile.svg'),
@@ -203,8 +206,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                    ),
                                    SizedBox(width: 8),
                                    OrgToggleTooltip(),
-                                   SizedBox(width: 24),
-                                   _buildSwitch(),
+                                   Expanded(child:cupertinoSwitch()),
                                  ],
                                ),
                              
@@ -409,7 +411,17 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     );
   }
 
-  Widget _buildSwitch() {
+  Widget cupertinoSwitch(){
+    return CupertinoSwitch(
+          activeTrackColor: Colors.blue,
+      value:isOrganizationRepresentative, onChanged: (val){
+         setState(() {
+          isOrganizationRepresentative = !isOrganizationRepresentative;
+        });
+    });
+  }
+
+  Widget  _buildSwitch() {
     return GestureDetector(
       onTap: () {
         setState(() {

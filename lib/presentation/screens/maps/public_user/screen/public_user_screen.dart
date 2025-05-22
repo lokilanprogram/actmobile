@@ -9,6 +9,7 @@ import 'package:acti_mobile/presentation/screens/profile/my_events/widget/my_eve
 import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
 import 'package:acti_mobile/presentation/widgets/gradient_text.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
+import 'package:acti_mobile/presentation/widgets/send_message_bar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -57,6 +58,10 @@ Widget build(BuildContext context) {
           isBlocked = state.publicUserModel.isBlockedByUser ?? false;
         });
       }
+       if(state is ProfileUpdatedState){
+          initialize();
+        }
+        
       if(state is ProfileBlockedUserErrorState){
         setState(() {
           isLoading = false;
@@ -87,12 +92,7 @@ Widget build(BuildContext context) {
                       children: [
                         Stack(
                           children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(25),
-                                topLeft: Radius.circular(25),
-                              ),
-                              child: publicUserModel.photoUrl != null
+                            publicUserModel.photoUrl != null
                                   ? Image.network(
                                       publicUserModel.photoUrl!,
                                       width: double.infinity,
@@ -105,7 +105,7 @@ Widget build(BuildContext context) {
                                       height: 350,
                                       fit: BoxFit.cover,
                                     ),
-                            ),
+                            
                             Positioned(
                               top: 66,
                               left: 20,
@@ -268,7 +268,7 @@ Widget build(BuildContext context) {
                               // Карточки событий
                               Column(
                                 children: publicUserModel.organizedEvents
-                                    .map((event) => MyCardEventWidget(organizedEvent: event,isPublicUser: true,))
+                                    .map((event) => MyCardEventWidget(isOpacityCard: false, organizedEvent: event,isPublicUser: true,))
                                     .toList(),
                               ),
                                SizedBox(height:publicUserModel.organizedEvents.length == 1? 200:0),
@@ -279,24 +279,26 @@ Widget build(BuildContext context) {
                     ),
                   ),
               ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 60),
-                  child: Column(mainAxisAlignment: MainAxisAlignment.end,
+               Align(alignment: Alignment.bottomCenter,
+                    child: Padding(
+                    padding: EdgeInsets.only(bottom: 60),
+                                child: Container(decoration: BoxDecoration(color: Colors.transparent),
+                                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                     isBlocked? BlockedInfoWidget():Container(),
-                      SizedBox(height:isBlocked? 10:0,),
-                      CustomNavBarWidget(selectedIndex: 4, onTabSelected: (index){
-                              if(index == 0){
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                                MapScreen()));
-                              }
-                            }),
+                      SendMessageBarWidget(function: (){}),
+                        SizedBox(height: 15,),
+                      CustomNavBarWidget(
+                        selectedIndex: 4, onTabSelected: (index){
+                        if(index == 0){
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                          MapScreen()));
+                        }
+                      }),
                     ],
+                                    ),
+                                ),),
                   ),
-                ),
-              ),
             ],
           ),
     ),

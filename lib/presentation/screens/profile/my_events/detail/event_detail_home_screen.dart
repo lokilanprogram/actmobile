@@ -1,7 +1,10 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
+import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/requests/event_request_screen.dart';
 import 'package:acti_mobile/presentation/widgets/error_widget.dart';
 import 'package:acti_mobile/presentation/widgets/popup_event_buttons.dart';
@@ -13,7 +16,8 @@ import 'package:intl/intl.dart';
 
 class EventDetailHomeScreen extends StatefulWidget {
   final String eventId;
-  const EventDetailHomeScreen({super.key, required this.eventId});
+  final OrganizedEventModel organizedEventModel;
+  const EventDetailHomeScreen({super.key, required this.eventId, required this.organizedEventModel});
 
   @override
   State<EventDetailHomeScreen> createState() => _EventDetailHomeScreenState();
@@ -22,7 +26,9 @@ class EventDetailHomeScreen extends StatefulWidget {
 class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
   bool isLoading = false;
   bool isError = false; 
-  late EventModel organizedEvent;
+  late OrganizedEventModel organizedEvent;
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
   @override
   void initState() {
     initialize();
@@ -85,42 +91,84 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                     Container(height: MediaQuery.of(context).size.height, decoration: BoxDecoration(color: Colors.white),),
                     Stack(
                       children: [
-                        // Фото
-                        Image.network(
-                          'http://93.183.81.104${organizedEvent.photos!.first}',
-                          width: double.infinity,
-                          height:200,
-                          fit: BoxFit.cover,
-                        ),
+                           SizedBox(height: 200,
+                             child: PageView.builder(
+                                       controller: _pageController,
+                                       itemCount: organizedEvent.photos!.length,
+                                       onPageChanged: (index) {
+                                         setState(() {
+                                           _currentPage = index;
+                                         });
+                                       },
+                                       itemBuilder: (context, index) {
+                                         return Image.network(
+                                           organizedEvent.photos![index],
+                                           width: double.infinity,
+                                           height: 200,
+                                           fit: BoxFit.cover,
+                                         );
+                                       },
+                                     ),
+                           ),
                         Positioned(
                             top: 50,
                             right: 20,
-                            child: PopUpPublicUserButtons(blockFunction: () async {},userName: 'default',userId: '',)),
+                            child: PopupMenuButton<int>(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          offset: const Offset(-10, 30),
+          itemBuilder: (BuildContext context) => [
+             PopupMenuItem<int>(
+                value: 0,
+                onTap: ()async{
+                 final result = await  Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                  CreateEventScreen(organizedEventModel: organizedEvent)));
+                  if(result!=null){
+                    initialize();
+                  }
+                },
+                child: Row(
+                  children:  [
+                    SvgPicture.asset('assets/icons/icon_edit.svg'),
+                    SizedBox(width: 10),
+                    Text("Редактировать",style: TextStyle(
+                      fontFamily: 'Gilroy',fontSize: 12.93,
+                      color: Colors.black
+                    ),),
+                  ],
+                ),
+              ),
+          ],
+          child: const Icon(Icons.more_vert, color: Colors.white),
+        )),
                 
                         // Индикаторы
-                        Positioned(
-                          bottom: 30,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(4, (index) {
-                                return Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    color: index == 0
-                                        ? Colors.white
-                                        : Colors.white.withOpacity(0.5),
-                                    shape: BoxShape.circle,
-                                  ),
-                                );
-                              }),
-                            ),
-                          ),
-                        ),
+                       Positioned(
+          bottom: 30,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(organizedEvent.photos!.length, (index) {
+                return AnimatedContainer(
+                  duration: Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: index == _currentPage
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
                       ],
                     ),
                     Positioned(
@@ -162,13 +210,23 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                     ],
                                    ),
                                    Spacer(),
-                                   Padding(
+                                   organizedEvent.restrictions!=null?
+                                 (  
+                                  organizedEvent.restrictions!.any((rectrict)=>rectrict =='isAdults')? Padding(
                                      padding: const EdgeInsets.only(right: 30),
                                      child: SvgPicture.asset('assets/icons/icon_adult.svg',width: 34,),
-                                   )
+                                   ):Container()):Container()
                                   ],
                                 ),
-                      
+
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 20),
+                                  child: Text(capitalize(organizedEvent.title),style: TextStyle(
+                                    fontFamily: 'Gilroy',fontWeight: FontWeight.bold,
+                                    fontSize: 23
+                                  ),),
+                                ),
+            
                                 const SizedBox(height: 15),
                       
                                 // Автор и участники
@@ -216,6 +274,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                   children: [
                                                   Text('Заявки',style: TextStyle(color: mainBlueColor,
                                                   fontFamily: 'Inter',fontSize: 22, fontWeight: FontWeight.bold),),
+                                                  SizedBox(width: 15,),
                                                   SvgPicture.asset('assets/icons/icon_next_blue.svg')
                                                  ],),
                                                ),
@@ -236,12 +295,18 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                 const SizedBox(height: 20),
                       
                                 // Дата и время
-                                infoRow(
+                               organizedEvent.isRecurring ? infoRepeatedRow(
+                                  'assets/icons/icon_time.svg',
+                                  false,
+                                  getWeeklyRepeatText(organizedEvent.dateStart),
+                                  '${organizedEvent.timeStart.substring(0,5)}–${organizedEvent.timeEnd.substring(0,5)}',
+                                   trailing: formatDuration(organizedEvent.timeStart, organizedEvent.timeEnd),
+                                ): infoRow(
                                   'assets/icons/icon_time.svg',
                                   false,
                                   'Дата и время',
-                                  '${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)} | ${organizedEvent.timeStart.substring(0,5)} – ${organizedEvent.timeEnd.substring(0,5)}',
-                                  trailing: '40 мин',
+                                  '${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)} | ${organizedEvent.timeStart.substring(0,5)}–${organizedEvent.timeEnd.substring(0,5)}',
+                          trailing: formatDuration(organizedEvent.timeStart, organizedEvent.timeEnd),
                                 ),
                                  const SizedBox(height: 20),
                       
@@ -259,7 +324,11 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                 infoRow(
                                   'assets/icons/icon_people.svg',
                                   false,
-                                  'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
+                                organizedEvent.restrictions!= null?
+    (
+                                 organizedEvent.restrictions!
+                                 .any((restrict)=>restrict == 'isUnlimited') ?'Неограниченно' :'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест'):
+                                 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
                                   '',
                                 ),
                       
@@ -295,7 +364,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              showCancelActivityDialog(context, (){
+                             organizedEvent.isRecurring ? showCancelActivityDialog(context,'Вы хотите отменить одно мероприятие или всю серию?','Одну', 'Все', (){
                               setState(() {
                                 isLoading = true;
                               });
@@ -307,6 +376,14 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                               });
                               context.read<ProfileBloc>().
                               add(ProfileCancelActivityEvent(eventId: organizedEvent.id, isRecurring: true));
+                              },) : showCancelActivityDialog(context, 'Вы хотите отменить мероприятие?', 'Да', 'Нет', (){
+                              setState(() {
+                                isLoading = true;
+                              });
+                              context.read<ProfileBloc>().
+                              add(ProfileCancelActivityEvent(eventId: organizedEvent.id, isRecurring: false));
+                              }, (){
+
                               });
                             },
                             style: ElevatedButton.styleFrom(
@@ -342,26 +419,28 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
     );
   }
 
-  Widget infoRow(
+ Widget infoRow(
       String iconPath, bool isLocation, String title, String subtitle,
       {String? trailing}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
+    return 
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                  Padding(
           padding: const EdgeInsets.only(top: 5),
           child: SvgPicture.asset(iconPath),
         ),
         const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style: const TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Inter',
-                    fontSize: 17.8)),
+                Text(title,
+                    style: const TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Inter',
+                        fontSize: 17.8)),
+              ],
+            ),
             if (subtitle.isNotEmpty)
               Row(
                 children: [
@@ -380,8 +459,89 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                 ],
               ),
           ],
-        ),
-      ],
+        
     );
   }
+}
+
+ Widget infoRepeatedRow(
+  String iconPath,
+  bool isLocation,
+  String recurringdays,
+  String time, {
+  String? trailing,
+}) {
+  final parts = recurringdays.split(' ');
+
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 5),
+        child: SvgPicture.asset(iconPath),
+      ),
+      const SizedBox(width: 10),
+      Expanded( // 👈 Оборачиваем в Expanded, чтобы избежать overflow
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Дата и время',
+              style: const TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'Inter',
+                fontSize: 17.8,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Expanded( // 👈 Эта часть тоже оборачивается
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Gilroy',
+                        color: Colors.black,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: '${parts[0]} ',
+                          style: const TextStyle(fontWeight: FontWeight.normal,
+                            fontFamily: 'Gilroy',),
+                        ),
+                        TextSpan(
+                          text: parts[1],
+                          style: const TextStyle(fontWeight: FontWeight.bold,
+                            fontFamily: 'Gilroy',),
+                        ),
+                        TextSpan(
+                          text: ' | $time   ',
+                          style: TextStyle(
+                            fontFamily: 'Gilroy',
+                            color: isLocation ? Colors.blue : Colors.black,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                        TextSpan(
+                          text:trailing,
+                          style: TextStyle(
+                            fontFamily: 'Gilroy',
+                            color:Colors.grey,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                    overflow: TextOverflow.fade,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 }

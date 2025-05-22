@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:acti_mobile/data/models/create_event_model.dart';
+import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:dio/dio.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
@@ -53,7 +54,7 @@ class EventsApi {
   }
   return null;
 }
-  Future<EventModel?> getProfileEvent(String eventId) async {
+  Future<OrganizedEventModel?> getProfileEvent(String eventId) async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){
     final response = await http.get(
@@ -64,7 +65,7 @@ class EventsApi {
     },
   );
    if (response.statusCode == 200) {
-     return EventModel.fromJson(jsonDecode(response.body));
+     return OrganizedEventModel.fromJson(jsonDecode(response.body));
   } else {
     throw Exception('Error: ${response.body}');
   }
@@ -89,19 +90,40 @@ class EventsApi {
   }
   return false;
 }
+ Future<bool?> deletePhotoEvent(String eventId,String photoUrl) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+    final response = await http.delete(
+    Uri.parse('$API/api/v1/events/$eventId/photo'),
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken'
+    },
+    body: jsonEncode(<String,dynamic>{
+      "photo_url": photoUrl
+    })
+  );
+   if (response.statusCode == 200) {
+      return true;
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return false;
+}
 
-
-Future<bool?> createEvent({
-  required CreateEventModel event,
+Future<bool?> alterEvent({
+  required AlterEventModel alterEvent,
+  required bool isCreated
 }) async {
   final accessToken = await storage.read(key: accessStorageToken);
   FormData formData;
   List<MultipartFile> photos = [];
+  Response response;
 
-
-  // Добавим изображения
-  for (final photo in event.photos) {
-    final file = File(photo.path);
+  for (var photo in alterEvent.images) {
+    if(!photo.contains('http://93.183.81.104')){
+        final file = File(photo);
             final bytes = file.readAsBytesSync();
            final type = file.path.split('.').last;
             final multipartFile = MultipartFile.fromBytes(
@@ -110,31 +132,42 @@ Future<bool?> createEvent({
         contentType: DioMediaType('image', type),
             );
             photos.add(multipartFile);
+    }
   }
+  if(!isCreated){
+    for(var photo in alterEvent.deletedImages){
+   await EventsApi().deletePhotoEvent(alterEvent.id!, photo);
+  }
+  }
+
  formData = FormData.fromMap({
-      'title':event.title,
-      'description':event.description,
-      'type':event.type,
-      'address':event.address,
-      'date_start':event.dateStart,
-      'time_start':event.timeStart.substring(0,8),
-      'time_end':event.timeEnd.substring(0,8),
-      'price':event.price.toString(),
-      'latitude':0,
-      'longitude':0,
-      'create_group_chat':event.isGroupChat.toString(),
+      'title':alterEvent.title,
+      'description':alterEvent.description,
+      'type':alterEvent.type,
+      'address':alterEvent.isOnline? null: alterEvent.address,
+      'date_start':alterEvent.isRecurring? alterEvent.recurringDay : alterEvent.dateStart,
+      'time_start':alterEvent.timeStart.substring(0,8),
+      'time_end':alterEvent.timeEnd.substring(0,8),
+      'price':alterEvent.price!= null? alterEvent.price.toString() : '0',
+      'create_group_chat':alterEvent.isGroupChat.toString(),
       'restrictions':[
-        event.is18plus ? 'isAdults': null,
-        event.isUnlimited ? 'isUnlimited':null,
-        event.withAnimals ? 'withAnimals':null,
+        alterEvent.is18plus ? 'isAdults': 'noAdults',
+        alterEvent.isOnline ? 'isOnline': 'Offline',
+        alterEvent.isKidsAllowed ? 'isKidsAllowed': 'isKidsNotAllowed',
+        alterEvent.isUnlimited ? 'isUnlimited': 'noUnlimited',
+        alterEvent.withAnimals ? 'withAnimals': 'notWithAnimals',
       ],
-      'category_id':event.categoryId,
-      'is_recurring':event.isRecurring.toString(),
-      'update_recurring':event.isRecurring.toString(),
-      'slots':event.isUnlimited? 0:event.slots.toString(),
+      'category_id':alterEvent.categoryId,
+      'is_recurring':alterEvent.isRecurring.toString(),
+      'update_recurring':alterEvent.isRecurring.toString(),
+      'slots':alterEvent.isUnlimited? 0:alterEvent.slots.toString(),
       'photos':photos,
         });
-  final response = await dio.post(
+    
+ 
+  try{
+    if(isCreated){
+      response = await dio.post(
     '$API/api/v1/events',
     data: formData,
     options: Options(
@@ -144,13 +177,27 @@ Future<bool?> createEvent({
       },
     ),
   );
-  print(response.data);
-
-  if (response.statusCode == 200 || response.statusCode == 201) {
+  }else{
+      response = await dio.put(
+    '$API/api/v1/events/${alterEvent.id}',
+    data: formData,
+    options: Options(
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'multipart/form-data',
+      },
+    ),
+  );
+  }
+    if (response.statusCode == 200 || response.statusCode == 201) {
     return true;
   } else {
     throw Exception('Failed to create event: ${response.statusCode} ${response.data}');
   }
+  }on DioException catch(e){
+    throw Exception('Error: ${e.response!.data['detail']}');
+  }
+
 }
 
 

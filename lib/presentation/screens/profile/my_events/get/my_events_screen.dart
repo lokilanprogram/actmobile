@@ -3,8 +3,10 @@ import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/widget/my_events_card.dart';
+import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
 import 'package:acti_mobile/presentation/widgets/activity_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/app_bar_widget.dart';
+import 'package:acti_mobile/presentation/widgets/dashed_line_painter.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/tab_bar_widget.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +22,11 @@ class MyEventsScreen extends StatefulWidget {
 class _MyEventsScreenState extends State<MyEventsScreen> {
   bool isLoading = false;
   bool isVerified = false;
+  bool hasCompleted = false;
+  String selectedTab = 'mine';
+  bool isMineEvents = true;
   ProfileEventModels? profileEventModels;
+  ProfileEventModels? profileVisitedEventModels;
   @override
   void initState() {
     initialize();
@@ -44,11 +50,16 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
         if(state is ProfileCanceledActivityState){
           initialize();
         }
+         if(state is ProfileUpdatedState){
+          initialize();
+        }
         if(state is ProfileGotListEventsState){
           setState(() {
             isLoading = false;
             isVerified = state.isVerified;
             profileEventModels = state.profileEventsModels;
+            profileVisitedEventModels = state.profileVisitedEventsModels;
+            hasCompleted = profileEventModels?.events.any((event)=> event.status =='completed')??false;
           });
         }
           if(state is ProfileGotListEventsErrorState){
@@ -59,6 +70,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
         }
       },
       child: Scaffold(backgroundColor: Colors.white,
+  resizeToAvoidBottomInset: false,
           appBar:isLoading?null: AppBarWidget(title: 'События',),
           extendBody: true,
           body: isLoading
@@ -72,7 +84,24 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                             left: 20, right: 20, top: 10, bottom: 10),
                         child: ListView(
                           children: [
-                            TabBarWidget(),
+                            TabBarWidget(
+                              firshTabText: 'Мои',
+                              secondTabText: 'Посещённые',
+                              selectedTab: selectedTab,
+                              onTapMine: (){ 
+                               setState(() {
+                                 selectedTab = "mine";
+                                 isMineEvents = true;
+                                });
+                              },
+                              onTapVisited: (){
+                                setState(() {
+                                selectedTab = "notMine";
+                                isMineEvents = false;
+                                });
+                              },requestLentgh: null,recommendedLentgh: null,
+
+                            ),
                             SizedBox(
                               height: 25,
                             ),
@@ -99,14 +128,47 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                             SizedBox(
                               height: 25,
                             ),
-                           profileEventModels!= null? Column(
-                            children: profileEventModels!.events.map((event){
-                              return MyCardEventWidget(
-                                isPublicUser: false,
-                                organizedEvent: event,
-                              );
-                            }).toList(),
-                           ):Container()
+                           isMineEvents == true? Column(
+                             children: [
+                               Column(
+                                children: profileEventModels!.events.map((event){
+                                  return MyCardEventWidget(
+                                    isOpacityCard: false,
+                                    isPublicUser: false,
+                                    organizedEvent: event,
+                                  );
+                                }).toList(),
+                               ),
+                               hasCompleted?Column(
+                                children: [
+                                  DashedLineWithText(),
+                                  Column(
+                                children: profileEventModels!.events.where((event)=>event.status 
+                                =='completed').map((event){
+                                  return MyCardEventWidget(
+                                    isOpacityCard: true,
+                                    isPublicUser: false,
+                                    organizedEvent: event,
+                                  );
+                                }).toList(),
+                               ),
+                                ],
+                               ):Container()
+                             ],
+                           ):isMineEvents == false?
+                               Column(
+                                children: profileVisitedEventModels!.events.map((event){
+                                  return MyCardEventWidget(
+                                    isOpacityCard: false,
+                                    isPublicUser: true,
+                                    organizedEvent: event,
+                                  );
+                                }).toList(),
+                               ):Container(),
+                             SizedBox(
+                              height: 150,
+                            ),
+                            
                           ],
                         ),
                       )),
@@ -120,10 +182,14 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                     children: [
                       ActivityBarWidget(isVerified: isVerified),
                         SizedBox(height: 15,),
-                      CustomNavBarWidget(selectedIndex: 4, onTabSelected: (index){
+                      CustomNavBarWidget(
+                        selectedIndex: 4, onTabSelected: (index){
                         if(index == 0){
                           Navigator.push(context, MaterialPageRoute(builder: (context)=> 
                           MapScreen()));
+                        }
+                         if(index == 3){
+                         Navigator.pop(context);
                         }
                       }),
                     ],

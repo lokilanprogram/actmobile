@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:acti_mobile/data/models/profile_event_model.dart';
+
 EventModel welcomeFromJson(String str) => EventModel.fromJson(json.decode(str));
 
 String welcomeToJson(EventModel data) => json.encode(data.toJson());
@@ -20,8 +22,8 @@ class EventModel {
     String status;
     double price;
     int slots;
-    double latitude;
-    double longitude;
+    double? latitude;
+    double? longitude;
   List<String>? photos;
     List<String>? restrictions;
     bool isRecurring;
@@ -144,66 +146,6 @@ class Category {
     };
 }
 
-class Creator {
-    String id;
-    String? phone;
-    String name;
-    String surname;
-    String? bio;
-    String email;
-    String status;
-    double? rating;
-    String? photoUrl;
-    bool? isOrganization;
-    DateTime? blockShownUntil;
-    bool? hasRecentBan;
-
-    Creator({
-        required this.id,
-        required this.phone,
-        required this.name,
-        required this.surname,
-        required this.bio,
-        required this.email,
-        required this.status,
-        required this.rating,
-        required this.photoUrl,
-        required this.isOrganization,
-        required this.blockShownUntil,
-        required this.hasRecentBan,
-    });
-
-    factory Creator.fromJson(Map<String, dynamic> json) => Creator(
-        id: json["id"],
-        phone: json["phone"],
-        name: json["name"],
-        surname: json["surname"],
-        bio: json["bio"],
-        email: json["email"],
-        status: json["status"],
-        rating: json["rating"],
-        photoUrl: json["photo_url"],
-        isOrganization: json["is_organization"],
-        blockShownUntil:json["block_shown_until"]!= null?
-         DateTime.parse(json["block_shown_until"]):null,
-        hasRecentBan: json["has_recent_ban"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "id": id,
-        "phone": phone,
-        "name": name,
-        "surname": surname,
-        "bio": bio,
-        "email": email,
-        "status": status,
-        "rating": rating,
-        "photo_url": photoUrl,
-        "is_organization": isOrganization,
-        "block_shown_until": blockShownUntil.toString(),
-        "has_recent_ban": hasRecentBan,
-    };
-}
 
 class Participant {
     String id;

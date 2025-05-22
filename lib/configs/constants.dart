@@ -42,19 +42,7 @@ final List<Map<String, String>> complainPhoto = [
   {'title': 'Детская эротика или порнография'},
   {'title': 'Другое'},
 ];
- Future<XFile> getImageXFileByUrl(String url) async {
-    Directory tempDir = await getTemporaryDirectory();
-    String tempPath = tempDir.path;
-    String fileName = "image${DateTime.now().millisecondsSinceEpoch}";
-    File fileWrite = new File("$tempPath/$fileName");
-    Uri uri = Uri.parse(url);
-    final response = await get(uri);
-    fileWrite.writeAsBytesSync(response.bodyBytes);
-    final mimeType = lookupMimeType("$tempPath/$fileName", headerBytes: [0xFF, 0xD8]);
-    final type = mimeType?.split("/");
-    final file = XFile("$tempPath/$fileName", mimeType: mimeType);
-    return file;
-  }
+
 String formatDate(String inputDate) {
   // Разделяем строку по точкам
   List<String> parts = inputDate.split('.');
@@ -62,11 +50,32 @@ String formatDate(String inputDate) {
 
   String day = parts[0].padLeft(2, '0');
   String month = parts[1].padLeft(2, '0');
-  String year = '2024'; // Здесь задаём нужный год
+  String year = parts[2].padLeft(2, '0'); // Здесь задаём нужный год
 
   return '$day.$month.$year';
 }
 
+String formatDuration(String startTime, String endTime) {
+  final now = DateTime.now();
+  final start = DateTime.parse('${now.toIso8601String().substring(0, 10)}T$startTime');
+  final end = DateTime.parse('${now.toIso8601String().substring(0, 10)}T$endTime');
+
+  final duration = end.difference(start);
+
+  if (duration.isNegative) return 'Некорректное время';
+
+  final hours = duration.inHours;
+  final minutes = duration.inMinutes % 60;
+
+  if (hours == 0) {
+    return '$minutes мин';
+  }else if(hours == 1 && minutes ==0){
+    return '60 мин';
+  }
+   else {
+    return '$hours ч ${minutes.toString().padLeft(2, '0')} мин';
+  }
+}
 const API = 'http://93.183.81.104';
 
 String normalizePhone(String input) {
@@ -74,6 +83,19 @@ String normalizePhone(String input) {
 }
 const hintTextStyleEdit = TextStyle(fontFamily:'Inter',fontSize: 14,fontWeight: FontWeight.w300,color: Colors.grey);
 const titleTextStyleEdit = TextStyle(fontFamily: 'Inter',fontSize: 13,fontWeight: FontWeight.w400);
+String getWeeklyRepeatText(DateTime date) {
+  const weekdays = {
+    DateTime.monday: 'Каждый понедельник',
+    DateTime.tuesday: 'Каждый вторник',
+    DateTime.wednesday: 'Каждую среду',
+    DateTime.thursday: 'Каждый четверг',
+    DateTime.friday: 'Каждую пятницу',
+    DateTime.saturday: 'Каждую субботу',
+    DateTime.sunday: 'Каждое воскресенье',
+  };
+
+  return weekdays[date.weekday] ?? '';
+}
 
 String capitalize(String input) {
   if (input.isEmpty) return input;
@@ -109,4 +131,35 @@ DateTime dateTimeUtc = DateTime.utc(
 String utcString = dateTimeUtc.toIso8601String();
 String timeOnlyUtc = utcString.substring(11); 
 return timeOnlyUtc;
+}
+
+String? getNextDateForWeekday(String? weekdayName) {
+  final daysMap = {
+    'Понедельник': DateTime.monday,
+    'Вторник': DateTime.tuesday,
+    'Среда': DateTime.wednesday,
+    'Четверг': DateTime.thursday,
+    'Пятница': DateTime.friday,
+    'Суббота': DateTime.saturday,
+    'Воскресенье': DateTime.sunday,
+  };
+
+  final now = DateTime.now();
+  final targetWeekday = daysMap[weekdayName];
+
+  if (targetWeekday == null) {
+    throw ArgumentError('Неверное название дня недели: $weekdayName');
+  }
+
+  int daysUntil = (targetWeekday - now.weekday) % 7;
+  if (daysUntil == 0) daysUntil = 7; // следующий, не сегодня
+
+  final nextDate = now.add(Duration(days: daysUntil));
+
+  // Форматируем в yyyy-MM-dd
+  final formattedDate = "${nextDate.year.toString().padLeft(4, '0')}-"
+      "${nextDate.month.toString().padLeft(2, '0')}-"
+      "${nextDate.day.toString().padLeft(2, '0')}";
+
+  return formattedDate;
 }
