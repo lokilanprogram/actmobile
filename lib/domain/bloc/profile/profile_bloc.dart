@@ -5,6 +5,7 @@ import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/data/models/public_user_model.dart';
+import 'package:acti_mobile/data/models/searched_events_model.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
 import 'package:acti_mobile/domain/api/auth/auth_api.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
@@ -17,6 +18,16 @@ part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc() : super(ProfileInitial()) {
+      on<SearchEventsOnMapEvent>((event, emit) async {
+      try {
+        final events = await EventsApi().searchEventsOnMap(event.latitude, event.longitude);
+        if (events!=null) {
+          emit(SearchedEventsOnMapState(searchedEventsModel: events));
+        }
+      } catch (e) {
+        emit(SearchedEventsOnMapErrorState());
+      }
+    });
     on<ProfileGetEvent>((event, emit) async {
       try {
         final profile = await ProfileApi().getProfile();
@@ -104,7 +115,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     });
     on<ProfileUpdateEvent>((event, emit) async {
       try {
-        final profile = await ProfileApi().updateProfile(event.profileModel);
+        final profile = await ProfileApi().updateProfile(event.profileModel,);
         if (event.profileModel.photoUrl != null) {
           await ProfileApi().updateProfilePicture(event.profileModel.photoUrl!);
         }

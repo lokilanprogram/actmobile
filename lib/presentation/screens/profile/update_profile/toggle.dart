@@ -28,7 +28,7 @@ class _OrgToggleTooltipState extends State<OrgToggleTooltip> {
 
     return OverlayEntry(
       builder: (context) => Positioned(
-        top: offset.dy + size.height + 8,
+        top: offset.dy +size.height + 8,
         left: offset.dx + size.width / 2 - 140 / 2, // Центр под иконкой
         child: Material(
           color: Colors.transparent,
@@ -43,8 +43,8 @@ class _OrgToggleTooltipState extends State<OrgToggleTooltip> {
               'Эта информация будет видна другим',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 13,
+                fontFamily: 'Gilroy',
+                fontSize: 15,
                 color: Colors.black87,
               ),
             ),

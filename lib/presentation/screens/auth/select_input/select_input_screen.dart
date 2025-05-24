@@ -1,5 +1,7 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/presentation/screens/auth/input_phone/input_phone.dart';
+import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -58,9 +60,23 @@ class SelectInputScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SvgPicture.asset('assets/icons/icon_yandex_id.svg'),
+                      InkWell(
+                        onTap: (){
+                          final accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYWZkYWIwOC05ZDhkLTRlZmUtYWVhMy1hNGQwMDBlZTJhMDgiLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg0MDgzMjEzfQ.hp4g-SOZiw3t1Wg2Q-6h1sQMwpY1220v_5LC8fVQ1Dg';
+                          final refreshToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYWZkYWIwOC05ZDhkLTRlZmUtYWVhMy1hNGQwMDBlZTJhMDgiLCJ0eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MDY3NTIxM30.Hlec01f57x5xBCU3WLaJiECT2P2ONYnJ81Whk4Bi0Z8';
+                          writeAuthTokens(accessToken, refreshToken);
+                          Navigator.push(context, MaterialPageRoute(builder: (_)=>InitialScreen()));
+                        },
+                        child: SvgPicture.asset('assets/icons/icon_yandex_id.svg')),
                       SizedBox(width: 15),
-                      SvgPicture.asset('assets/icons/icon_vk_id.svg'),
+                      InkWell(
+                        onTap: (){
+                          final accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Y2ZlMzAwNi0xMzIwLTRkY2MtOWRlZS03OWI2N2UxODc0YjciLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg0MDkyNDEyfQ.JkNw5KZ-dbkBeyofuF5mdxz-CoV7MKKi01V959aHT7k';
+                          final refreshToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Y2ZlMzAwNi0xMzIwLTRkY2MtOWRlZS03OWI2N2UxODc0YjciLCJ0eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MDY4NDQxMn0.tl-VLm2bwUU5wWK0602gvmagngRrzRpM_eIOumRO-J0';
+                          writeAuthTokens(accessToken, refreshToken);
+                          Navigator.push(context, MaterialPageRoute(builder: (_)=>InitialScreen()));
+                        },
+                        child: SvgPicture.asset('assets/icons/icon_vk_id.svg')),
                     ],
                   ),
                   SizedBox(height: 60),

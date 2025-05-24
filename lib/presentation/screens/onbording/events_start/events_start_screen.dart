@@ -43,7 +43,6 @@ class EventsStartScreen extends StatelessWidget {
                         child: PopNavButton(
                           text: 'Далее',
                           function: ()async{
-                             await storage.write(key: isOnboardingCompletedFlag, value: 'true');
                              Navigator.push(context, MaterialPageRoute(builder: (_)=>InitialScreen()));
                           },
                         ),

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:acti_mobile/data/models/create_event_model.dart';
+import 'package:acti_mobile/data/models/alter_event_model.dart';
+import 'package:acti_mobile/data/models/mapbox_reverse_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
+import 'package:acti_mobile/data/models/searched_events_model.dart';
 import 'package:dio/dio.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
@@ -112,6 +114,32 @@ class EventsApi {
   return false;
 }
 
+ Future<SearchedEventsModel?> searchEventsOnMap(double latitude, double longitude) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+
+    final queryParameters = {
+  'latitude': latitude.toString(),
+  'longitude': longitude.toString(),
+  'limit':100.toString(),
+  'radius':100.toString()
+};
+    final response = await http.get(
+    Uri.parse('$API/api/v1/events/map').replace(queryParameters: queryParameters),
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken'
+    },
+  );
+   if (response.statusCode == 200) {
+      return SearchedEventsModel.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return null;
+}
+
 Future<bool?> alterEvent({
   required AlterEventModel alterEvent,
   required bool isCreated
@@ -158,6 +186,8 @@ Future<bool?> alterEvent({
         alterEvent.withAnimals ? 'withAnimals': 'notWithAnimals',
       ],
       'category_id':alterEvent.categoryId,
+      'latitude':alterEvent.selectedAddressModel?.latitude,
+      'longitude':alterEvent.selectedAddressModel?.longitude,
       'is_recurring':alterEvent.isRecurring.toString(),
       'update_recurring':alterEvent.isRecurring.toString(),
       'slots':alterEvent.isUnlimited? 0:alterEvent.slots.toString(),
@@ -190,6 +220,7 @@ Future<bool?> alterEvent({
   );
   }
     if (response.statusCode == 200 || response.statusCode == 201) {
+    print(response.data);
     return true;
   } else {
     throw Exception('Failed to create event: ${response.statusCode} ${response.data}');
@@ -198,6 +229,20 @@ Future<bool?> alterEvent({
     throw Exception('Error: ${e.response!.data['detail']}');
   }
 
+}
+
+ Future<MapboxReverseModel> getMapBoxAddress(String latitude, String longitude) async {
+ final response = await http.get(
+    Uri.parse('https://api.mapbox.com/search/geocode/v6/reverse?longitude=$latitude&latitude=$longitude&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg'),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  );
+   if (response.statusCode == 200) {
+      return MapboxReverseModel.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
 }
 
 

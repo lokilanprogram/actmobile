@@ -9,6 +9,20 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 
+Future<void> addEventIconFromUrl(MapboxMap mapboxMap,String id, Uint8List imageData) async {
+   await mapboxMap.style.addStyleImage(
+  id,   // ID
+  2.5,                   // scale
+  MbxImage(width: 
+  100, height: 100, data: imageData),          // см. ниже, как получить MbxImage
+  false,
+  [],
+  [],
+  null,
+);
+}
+
+
 Future<void> addUserIconToStyle(MapboxMap mapboxMap) async {
   final ByteData bytes = await rootBundle.load('assets/icons/icon_current_location.png');
   final codec = await ui.instantiateImageCodec(bytes.buffer.asUint8List());
@@ -277,8 +291,8 @@ void  showKidsAlertDialog(BuildContext context, String? subtitle,{bool isTitled 
 }
 
 
-void  showAlertOKDialog(BuildContext context, String? subtitle,{bool isTitled = false, String title = ''} ) {
-  showDialog(
+Future<void>  showAlertOKDialog(BuildContext context, String? subtitle,{bool isTitled = false, String title = ''} ) async{
+await  showDialog(
     context: context,
     barrierDismissible: false,
     barrierColor: Colors.black.withOpacity(0.5),
@@ -517,8 +531,8 @@ class ActionDialogWidget extends StatelessWidget {
 }
 
 
-  Future<void> addPoint(MapboxMap mapboxMap, LatLngInfo latlng,String imagePath )async{
-    final unit8list = await loadMbxImage(mapboxMap, imagePath);
+  Future<void> addPoint(MapboxMap mapboxMap, LatLngInfo latlng,String imagePath, String id )async{
+    final unit8list = await loadMbxImage(mapboxMap, imagePath, id);
     final pointAnnotationManager = await mapboxMap.annotations.createPointAnnotationManager();
     
 final pointAnnotation = PointAnnotationOptions(
@@ -537,7 +551,7 @@ final pointAnnotation = PointAnnotationOptions(
   LatLngInfo({required this.latitude, required this.longitude});
   }
 
-  Future<Uint8List> loadMbxImage(MapboxMap mapboxMap, String assetPath) async {
+  Future<Uint8List> loadMbxImage(MapboxMap mapboxMap, String assetPath, String id) async {
   final byteData = await rootBundle.load(assetPath);
   final codec = await ui.instantiateImageCodec(byteData.buffer.asUint8List());
   final frame = await codec.getNextFrame();
@@ -548,7 +562,7 @@ final pointAnnotation = PointAnnotationOptions(
     data: image!.buffer.asUint8List(),
   );
   await mapboxMap.style.addStyleImage(
-  'marker-basketball',   // ID
+  id,   // ID
   2.5,                   // scale
   mbxImage,          // см. ниже, как получить MbxImage
   false,

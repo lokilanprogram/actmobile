@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
-import 'package:acti_mobile/data/models/create_event_model.dart';
+import 'package:acti_mobile/data/models/alter_event_model.dart';
+import 'package:acti_mobile/data/models/local_address_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
-import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
+import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/create/map_picker/map_picker_screen.dart';
 import 'package:acti_mobile/presentation/widgets/app_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/selector_day_widget.dart';
@@ -54,6 +56,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   final dateController = TextEditingController();
   final priceController = TextEditingController();
   DateTime? selectedDate;
+  LocalAddressModel? selectedAddressModel;
 
   final _formKey = GlobalKey<FormState>();
   late List<EventOnboarding> eventCategories; 
@@ -167,7 +170,7 @@ setState(() {
   
 });
     }
-    context.read<ActiBloc>().add(ActiGetOnbordingEvent());
+    context.read<AuthBloc>().add(ActiGetOnbordingEvent());
   }
 
     String errorText = '';
@@ -179,7 +182,7 @@ setState(() {
         bottomGrid.add(_buildImage(_images[i], 80, 80));
       }
     }
-    return BlocListener<ActiBloc, ActiState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if(state is ActiCreatedActivityState){
           setState(() {
@@ -302,14 +305,26 @@ setState(() {
                       SizedBox(
                         width: 5,
                       ),
-                      Container(
-                        width: 49,
-                        decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(10)),
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 15),
-                          child: SvgPicture.asset('assets/icons/icon_map.svg'),
+                      InkWell(
+                        onTap: ()async{
+                         LocalAddressModel? localAddressModel =await Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                          MapPickerScreen(position: null, address: null,)));
+                          if(localAddressModel!=null){
+                            setState(() { 
+                              addressController.text = 'г. ${localAddressModel.properties!.fullAddress.split(', ')[2]}, ${localAddressModel.address}';
+                              selectedAddressModel = localAddressModel; 
+                            });
+                          }
+                        },
+                        child: Container(
+                          width: 49,
+                          decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 15, bottom: 15),
+                            child: SvgPicture.asset('assets/icons/icon_map.svg'),
+                          ),
                         ),
                       )
                     ],
@@ -750,7 +765,7 @@ if (startDateTime.isAfter(endDateTime)) {
             setState(() {
             isLoading = true;
           });
-          context.read<ActiBloc>().add(widget.organizedEventModel !=null?
+          context.read<AuthBloc>().add(widget.organizedEventModel !=null?
           ActiUpdateActivityEvent(
             alterEventModel: eventmodel(dateStart, timeStart, timeEnd)
           ):ActiCreateActivityEvent(
@@ -769,7 +784,7 @@ if (startDateTime.isAfter(endDateTime)) {
             setState(() {
             isLoading = true;
           });
-          context.read<ActiBloc>().add(widget.organizedEventModel !=null?
+          context.read<AuthBloc>().add(widget.organizedEventModel !=null?
           ActiUpdateActivityEvent(
             alterEventModel: eventmodel(dateStart, timeStart, timeEnd)
           ):ActiCreateActivityEvent(
@@ -796,6 +811,7 @@ if (startDateTime.isAfter(endDateTime)) {
 
     AlterEventModel eventmodel(String? dateStart, String timeStart, String timeEnd) {
       return AlterEventModel(
+        selectedAddressModel:selectedAddressModel,
         isOnline: isOnline,
         isKidsAllowed: isKidsAllowed,
         recurringDay: getNextDateForWeekday(recurringDay),

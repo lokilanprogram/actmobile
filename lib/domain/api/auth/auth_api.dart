@@ -45,7 +45,7 @@ Future<bool> authLogout() async {
   }
   return false;
 }
- Future<bool> authRegister(String phone) async {
+ Future<TokenModel?> authRegister(String phone) async {
   final response = await http.post(
     Uri.parse('$API/api/v1/auth/register'),
     headers: {
@@ -54,10 +54,10 @@ Future<bool> authLogout() async {
     body: jsonEncode(<String, dynamic>{'phone': phone}),
   );
 
-  if (response.statusCode == 200 || response.statusCode == 204) {
-    print(response.statusCode);
-  } 
-  return false;
+  if (response.statusCode == 200 ) {
+    return TokenModel.fromJson(jsonDecode(response.body));
+  }
+  return null; 
 }
  Future<TokenModel?> authVerify(String phone,String phoneCode) async {
   final response = await http.post(

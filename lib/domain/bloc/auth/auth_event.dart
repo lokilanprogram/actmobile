@@ -1,8 +1,8 @@
-part of 'acti_bloc.dart';
+part of 'auth_bloc.dart';
 
-abstract class ActiEvent {}
+abstract class AuthEvent {}
 
-class ActiRegisterEvent extends ActiEvent {
+class ActiRegisterEvent extends AuthEvent {
   final String phone;
 
   ActiRegisterEvent({required this.phone});
@@ -10,27 +10,27 @@ class ActiRegisterEvent extends ActiEvent {
 
 
 
-class ActiVerifyEvent extends ActiEvent {
+class ActiVerifyEvent extends AuthEvent {
   final String phone;
   final String code;
 
   ActiVerifyEvent({required this.phone, required this.code});
 }
-class ActiGetOnbordingEvent extends ActiEvent {}
+class ActiGetOnbordingEvent extends AuthEvent {}
 
-class ActiSaveOnbordingEvent extends ActiEvent {
+class ActiSaveOnbordingEvent extends AuthEvent {
   final List<EventOnboarding> listOnboarding;
 
   ActiSaveOnbordingEvent({required this.listOnboarding});
 }
 
-class ActiCreateActivityEvent extends ActiEvent{
+class ActiCreateActivityEvent extends AuthEvent{
   final AlterEventModel  createEventModel;
 
   ActiCreateActivityEvent({required this.createEventModel});
 }
 
-class ActiUpdateActivityEvent extends ActiEvent{
+class ActiUpdateActivityEvent extends AuthEvent{
   final AlterEventModel  alterEventModel;
 
   ActiUpdateActivityEvent({required this.alterEventModel});

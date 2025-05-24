@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
-
+import 'package:acti_mobile/presentation/widgets/rotating_icon.dart';
+import 'package:http/http.dart' as http;
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
+import 'package:acti_mobile/data/models/local_city_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
@@ -39,7 +42,40 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   bool isUpdatedPhoto = false;
   XFile? image;
   
+ List<String> _suggestions = [];
+  bool _isLoading = false;
 
+  Future<void> _searchCity(String city) async {
+    if (city.isEmpty) {
+      setState(() => _suggestions = []);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+     final url =
+  'https://api.mapbox.com/geocoding/v5/mapbox.places/$city.json'
+  '?language=ru&proximity=-74.70850,40.78375'
+  '&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg';
+
+
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final model = LocalCityModel.fromJson(jsonDecode(response.body));
+        setState(() {
+          _suggestions = model.cities.take(5).toList(); // max 5
+        });
+      } else {
+        throw Exception('Ошибка: ${response.body}');
+      }
+    } catch (e) {
+      print('Ошибка поиска: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+  
   @override
   void initState() {
     initialize();
@@ -56,6 +92,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       emailController = TextEditingController(text: widget.profileModel.email);
       selectedCategories = widget.profileModel.categories;
       isOrganizationRepresentative = widget.profileModel.isOrganization;
+      _selectedTab = widget.profileModel.hideMyEvents!=null ? (widget.profileModel.hideMyEvents! ? 'my':''):'';
+      _selectedTab = widget.profileModel.hideAttendedEvents!=null ? (widget.profileModel.hideAttendedEvents! ? 'visited':''):'';
     });
   }
 
@@ -116,6 +154,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                   });
                   context.read<ProfileBloc>().add(ProfileUpdateEvent(
                     profileModel: ProfileModel(id: widget.profileModel.id,
+                    hideMyEvents:_selectedTab == 'my' ,
+                    hideAttendedEvents:_selectedTab == 'visited' ,
                      name: nameController.text.trim(), surname: surnameController.text.trim(), email: 
                      emailController.text.trim(), 
                      city: cityController.text.trim(),
@@ -162,7 +202,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                   isUpdatedPhoto = true;
                                                 });
                                               } 
-                                },isUpdatedPhoto),
+                                },isUpdatedPhoto), 
                               ),
                               const SizedBox(height: 30),
                     
@@ -214,7 +254,58 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               Text('Ваш город (Населённый пункт)',
                                   style: titleTextStyleEdit),
                               SizedBox(height: 4),
-                              TextInputWidget(controller: cityController, text: 'Введите город',validator: null,),
+                              Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          controller: cityController,
+          onChanged: _searchCity,
+          style: TextStyle(fontSize: 11, fontFamily: 'Inter'),
+          decoration: InputDecoration(
+            hintText: 'Введите город',
+            hintStyle: TextStyle(color: Colors.grey),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.grey[100],
+          ),
+        ),
+        const SizedBox(height: 4),
+        if (_isLoading)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Center(child: CircularProgressIndicator(
+              color: mainBlueColor ,strokeWidth: 1.2,
+            )),
+          )
+        else if (_suggestions.isNotEmpty)
+          Container(
+            constraints: BoxConstraints(maxHeight: 160),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _suggestions.length,
+              itemBuilder: (context, index) {
+                final city = _suggestions[index];
+                return ListTile(
+                  dense: true,
+                  title: Text(city, style: TextStyle(fontSize: 12,fontFamily: 'Gilroy')),
+                  onTap: () {
+                    cityController.text = city;
+                    setState(() => _suggestions = []);
+                  },
+                );
+              },
+            ),
+          ),
+      ],
+    ),
                               SizedBox(height: 16),
                               Text('Адрес эл. почты', style: titleTextStyleEdit),
                               SizedBox(height: 4),

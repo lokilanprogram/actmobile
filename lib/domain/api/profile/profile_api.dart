@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:acti_mobile/data/models/event_model.dart';
+import 'package:acti_mobile/data/models/local_city_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/public_user_model.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
@@ -25,7 +26,7 @@ class ProfileApi {
    if (response.statusCode == 200) {
      return ProfileModel.fromJson(jsonDecode(response.body));
   } else {
-    throw Exception('Error: ${response.body}');
+    return null;
   }
   }
   return null;
@@ -107,7 +108,24 @@ Future<PublicUserModel?> getPublicUser(String userId) async {
   return null;
 }
 
-
+Future<LocalCityModel?> searchCity(String city) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+    final response = await http.get(
+    Uri.parse('https://api.mapbox.com/geocoding/v5/mapbox.places/$city.json?proximity=-74.70850,40.78375&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg'),
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken'
+    },
+  );
+   if (response.statusCode == 200) {
+      return LocalCityModel.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return null;
+}
 
 Future<List<SimiliarUsersModel>?> getSimiliarUsers() async {
   final accessToken = await storage.read(key: accessStorageToken);
@@ -147,7 +165,9 @@ Future<List<SimiliarUsersModel>?> getSimiliarUsers() async {
   "bio": profileModel.bio,
   "city": profileModel.city,
   "is_organization": profileModel.isOrganization,
-  "categories": profileModel.categories.map((event)=>event.id).toList()
+  "categories": profileModel.categories.map((event)=>event.id).toList(),
+    "hide_my_events": profileModel.hideMyEvents.toString(),
+  "hide_attended_events": profileModel.hideAttendedEvents.toString()
     })
   );
    if (response.statusCode == 200) {

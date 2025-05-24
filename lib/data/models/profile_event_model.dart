@@ -61,12 +61,16 @@ class OrganizedEventModel {
     Creator creator;
     List<Participant> participants;
     String? join_status;
-  String? creatorId;
+    Category? category;
+    bool? isReported;
+    String? creatorId;
 
     OrganizedEventModel({
+      required this.category,
       required this.creatorId,
       required this.join_status,
       required this.category_id,
+      required this.isReported,
         required this.id,
         required this.title,
         required this.description,
@@ -91,6 +95,7 @@ class OrganizedEventModel {
 
     factory OrganizedEventModel.fromJson(Map<String, dynamic> json) => OrganizedEventModel(
         id: json["id"],
+        category: json['category']!=null?Category.fromJson(json["category"]):null,
         creatorId: json['creator_id'],
         join_status: json['join_status'],
         category_id: json["category_id"],
@@ -105,6 +110,7 @@ class OrganizedEventModel {
         slots: json["slots"],
         freeSlots: json["free_slots"],
         latitude: json["latitude"],
+        isReported: json['is_reported'],
         longitude: json["longitude"],
         price: json["price"],
         status: json["status"],
@@ -138,6 +144,32 @@ class OrganizedEventModel {
         "participants": List<dynamic>.from(participants.map((x) => x)),
     };
 }
+
+
+class Category {
+    String id;
+    String name;
+    String iconPath;
+
+    Category({
+        required this.id,
+        required this.name,
+        required this.iconPath,
+    });
+
+    factory Category.fromJson(Map<String, dynamic> json) => Category(
+        id: json["id"],
+        name: json["name"],
+        iconPath: json["icon_path"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+        "icon_path": iconPath,
+    };
+}
+
 
 class Creator {
     String? id;

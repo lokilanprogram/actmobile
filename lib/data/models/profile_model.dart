@@ -23,10 +23,15 @@ class ProfileModel {
     List<EventOnboarding> categories;
     bool isEmailVerified;
     bool isProfileCompleted;
+    bool? hideMyEvents;
+    bool? hideAttendedEvents;
+    
 
     ProfileModel({
         required this.id,
         required this.name,
+        required this.hideMyEvents,
+        required this.hideAttendedEvents,
         required this.surname,
         required this.email,
         required this.city,
@@ -43,6 +48,8 @@ class ProfileModel {
         id: json["id"],
         name: json["name"],
         surname: json["surname"],
+        hideMyEvents: json["hide_my_events"],
+        hideAttendedEvents: json["hide_attended_events"],
         email: json["email"],
         city: json["city"],
         bio: json["bio"],

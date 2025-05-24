@@ -1,5 +1,5 @@
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
-import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
+import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_start/events_start_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/widgets/pop_nav_button.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
@@ -31,12 +31,12 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
     setState(() {
       isLoading = true;
     });
-    context.read<ActiBloc>().add(ActiGetOnbordingEvent());
+    context.read<AuthBloc>().add(ActiGetOnbordingEvent());
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ActiBloc, ActiState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if(state  is ActiSavedOnbordingState){
           setState(() {
@@ -152,7 +152,7 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                                   child: SvgPicture.asset(
                                       'assets/texts/text_select_event.svg')),
                             ),
-                            const SizedBox(height: 55),
+                            const SizedBox(height: 35),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -170,11 +170,12 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                                     setState(() {
                                       isLoading = true;
                                     });
-                                    context.read<ActiBloc>().add(ActiSaveOnbordingEvent(listOnboarding:listOnboarding));
+                                    context.read<AuthBloc>().add(ActiSaveOnbordingEvent(listOnboarding:listOnboarding));
                                   },
                                 ),
                               ],
-                            )
+                            ),
+                            const SizedBox(height: 35),
                           ],
                         ),
                       ),

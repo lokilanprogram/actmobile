@@ -4,6 +4,7 @@ import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/create/map_picker/map_picker_screen.dart';
 import 'package:acti_mobile/presentation/widgets/image_widget.dart';
 import 'package:acti_mobile/presentation/widgets/popup_event_buttons.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final String eventId;
@@ -225,7 +227,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                              Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(organizedEvent.creator.name,
+                                Text(organizedEvent.creator.name ?? '...',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 17.8,
@@ -402,21 +404,30 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               ],
             ),
             if (subtitle.isNotEmpty)
-              Row(
-                children: [
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                        fontFamily: 'Gilroy',
-                        fontSize: 16,
-                        color: isLocation ? Colors.blue : Colors.black),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  if (trailing != null)
-                    Text(trailing, style: const TextStyle(color: Colors.grey)),
-                ],
+              GestureDetector(
+                onTap: (){
+                    if(organizedEvent.latitude != null && organizedEvent.longitude!=null){
+
+                   Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                          MapPickerScreen(position: Position(organizedEvent.longitude!, organizedEvent.latitude!), address: organizedEvent.address,)));
+                  }
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 16,
+                          color: isLocation ? Colors.blue : Colors.black),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    if (trailing != null)
+                      Text(trailing, style: const TextStyle(color: Colors.grey)),
+                  ],
+                ),
               ),
           ],
         

@@ -1,4 +1,5 @@
-import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
+import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
+import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:flutter/material.dart';
@@ -19,11 +20,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<ActiBloc>(
-          create: (context) => ActiBloc(),
+        BlocProvider<AuthBloc>(
+          create: (context) => AuthBloc(),
         ),
          BlocProvider<ProfileBloc>(
           create: (context) => ProfileBloc(),
+        ),
+        BlocProvider<ChatBloc>(
+          create: (context) => ChatBloc(),
         ),
         ],
       child: MaterialApp(

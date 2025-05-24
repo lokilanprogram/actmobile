@@ -19,50 +19,53 @@ class EventsCreateScreen extends StatelessWidget {
                       ),
                     ),
         child: SafeArea(
-          child: Column(
-              children: [
-             Padding(
-                padding: EdgeInsets.only(right: 40,left: 40,),
-                 child: Align(
-                   child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 25,),
-                      Center(child: Image.asset('assets/images/image_events_example.png')),
-                      SizedBox(height: 45,),
-                      SvgPicture.asset('assets/texts/text_create_event.svg'),
-                      SizedBox(height: 10,),
-                      SvgPicture.asset('assets/texts/text_find_friends.svg'),
-                      SizedBox(height: 30,),
-                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: PopNavButton(
-                              text: 'Назад',
-                              function: (){
-                                Navigator.pop(context);
-                              },
+          child: SingleChildScrollView(
+            child: Column(
+                children: [
+               Padding(
+                  padding: EdgeInsets.only(right: 40,left: 40,),
+                   child: Align(
+                     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 25,),
+                        Center(child: Image.asset('assets/images/image_events_example.png')),
+                        SizedBox(height: 45,),
+                        SvgPicture.asset('assets/texts/text_create_event.svg'),
+                        SizedBox(height: 10,),
+                        SvgPicture.asset('assets/texts/text_find_friends.svg'),
+                        SizedBox(height: 30,),
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: PopNavButton(
+                                text: 'Назад',
+                                function: (){
+                                  Navigator.pop(context);
+                                },
+                              ),
                             ),
-                          ),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: PopNavButton(
-                              text: 'Далее',
-                              function: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsSelectScreen(fromUpdate: false,)));
-                              
-                              },
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: PopNavButton(
+                                text: 'Далее',
+                                function: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsSelectScreen(fromUpdate: false,)));
+                                
+                                },
+                              ),
                             ),
-                          ),
-                        ],
-                      )
-                    ],
+                          ],
+                        ),
+                        SizedBox(height: 30,),
+                      ],
+                     ),
                    ),
                  ),
-               ),
-             
-              ],
-            ),
+               
+                ],
+              ),
+          ),
         ),
       ),
       

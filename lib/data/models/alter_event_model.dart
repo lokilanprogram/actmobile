@@ -1,3 +1,4 @@
+import 'package:acti_mobile/data/models/local_address_model.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AlterEventModel {
@@ -21,6 +22,7 @@ class AlterEventModel {
   final bool withAnimals;
   final double? latitude;
   final double? longitude;
+  final LocalAddressModel? selectedAddressModel;
   final List<String>? restrictions;
   final bool isRecurring;
   final String categoryId;
@@ -30,6 +32,7 @@ class AlterEventModel {
 
   AlterEventModel({
     required this.isOnline,
+    required this.selectedAddressModel,
     required this.deletedImages,
     required this.id,
     required this.isGroupChat,

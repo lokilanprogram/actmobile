@@ -1,10 +1,7 @@
 import 'package:acti_mobile/configs/colors.dart';
-import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
-import 'package:acti_mobile/presentation/screens/auth/input_code/input_code.dart';
 import 'package:acti_mobile/presentation/screens/auth/input_loading/input_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:pinput/pinput.dart';
 
@@ -24,13 +21,7 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
 );
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ActiBloc, ActiState>(
-      listener: (context, state) {
-        if(state is ActiRegisteredErrorState){
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка')));
-        }
-      },
-      child: Scaffold(
+    return Scaffold(
     resizeToAvoidBottomInset: false,
         backgroundColor: Colors.white,
         body:GestureDetector(
@@ -147,7 +138,7 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                           ),
               )),
         
-      ),
+      
     );
   }
 }

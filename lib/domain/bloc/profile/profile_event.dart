@@ -5,10 +5,17 @@ abstract class ProfileEvent {}
 
 class ProfileGetEvent extends ProfileEvent {}
 
+class SearchEventsOnMapEvent extends ProfileEvent{
+  final double latitude;
+  final double longitude;
+
+  SearchEventsOnMapEvent({required this.latitude, required this.longitude});
+}
+
 class ProfileUpdateEvent extends ProfileEvent {
   final ProfileModel profileModel;
 
-  ProfileUpdateEvent({required this.profileModel});
+  ProfileUpdateEvent({required this.profileModel,});
 }
 
 class ProfileGetListEventsEvent extends ProfileEvent {

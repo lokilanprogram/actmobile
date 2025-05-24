@@ -2,8 +2,10 @@ import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/data/models/public_user_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
+import 'package:acti_mobile/presentation/widgets/blurred.dart';
 import 'package:acti_mobile/presentation/widgets/popup_event_buttons.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/widget/my_events_card.dart';
 import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
@@ -286,13 +288,19 @@ Widget build(BuildContext context) {
                                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SendMessageBarWidget(function: (){}),
+                      SendMessageBarWidget(function: (){
+                     Navigator.push(context, MaterialPageRoute(builder: (context)=> ChatDetailScreen(publicUserModel: publicUserModel,userId: widget.userId,)));
+
+                      }),
                         SizedBox(height: 15,),
                       CustomNavBarWidget(
                         selectedIndex: 4, onTabSelected: (index){
                         if(index == 0){
                           Navigator.push(context, MaterialPageRoute(builder: (context)=> 
                           MapScreen()));
+                        }
+                        if(index == 3){
+                          Navigator.pop(context);
                         }
                       }),
                     ],

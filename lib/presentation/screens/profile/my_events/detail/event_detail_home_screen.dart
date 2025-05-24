@@ -5,6 +5,7 @@ import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/create/map_picker/map_picker_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/requests/event_request_screen.dart';
 import 'package:acti_mobile/presentation/widgets/error_widget.dart';
 import 'package:acti_mobile/presentation/widgets/popup_event_buttons.dart';
@@ -13,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class EventDetailHomeScreen extends StatefulWidget {
   final String eventId;
@@ -308,15 +310,14 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                   '${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)} | ${organizedEvent.timeStart.substring(0,5)}–${organizedEvent.timeEnd.substring(0,5)}',
                           trailing: formatDuration(organizedEvent.timeStart, organizedEvent.timeEnd),
                                 ),
-                                 const SizedBox(height: 20),
+                                  SizedBox(height: organizedEvent.address!= ''? 20:0),
                       
-                                // Место
-                                infoRow(
+                               organizedEvent.address != ''? infoRow(
                                   'assets/icons/icon_location.svg',
                                   true,
                                   'Место',
                                   organizedEvent.address,
-                                ),
+                                ):Container(),
                       
                                 const SizedBox(height: 20),
                       
@@ -364,7 +365,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                             organizedEvent.isRecurring ? showCancelActivityDialog(context,'Вы хотите отменить одно мероприятие или всю серию?','Одну', 'Все', (){
+                             organizedEvent.isRecurring ? showCancelActivityDialog(context,'Вы хотите отменить одно мероприятие или всю серию?','Одно', 'Все', (){
                               setState(() {
                                 isLoading = true;
                               });
@@ -442,21 +443,30 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
               ],
             ),
             if (subtitle.isNotEmpty)
-              Row(
-                children: [
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                        fontFamily: 'Gilroy',
-                        fontSize: 16,
-                        color: isLocation ? Colors.blue : Colors.black),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  if (trailing != null)
-                    Text(trailing, style: const TextStyle(color: Colors.grey)),
-                ],
+              GestureDetector(
+                onTap: (){
+                  if(organizedEvent.latitude != null && organizedEvent.longitude!=null){
+
+                   Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                          MapPickerScreen(position: Position(organizedEvent.longitude!, organizedEvent.latitude!), address: organizedEvent.address,)));
+                  }
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 16,
+                          color: isLocation ? Colors.blue : Colors.black),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    if (trailing != null)
+                      Text(trailing, style: const TextStyle(color: Colors.grey)),
+                  ],
+                ),
               ),
           ],
         
@@ -473,19 +483,16 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
 }) {
   final parts = recurringdays.split(' ');
 
-  return Row(
+  return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Padding(
+      Row(children: [
+        Padding(
         padding: const EdgeInsets.only(top: 5),
         child: SvgPicture.asset(iconPath),
       ),
-      const SizedBox(width: 10),
-      Expanded( // 👈 Оборачиваем в Expanded, чтобы избежать overflow
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+        const SizedBox(width: 10),
+      Text(
               'Дата и время',
               style: const TextStyle(
                 color: Colors.blue,
@@ -494,8 +501,9 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                 fontSize: 17.8,
               ),
             ),
-            const SizedBox(height: 2),
-            Row(
+      ],),
+      const SizedBox(width: 10),
+      Row(
               children: [
                 Expanded( // 👈 Эта часть тоже оборачивается
                   child: RichText(
@@ -509,6 +517,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                         TextSpan(
                           text: '${parts[0]} ',
                           style: const TextStyle(fontWeight: FontWeight.normal,
+                          color: Color.fromRGBO(7, 7, 7,1),
                             fontFamily: 'Gilroy',),
                         ),
                         TextSpan(
@@ -539,9 +548,6 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                 ),
               ],
             ),
-          ],
-        ),
-      ),
     ],
   );
 }

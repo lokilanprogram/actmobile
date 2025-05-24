@@ -1,10 +1,14 @@
+import 'dart:ui';
+
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
+import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
+import 'package:acti_mobile/presentation/widgets/blurred.dart';
 import 'package:acti_mobile/presentation/widgets/popup_profile_buttons.dart';
 import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
@@ -55,11 +59,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
           });
 
           if (!profileModel.isProfileCompleted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                  'Заполните профиль и подтвердите email для полного доступа'),
-              backgroundColor: Colors.green,
-            ));
             final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -73,7 +72,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
             }
           }
           setState(() {
-    
             isLoading = false;
           });
         }
@@ -123,6 +121,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                 child: Icon(Icons.notifications_none_outlined,
                                     color: Colors.white),
                               ),
+                              
                               Positioned(
                                   top: 77,
                                   right: 20,
@@ -174,7 +173,8 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                   ],
                                 ),
                               ),
-                                Positioned(
+                                
+                              Positioned(
                               bottom: 0,
                               left: 0,
                               right: 0,
@@ -199,9 +199,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                   horizontal: 25, vertical: 5),
                               decoration: const BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(25),
-                                ),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,7 +313,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
   // Avatar widget
   Widget buildAvatar(String? path, String name) {
     return Padding(
-      padding: const EdgeInsets.only(right: 20),
+      padding: const EdgeInsets.only(right: 10),
       child: Column(
         children: [
           CircleAvatar(           

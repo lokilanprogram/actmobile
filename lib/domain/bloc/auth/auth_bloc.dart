@@ -1,6 +1,6 @@
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
-import 'package:acti_mobile/data/models/create_event_model.dart';
+import 'package:acti_mobile/data/models/alter_event_model.dart';
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
 import 'package:acti_mobile/domain/api/auth/auth_api.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
@@ -10,18 +10,18 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
-part 'acti_event.dart';
-part 'acti_state.dart';
+part 'auth_event.dart';
+part 'auth_state.dart';
 
-class ActiBloc extends Bloc<ActiEvent, ActiState> {
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final storage = const FlutterSecureStorage();
-  ActiBloc() : super(ActiInitial()) {
+  AuthBloc() : super(ActiInitial()) {
     on<ActiRegisterEvent>((event, emit)async {
       try{
-        final normalizedphone = normalizePhone(event.phone);
-      final isRegistered = await AuthApi().authRegister(normalizedphone);
-      if(isRegistered){
-        print(isRegistered.toString());
+      final normalizedphone = normalizePhone(event.phone);
+      final tokenModel = await AuthApi().authRegister(normalizedphone);
+      if(tokenModel != null){
+        await writeAuthTokens(tokenModel.accessToken, tokenModel.refreshToken);
         emit(ActiRegisteredState(phone: normalizedphone));
       }
       }catch(e){
@@ -58,7 +58,7 @@ class ActiBloc extends Bloc<ActiEvent, ActiState> {
       try{
         final token = await AuthApi().authVerify(normalizePhone(event.phone), event.code);
       if(token!=null){
-        await writeAuthTokens(token.accessToken, token.refreshToken);
+        await writeAuthTokens(token.accessToken, token.refreshToken,);
         print(token.toString());
         emit(ActiVerifiedState());
       }

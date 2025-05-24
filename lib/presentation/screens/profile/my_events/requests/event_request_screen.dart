@@ -1,3 +1,4 @@
+import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/widgets/app_bar_widget.dart';
@@ -65,7 +66,7 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
                               selectedTab: selectedTab,
                               onTapMine: (){ 
                                setState(() {
-                                 selectedTab = "my";
+                                 selectedTab = "mine";
                                  isRequests = true;
                                 });
                               },
@@ -80,13 +81,15 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
                               recommendedLentgh: 0
                             ),
                             SizedBox(height: 25,),
-              ListView.separated(
+                            participants.isEmpty ? buildNoUsers():
+                            ListView.separated(
                 shrinkWrap: true,
                 primary: true,
                 itemCount: participants.length,
                 itemBuilder: (context, index) {
                   final participant = participants[index];
-                  return ListTile(
+                 {
+                   return ListTile(
                     trailing: participant.status == 'pending'
                         ? InkWell(
                            onTap: (){
@@ -137,6 +140,8 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
                     participant.user.hasRecentBan! ? (Text('На данного пользователя поступали жалобы, будьте бдительны.',style: 
                     TextStyle(fontFamily: 'Gilroy',fontSize: 8.85,color: Colors.red,height: 1),)):null :null
                   );
+                  }
+                  
                 },
                 separatorBuilder: (BuildContext context, int index) {
                   return Padding(
@@ -149,6 +154,27 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
           ),
         ),
       ),
+    );
+  }
+
+   Widget buildNoUsers(){
+    return SizedBox(width: MediaQuery.of(context).size.width* 0.8,
+      child: Card(
+           shape: RoundedRectangleBorder(
+          side: BorderSide(color: Colors.white70, width: 1),
+          borderRadius: BorderRadius.circular(30),
+        ),
+          elevation: 1.2,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal:25, vertical: 20),
+            child: Text('Пока что ничего нет, пригласите ваших друзей',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontFamily: 'Gilroy',fontSize: 15, color: mainBlueColor,
+            fontWeight: FontWeight.w500),),
+          ),
+        ),
     );
   }
 }

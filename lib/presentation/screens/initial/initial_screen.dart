@@ -27,18 +27,9 @@ class _InitialScreenState extends State<InitialScreen> {
     print('access token ---- $accessToken');
     print('refresh token ---- $refreshToken');
     await Future.delayed(Duration(seconds: 1)).then((_) async {
-      if (accessToken != null && refreshToken != null && profile != null) {
+      if (profile != null) {
         try{
-        //   await AuthApi().authRefreshToken().then((token){
-        //   if(token != null){
-        //      if(isOnboardingCompleted!=null){
-        //     Navigator.push(context, MaterialPageRoute(builder: (_)=>MapScreen()));
-        //     }else{
-        //       Navigator.push(context, MaterialPageRoute(builder: (_)=>EventsAroundScreen()));
-        //     }
-        //   }
-        //  });
-
+          await storage.write(key: userIdStorage, value: profile.id);
           if(profile.categories.isNotEmpty){
             Navigator.push(context, MaterialPageRoute(builder: (_)=>MapScreen()));
             }else{

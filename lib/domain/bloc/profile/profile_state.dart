@@ -46,6 +46,14 @@ class ProfileJoinedErrorState extends ProfileState{
   ProfileJoinedErrorState({required this.errorText});
 }
 
+class SearchedEventsOnMapState extends ProfileState {
+  final SearchedEventsModel searchedEventsModel;
+
+  SearchedEventsOnMapState({required this.searchedEventsModel});
+}
+
+class SearchedEventsOnMapErrorState extends ProfileState {}
+
 class ProfileReportedEventState extends ProfileState{
 }
 class ProfileReportedEventErrorState extends ProfileState{

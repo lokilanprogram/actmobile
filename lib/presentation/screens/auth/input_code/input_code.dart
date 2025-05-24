@@ -1,5 +1,5 @@
 import 'package:acti_mobile/configs/colors.dart';
-import 'package:acti_mobile/domain/bloc/acti_bloc.dart';
+import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +29,7 @@ class _InputCodeScreenState extends State<InputCodeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ActiBloc, ActiState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if(state is ActiVerifiedState){
           setState(() {
@@ -134,7 +134,7 @@ class _InputCodeScreenState extends State<InputCodeScreen> {
                           setState(() {
                             isLoading = true;
                           });
-                          context.read<ActiBloc>().add(ActiVerifyEvent(
+                          context.read<AuthBloc>().add(ActiVerifyEvent(
                               phone: widget.phone,code: codeController.text.trim()));
                         },
                         child: Container(

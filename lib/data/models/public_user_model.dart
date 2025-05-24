@@ -11,6 +11,7 @@ PublicUserModel welcomeFromJson(String str) => PublicUserModel.fromJson(json.dec
 String welcomeToJson(PublicUserModel data) => json.encode(data.toJson());
 
 class PublicUserModel {
+  String? userId;
     String name;
     String surname;
     String email;
@@ -27,6 +28,7 @@ class PublicUserModel {
     bool? isBlockedByUser;
 
     PublicUserModel({
+      required this.userId,
       required this.isBlockedByUser,
         required this.name,
         required this.surname,
@@ -57,7 +59,7 @@ class PublicUserModel {
         organizedEvents: List<OrganizedEventModel>.from(json["organized_events"].map((x) => OrganizedEventModel.fromJson(x))),
         reviews: List<Review>.from(json["reviews"].map((x) => Review.fromJson(x))),
         hideMyEvents: json["hide_my_events"],
-        hideAttendedEvents: json["hide_attended_events"],
+        hideAttendedEvents: json["hide_attended_events"], userId: json['user_id'],
     );
 
     Map<String, dynamic> toJson() => {
