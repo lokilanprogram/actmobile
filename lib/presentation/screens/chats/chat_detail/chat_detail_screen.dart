@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/storage.dart';
-import 'package:acti_mobile/data/models/chat_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/data/models/public_user_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
@@ -52,7 +52,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       interlocutorName = widget.publicUserModel?.name;
       interlocutorAvatar = widget.publicUserModel?.photoUrl;
     });
-    print(widget.userId);
   }
 
   @override
@@ -61,15 +60,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     return BlocListener<ChatBloc, ChatState>(
       listener: (context, state)  {
+        if(state is StartedChatMessageState){
+          setState(() {
+            webSocketService = ChatWebSocketService(
+      chatId: state.chatId,
+      token: state.accessToken,
+    );
+            messages = state.chatModel.messages; 
+            chatId = state.chatId;
+          });
+        }
         if(state is GotChatHistoryState){
           setState(() {
             messages = state.chatModel.messages;
-              isLoading = false;
-          });
-        }
-        if(state is SentMessageState){
-          setState(() {
-            messages.add(state.messageModel);
+            isLoading = false;
           });
         }
         if(state is GotChatHistoryErrorState){
@@ -83,10 +87,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       chatId: state.chatId,
       token: state.accessToken,
     );
+          messages = state.chatModel.messages;
+          isLoading = false;
           });
           chatId = state.chatId;
-       context.read<ChatBloc>().add(GetChatHistoryEvent(chatId:state.chatId));
-
          }
          if(state is CreatedChatErrorState){
           setState(() {
@@ -221,9 +225,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: StreamBuilder(
               stream: webSocketService?.stream,
               builder: (context, snapshot) {
-                if(snapshot.hasData){
-                  print(snapshot.data);
-                }
+                   if (snapshot.hasData) {
+      final result = ChatSnapshotModel.fromJson(jsonDecode(snapshot.data));
+      final newMessage = result.message;
+      
+      final alreadyExists = messages.any((m) => m.id == newMessage.id);
+      if (!alreadyExists) {
+         WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            messages.add(newMessage);
+          });
+        });
+      }
+    }
                 return  ListView.builder(
                                     shrinkWrap: true,
                                     primary: false,

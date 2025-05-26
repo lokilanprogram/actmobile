@@ -11,6 +11,12 @@ class SearchEventsOnMapEvent extends ProfileEvent{
 
   SearchEventsOnMapEvent({required this.latitude, required this.longitude});
 }
+class InitializeMapEvent extends ProfileEvent{
+  final double latitude;
+  final double longitude;
+
+  InitializeMapEvent({required this.latitude, required this.longitude});
+}
 
 class ProfileUpdateEvent extends ProfileEvent {
   final ProfileModel profileModel;

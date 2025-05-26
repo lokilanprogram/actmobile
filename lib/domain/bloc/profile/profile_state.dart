@@ -52,6 +52,14 @@ class SearchedEventsOnMapState extends ProfileState {
   SearchedEventsOnMapState({required this.searchedEventsModel});
 }
 
+class InitializeMapState extends ProfileState {
+  final SearchedEventsModel searchedEventsModel;
+
+  InitializeMapState({required this.searchedEventsModel});
+}
+
+class InitializeMapErrorState extends ProfileState{}
+
 class SearchedEventsOnMapErrorState extends ProfileState {}
 
 class ProfileReportedEventState extends ProfileState{

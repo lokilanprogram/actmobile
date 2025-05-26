@@ -18,6 +18,16 @@ part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc() : super(ProfileInitial()) {
+      on<InitializeMapEvent>((event, emit) async {
+      try {
+        final events = await EventsApi().searchEventsOnMap(event.latitude, event.longitude);
+        if (events!=null) {
+          emit(InitializeMapState(searchedEventsModel: events));
+        }
+      } catch (e) {
+        emit(InitializeMapErrorState());
+      }
+    });
       on<SearchEventsOnMapEvent>((event, emit) async {
       try {
         final events = await EventsApi().searchEventsOnMap(event.latitude, event.longitude);

@@ -65,13 +65,6 @@ Future<void> addUserIconToStyle(MapboxMap mapboxMap) async {
     ),
   );
   }
-  void showCardEventMapBottomSheet(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (context) => CardEventOnMap());
-}
 Widget buildOption(String text, BuildContext context, Function function) {
   return Column(
     children: [

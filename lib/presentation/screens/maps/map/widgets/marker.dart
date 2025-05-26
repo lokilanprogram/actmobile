@@ -1,46 +1,78 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-Future renderMarkerToImage(GlobalKey key) async {
-  RenderRepaintBoundary boundary =
-      key.currentContext!.findRenderObject() as RenderRepaintBoundary;
-  final image = await boundary.toImage(pixelRatio: 3.0);
-  final byteData = await image.toByteData(format: ImageByteFormat.png);
-  final result =  byteData!.buffer.asUint8List();
-  return result;
-}
 
-class CustomMarkerWidget extends StatelessWidget {
-  final String text;
+class CategoryMarker extends StatelessWidget {
   final String iconUrl;
+  final String title;
 
-  const CustomMarkerWidget({
+  const CategoryMarker({
     super.key,
-    required this.text,
     required this.iconUrl,
+    required this.title,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.network(iconUrl, width: 20, height: 20),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: const TextStyle(fontSize: 14, color: Colors.blue),
-          ),
-        ],
+    return CustomPaint(
+      painter: SpeechBubblePainter(),
+      child: Container(
+        padding: EdgeInsets.only(
+          bottom: 15,right: 15
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.network(
+              iconUrl,
+              width: 52,
+              height: 52,
+            ),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16.8,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+                fontFamily: 'Inter',
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+class SpeechBubblePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    const radius = 30.0;
+    const tailHeight = 15.0; // длиннее хвост
+    const tailWidth = 14.0;  // уже хвост
+
+    final bubbleHeight = size.height - tailHeight;
+
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, bubbleHeight),
+          const Radius.circular(radius),
+        ),
+      )
+      // Начало хвоста
+      ..moveTo(size.width / 2 - tailWidth / 2, bubbleHeight)
+      ..lineTo(size.width / 2, size.height) // Острый конец
+      ..lineTo(size.width / 2 + tailWidth / 2, bubbleHeight)
+      ..close();
+
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    canvas.drawShadow(path, Colors.black.withOpacity(0.25), 4, true);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

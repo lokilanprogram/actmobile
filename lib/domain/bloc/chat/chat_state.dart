@@ -5,11 +5,20 @@ abstract class ChatState {}
 
  class ChatInitial extends ChatState {}
 
+ class GotAllChatsState extends ChatState {
+  final AllChatsModel allPrivateChats;
+  final AllChatsModel allGroupChats;
+
+  GotAllChatsState({required this.allPrivateChats, required this.allGroupChats});
+ }
+ class GotAllChatsErrorState extends ChatState {}
+
  class CreatedChatState extends ChatState {
   final String chatId;
   final String accessToken;
+  final ChatModel chatModel;
 
-  CreatedChatState({required this.chatId, required this.accessToken});
+  CreatedChatState({required this.chatId, required this.accessToken, required this.chatModel});
  }
 
  class CreatedChatErrorState extends ChatState {}
@@ -30,3 +39,11 @@ abstract class ChatState {}
 
  class GotChatHistoryErrorState extends ChatState {}
 
+class StartedChatMessageState extends ChatState {
+  final String chatId;
+  final String accessToken;
+  final ChatModel chatModel;
+
+  StartedChatMessageState({required this.chatId, required this.accessToken, required this.chatModel});
+}
+class StartedChatMessageErrorState extends ChatState {}

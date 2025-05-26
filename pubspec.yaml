@@ -52,6 +52,9 @@ dependencies:
   flutter_web_socket: ^1.0.2
   web_socket_channel: ^3.0.3
   widgets_to_image: ^1.0.0
+  screenshot: ^3.0.0
+  get_it: ^8.0.3
+  get: ^4.7.2
 
 dev_dependencies:
   flutter_test:

@@ -370,19 +370,19 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                 isLoading = true;
                               });
                               context.read<ProfileBloc>().
-                              add(ProfileCancelActivityEvent(eventId: organizedEvent.id, isRecurring: false));
+                              add(ProfileCancelActivityEvent(eventId: organizedEvent.id, isRecurring: true));
                               },(){
                               setState(() {
                                 isLoading = true;
                               });
                               context.read<ProfileBloc>().
-                              add(ProfileCancelActivityEvent(eventId: organizedEvent.id, isRecurring: true));
+                              add(ProfileCancelActivityEvent(eventId: organizedEvent.id, isRecurring: false));
                               },) : showCancelActivityDialog(context, 'Вы хотите отменить мероприятие?', 'Да', 'Нет', (){
                               setState(() {
                                 isLoading = true;
                               });
                               context.read<ProfileBloc>().
-                              add(ProfileCancelActivityEvent(eventId: organizedEvent.id, isRecurring: false));
+                              add(ProfileCancelActivityEvent(eventId: organizedEvent.id, isRecurring: true));
                               }, (){
 
                               });

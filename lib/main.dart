@@ -4,7 +4,9 @@ import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MapboxOptions.setAccessToken(
@@ -30,7 +32,7 @@ class MyApp extends StatelessWidget {
           create: (context) => ChatBloc(),
         ),
         ],
-      child: MaterialApp(
+      child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
         home: InitialScreen(
         ),

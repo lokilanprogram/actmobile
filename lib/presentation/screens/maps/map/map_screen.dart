@@ -1,6 +1,11 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'package:acti_mobile/presentation/screens/maps/event/widgets/card_event_on_map.dart';
+import 'package:get/get.dart';
 import 'dart:ui';
+import 'package:acti_mobile/data/models/profile_event_model.dart';
+import 'package:acti_mobile/main.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/marker.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 import 'package:acti_mobile/configs/colors.dart';
@@ -29,9 +34,10 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   WidgetsToImageController controller = WidgetsToImageController();
+  ScreenshotController screenshotController = ScreenshotController(); 
   int selectedIndex = 0;
   MapboxMap? mapboxMap;
-  late geolocator.Position currentPosition;
+  late Position currentPosition;
   double currentZoom = 16;
   bool isLoading = false;
   bool showEvents = false;
@@ -43,6 +49,42 @@ class _MapScreenState extends State<MapScreen> {
   final String eventsSourceId = "events-source";
 final String eventsLayerId = "events-layer";
 final String iconImageIdPrefix = "event-icon-";
+
+_onScroll(MapContentGestureContext gestureContext,) async {
+   double distance = geolocator.Geolocator.distanceBetween(
+     currentPosition.lat.toDouble(), currentPosition.lng.toDouble(),
+      gestureContext.point.coordinates.lat.toDouble(), gestureContext.point.coordinates.lng.toDouble(),
+    );
+
+    if (distance > 100000) {
+      print('more than 100 km');
+      setState(() {
+        currentPosition = Position(gestureContext.point.coordinates.lng.toDouble(), gestureContext.point.coordinates.lat.toDouble());
+      });
+      context.read<ProfileBloc>().add(SearchEventsOnMapEvent(latitude: gestureContext.point.coordinates.lat.toDouble()
+      , longitude:  gestureContext.point.coordinates.lng.toDouble()));
+    }
+  print("${gestureContext.point.coordinates.lat} and ${gestureContext.point.coordinates.lng}");
+}
+
+_onTap(MapContentGestureContext context,) async {
+  const double threshold = 0.001; 
+
+  for (var event in searchedEventsModel!.events) {
+    final distanceLat = (event.latitude! - context.point.coordinates.lat).abs();
+    final distanceLng = (event.longitude! - context.point.coordinates.lng).abs();
+
+    if (distanceLat < threshold && distanceLng < threshold) {
+      print('Tapped on event: ${event.title}');
+      await Get.bottomSheet(
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+         CardEventOnMap(organizedEvent: event,)) ;
+    }
+  }
+
+  print("Tapped on empty map area");
+}
 
   @override
   void initState() {
@@ -65,10 +107,10 @@ final String iconImageIdPrefix = "event-icon-";
     }
     final position = await geolocator.Geolocator.getCurrentPosition();
     setState(() {
-      currentPosition = position;
+      currentPosition = Position(position.longitude, position.latitude);
     });
     
-    context.read<ProfileBloc>().add(SearchEventsOnMapEvent(latitude: currentPosition.latitude, longitude: currentPosition.longitude));
+    context.read<ProfileBloc>().add(InitializeMapEvent(latitude: currentPosition.lat.toDouble(), longitude: currentPosition.lng.toDouble()));
   }
 
   final List<Widget> screens = [
@@ -82,11 +124,30 @@ final String iconImageIdPrefix = "event-icon-";
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) async {
-        if(state is SearchedEventsOnMapState){
-          setState(() {
+        if(state is InitializeMapState){
+           setState(() {
             searchedEventsModel = state.searchedEventsModel;
             isLoading = false;
           });
+        }
+        if(state is SearchedEventsOnMapState){
+          setState(() {
+            searchedEventsModel?.events.addAll(state.searchedEventsModel.events);
+          });
+           
+     for(var event in searchedEventsModel!.events){
+         final result = await screenshotController.captureFromWidget(
+    CategoryMarker(title: event.category!.name , iconUrl: event.category!.iconPath),
+  );
+           await addEventIconFromUrl(mapboxMap!, 'pointer:${event.id}', result);
+            final pointAnnotationOptions = PointAnnotationOptions(
+    geometry: Point(coordinates: Position(event.longitude!, event.latitude!)),
+    iconSize: 0.7,
+    image: result,
+    iconImage: 'pointer:${event.id}', 
+  );
+  await pointAnnotationManager.create(pointAnnotationOptions);
+          }
          
         }
         if(state is ProfileUpdatedState){
@@ -101,14 +162,16 @@ final String iconImageIdPrefix = "event-icon-";
                 children: [
                   if (selectedIndex == 0)
                     MapWidget(
+                    onScrollListener:_onScroll,
+                      onTapListener: _onTap,
                       styleUri:
                           'mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj',
                       cameraOptions: CameraOptions(
                         zoom: currentZoom,
                         center: Point(
                           coordinates: Position(
-                            currentPosition.longitude,
-                            currentPosition.latitude,
+                            currentPosition.lng,
+                            currentPosition.lat,
                           ),
                         ),
                       ),
@@ -121,11 +184,10 @@ final String iconImageIdPrefix = "event-icon-";
                     alignment: Alignment.centerRight,
                     child: buildMapControls(),
                   ),
-                  WidgetsToImage(
-              controller: controller,
-              child: InkWell(
-                child: CustomMarkerWidget(text: 'Баскетбол',iconUrl: 'http://93.183.81.104/uploads/profile_photos/f07cb015-296d-467c-974c-add75c5d909c.jpg',)),
-            ),
+                  // Align(
+                  //   alignment: Alignment.center,
+                  //   child: CategoryMarker(title: 'Спорт',iconUrl: 'http://93.183.81.104/uploads/category_icons/1c6f0937-d2a4-41fe-9ef8-a34ad57a9a0e.png',),
+                  // ),
                   if (showEvents)
                     DraggableScrollableSheet(
                       controller: sheetController,
@@ -240,7 +302,7 @@ final String iconImageIdPrefix = "event-icon-";
                 await mapboxMap!.setCamera(CameraOptions(
                     center: Point(
                         coordinates: Position(
-                            currentPosition.longitude, currentPosition.latitude)),
+                            currentPosition.lng, currentPosition.lat)),
                     zoom: currentZoom));
               },
               icon: SvgPicture.asset('assets/left_drawer/my_location.svg'),
@@ -260,57 +322,25 @@ final String iconImageIdPrefix = "event-icon-";
       pointAnnotationManager= pointNewAnnotationManager;
     });
     await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
-    await mapboxMap
-        .loadStyleURI('mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj');
+  //  await mapboxMap
+  //      .loadStyleURI('mapbox://styles/acti/cma9wrmfh00i701Зsdhqrjg5mj');
     
      for(var event in searchedEventsModel!.events){
-           final bytes = await controller.capture();
-           await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}', bytes!);
+      
+         final result = await screenshotController.captureFromWidget(
+    CategoryMarker(title: event.category!.name , iconUrl: event.category!.iconPath),
+  );
+           await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}', result);
             final pointAnnotationOptions = PointAnnotationOptions(
     geometry: Point(coordinates: Position(event.longitude!, event.latitude!)),
-    iconSize: 0.5,
-    image: bytes,
+    iconSize: 0.75,
+    image: result,
     iconImage: 'pointer:${event.id}', 
   );
   await pointAnnotationManager.create(pointAnnotationOptions);
           }
     await addUserIconToStyle(mapboxMap);
+
   }
-}
-
-
-Future<Uint8List> createCustomMarkerWidgetAsBytes(String text, String iconUrl) async {
-  final completer = Completer<Uint8List>();
-  final repaintBoundary = GlobalKey();
-
-  final widget = RepaintBoundary(
-    key: repaintBoundary,
-    child: Material(
-      type: MaterialType.transparency,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.network(iconUrl, width: 20, height: 20),
-            const SizedBox(width: 5),
-            Text(text, style: TextStyle(fontSize: 14, color: Colors.blue)),
-          ],
-        ),
-      ),
-    ),
-  );
-
-  final RenderRepaintBoundary boundary =
-      repaintBoundary.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-  final image = await boundary.toImage(pixelRatio: 3.0);
-  final byteData = await image.toByteData(format: ImageByteFormat.png);
-  completer.complete(byteData!.buffer.asUint8List());
-
-  return completer.future;
+  
 }

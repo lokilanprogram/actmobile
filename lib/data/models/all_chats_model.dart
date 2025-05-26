@@ -4,45 +4,94 @@
 
 import 'dart:convert';
 
-MessageModel welcomeFromJson(String str) => MessageModel.fromJson(json.decode(str));
+AllChatsModel welcomeFromJson(String str) => AllChatsModel.fromJson(json.decode(str));
 
-String welcomeToJson(MessageModel data) => json.encode(data.toJson());
-// To parse this JSON data, do
-//
-//     final welcome = welcomeFromJson(jsonString);
-class ChatSnapshotModel {
-    String type;
-    MessageModel message;
+String welcomeToJson(AllChatsModel data) => json.encode(data.toJson());
 
-    ChatSnapshotModel({
-        required this.type,
-        required this.message,
+class AllChatsModel {
+    int total;
+    int offset;
+    int limit;
+    List<Chat> chats;
+
+    AllChatsModel({
+        required this.total,
+        required this.offset,
+        required this.limit,
+        required this.chats,
     });
 
-    factory ChatSnapshotModel.fromJson(Map<String, dynamic> json) => ChatSnapshotModel(
-        type: json["type"],
-        message: MessageModel.fromJson(json["message"]),
+    factory AllChatsModel.fromJson(Map<String, dynamic> json) => AllChatsModel(
+        total: json["total"],
+        offset: json["offset"],
+        limit: json["limit"],
+        chats: List<Chat>.from(json["chats"].map((x) => Chat.fromJson(x))),
     );
 
     Map<String, dynamic> toJson() => {
-        "type": type,
-        "message": message.toJson(),
+        "total": total,
+        "offset": offset,
+        "limit": limit,
+        "chats": List<dynamic>.from(chats.map((x) => x.toJson())),
     };
 }
 
+class Chat {
+    String id;
+    String type;
+    DateTime createdAt;
+    String creatorId;
+    dynamic eventId;
+    LastMessage? lastMessage;
+    List<User> users;
+    dynamic event;
 
-class MessageModel {
+    Chat({
+        required this.id,
+        required this.type,
+        required this.createdAt,
+        required this.creatorId,
+        required this.eventId,
+        required this.lastMessage,
+        required this.users,
+        required this.event,
+    });
+
+    factory Chat.fromJson(Map<String, dynamic> json) => Chat(
+        id: json["id"],
+        type: json["type"],
+        createdAt: DateTime.parse(json["created_at"]),
+        creatorId: json["creator_id"],
+        eventId: json["event_id"],
+        lastMessage: json["last_message"] == null ? null : LastMessage.fromJson(json["last_message"]),
+        users: List<User>.from(json["users"].map((x) => User.fromJson(x))),
+        event: json["event"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "id": id,
+        "type": type,
+        "created_at": createdAt.toIso8601String(),
+        "creator_id": creatorId,
+        "event_id": eventId,
+        "last_message": lastMessage?.toJson(),
+        "users": List<dynamic>.from(users.map((x) => x.toJson())),
+        "event": event,
+    };
+}
+
+class LastMessage {
     String id;
     String chatId;
     String userId;
     String content;
-    String? attachmentUrl;
+    dynamic attachmentUrl;
     String status;
     String messageType;
     DateTime createdAt;
     User user;
 
-    MessageModel({
+    LastMessage({
         required this.id,
         required this.chatId,
         required this.userId,
@@ -54,7 +103,7 @@ class MessageModel {
         required this.user,
     });
 
-    factory MessageModel.fromJson(Map<String, dynamic> json) => MessageModel(
+    factory LastMessage.fromJson(Map<String, dynamic> json) => LastMessage(
         id: json["id"],
         chatId: json["chat_id"],
         userId: json["user_id"],
@@ -81,13 +130,13 @@ class MessageModel {
 
 class User {
     String name;
-    String surname;
-    String email;
-    String bio;
-    bool isOrganization;
+    String? surname;
+    String? email;
+    String? bio;
+    bool? isOrganization;
     String? photoUrl;
     String status;
-    bool isEmailVerified;
+    bool? isEmailVerified;
 
     User({
         required this.name,

@@ -202,7 +202,7 @@ class Creator {
 
     factory Creator.fromJson(Map<String, dynamic> json) => Creator(
       id: json['id'],
-        name: json["name"],
+        name: json["name"] ?? 'not defined',
         surname: json["surname"],
         email: json["email"],
         hasRecentBan: json["has_recent_ban"],
