@@ -12,10 +12,10 @@ String welcomeToJson(List<SimiliarUsersModel> data) => json.encode(List<dynamic>
 
 class SimiliarUsersModel {
     String id;
-    String name;
-    String surname;
+    String? name;
+    String? surname;
     dynamic city;
-    dynamic photoUrl;
+    String? photoUrl;
     int commonCategories;
     List<EventOnboarding> categories;
 

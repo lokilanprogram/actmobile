@@ -117,10 +117,27 @@ class ProfileReportedUserErrorState extends ProfileState {
   ProfileReportedUserErrorState({required this.errorText});
 }
 
+class ProfileInvitedUserState extends ProfileState{
+
+}
+class ProfileInvitedUserErrorState extends ProfileState{}
+
 class ProfileCanceledActivityState extends ProfileState {}
 
 class ProfileCanceledActivityErrorState extends ProfileState {
   final String errorText;
 
   ProfileCanceledActivityErrorState({required this.errorText});
+}
+
+class ProfileRecommentedUsersState extends ProfileState {
+  final RecommendatedUsersModel recommendatedUsersModel;
+
+  ProfileRecommentedUsersState({required this.recommendatedUsersModel});
+}
+
+class ProfileRecommentedUsersErrorState extends ProfileState {
+  final String errorText;
+
+  ProfileRecommentedUsersErrorState({required this.errorText});
 }

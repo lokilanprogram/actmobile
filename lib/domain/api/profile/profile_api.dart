@@ -32,6 +32,26 @@ class ProfileApi {
   return null;
 }
 
+Future<bool?> inviteUser(String userId, String eventId) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+    final response = await http.post(
+    Uri.parse('$API/api/v1/events/$eventId/users/$userId/invite'),
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken'
+    },
+  );
+   if (response.statusCode == 200) {
+    print(response.body);
+    return true; 
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return null;
+}
+
 Future<bool?> blockUser(String userId) async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){

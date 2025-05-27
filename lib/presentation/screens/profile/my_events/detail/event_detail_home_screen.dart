@@ -68,6 +68,13 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
           });
         }
 
+          if(state is ProfileCanceledActivityErrorState){
+          setState(() {
+            isLoading = false;
+            isError = true;
+          });
+        }
+
         if(state is ProfileGotEventDetailErrorState){
           setState(() {
             isLoading = false;

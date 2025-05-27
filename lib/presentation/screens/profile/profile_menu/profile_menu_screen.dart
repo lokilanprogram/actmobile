@@ -7,6 +7,7 @@ import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/widgets/blurred.dart';
 import 'package:acti_mobile/presentation/widgets/popup_profile_buttons.dart';
@@ -59,17 +60,12 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
           });
 
           if (!profileModel.isProfileCompleted) {
-            final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => UpdateProfileScreen(
-                          profileModel: profileModel,
-                        )));
-            if (result != null && result is ProfileModel) {
-              setState(() {
-                profileModel = result;
-              });
-            }
+           await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (_) => UpdateProfileScreen(
+                                                    profileModel: profileModel,
+                                                  )));
           }
           setState(() {
             isLoading = false;
@@ -94,6 +90,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
       child: isLoading
           ? LoaderWidget()
           : Scaffold(
+            backgroundColor: Colors.white,
             body: Stack(
               children: [
                 Positioned.fill(
@@ -108,6 +105,20 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                         width: double.infinity,
                                         height: 350,
                                         fit: BoxFit.cover,
+                             loadingBuilder: (BuildContext context, Widget child,
+                      ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return SizedBox(height: 350,
+                      child: Center(
+                        child: CircularProgressIndicator(color: mainBlueColor,
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );}
+
                                       )
                                     : Image.asset(
                                         'assets/images/image_profile.png',
@@ -133,17 +144,12 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                       context.read<ProfileBloc>().add(ProfileLogoutEvent());
                                     },
                                     editFunction: () async {
-                                      final result = await Navigator.push(
+                                      await Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                               builder: (_) => UpdateProfileScreen(
                                                     profileModel: profileModel,
                                                   )));
-                                      if (result != null && result is ProfileModel) {
-                                        setState(() {
-                                          profileModel = result;
-                                        });
-                                      }
                                     },
                                   )),
                               Positioned(
@@ -285,7 +291,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                     onTap: (){
                                       Navigator.push(context, MaterialPageRoute(builder: (context)=> PublicUserScreen(userId: user.id)));
                                     },
-                                    child: buildAvatar(user.photoUrl, user.name))).toList(),),
+                                    child: buildAvatar(user.photoUrl, user.name ?? 'Неизвестный'))).toList(),),
                               );
   }
 

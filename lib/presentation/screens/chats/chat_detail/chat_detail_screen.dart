@@ -355,7 +355,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
              constraints: BoxConstraints(
     maxWidth: (hasAttachment || isLongText)
         ? MediaQuery.of(context).size.width * 0.85
-        : MediaQuery.of(context).size.width * 0.45,
+        : MediaQuery.of(context).size.width * 0.47,
   ),
               child: Card(
                 elevation: 1.4,
@@ -369,7 +369,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   ),
                 ),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 30,vertical: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 25,vertical: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -420,6 +420,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: 300,
+                             loadingBuilder: (BuildContext context, Widget child,
+                      ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return SizedBox(height: 300,
+                      child: Center(
+                        child: CircularProgressIndicator(color: Colors.white,
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );}
                           ),
                         ),
                       ],
@@ -541,7 +554,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                                             onPressed: () {
                                                               if(messageController.text.isNotEmpty || file !=null){
                                                                  if(chatId == null){
-                                                               context.read<ChatBloc>().add(StartChatMessageEvent(userId: widget.interlocutorUserId!, message: messageController.text));
+                                                               context.read<ChatBloc>().add(StartChatMessageEvent(imagePath: file?.path,
+                                                                userId: widget.interlocutorUserId!, message: messageController.text));
                                                               }else{
                                                              context.read<ChatBloc>().add(SendMessageEvent(
                                                               imagePath: file?.path,

@@ -1,5 +1,6 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
+import 'package:acti_mobile/data/models/recommendated_user_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/widgets/app_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/error_widget.dart';
@@ -21,10 +22,11 @@ class EventRequestScreen extends StatefulWidget {
 
 class _EventRequestScreenState extends State<EventRequestScreen> {
   late List<Participant> participants;
+  RecommendatedUsersModel? recommendatedUsersModel;
   bool isLoading = false;
   bool isError = false;
   String selectedTab = 'mine';
-  bool isRequests = false;
+  bool isRequests = true;
   @override
   void initState() {
     setState(() {
@@ -37,12 +39,32 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
+        if(state is ProfileInvitedUserState){
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Пользователь успешно приглашен',style: TextStyle(fontFamily: 'Inter',color: Colors.white),),backgroundColor: Colors.green,));
+        }
+        if(state is ProfileRecommentedUsersState){
+          setState(() {
+            recommendatedUsersModel = state.recommendatedUsersModel;
+            selectedTab = 'notMine';
+            isRequests = false; 
+            isLoading = false; 
+          });
+        }
         if(state is ProfileAcceptedUserOnActivityState){
           setState(() {
             participants = state.participants;
             selectedTab = 'mine';
             isLoading = false;
            });
+        }
+        if(state is ProfileInvitedUserErrorState){
+          setState(() {
+            isLoading = false;
+            isError = true;
+          });
         }
 
            if(state is ProfileAcceptedUserOnActivityErrorState){
@@ -71,22 +93,21 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
                               },
                               onTapVisited: (){
                                 setState(() {
-                                isRequests = false;
+                                isLoading = true;
                                 });
+                                context.read<ProfileBloc>().add(ProfileRecommendUsersEvent(eventId: widget.eventId));
                               },
                              requestLentgh: participants.where((particapant)=> particapant.status 
                              == 'pending' || particapant.status == 'rejected').length,
                               recommendedLentgh: 0
                             ),
                             SizedBox(height: 25,),
-                            participants.isEmpty ? buildNoUsers():
-                            ListView.separated(
+                         isRequests? isRequests == true && participants.isEmpty ? buildNoUsers():  ListView.separated(
                 shrinkWrap: true,
                 primary: true,
                 itemCount: participants.length,
                 itemBuilder: (context, index) {
                   final participant = participants[index];
-                 {
                    return ListTile(
                     trailing: participant.status == 'pending'
                         ? InkWell(
@@ -138,6 +159,47 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
                     participant.user.hasRecentBan! ? (Text('На данного пользователя поступали жалобы, будьте бдительны.',style: 
                     TextStyle(fontFamily: 'Gilroy',fontSize: 8.85,color: Colors.red,height: 1),)):null :null
                   );
+                },
+                separatorBuilder: (BuildContext context, int index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20, top: 5),
+                    child: Divider(),
+                  );
+                },
+              ):recommendatedUsersModel!= null? isRequests == false && recommendatedUsersModel!.users.isEmpty? 
+              buildNoUsers():  ListView.separated(
+                shrinkWrap: true,
+                primary: true,
+                itemCount: recommendatedUsersModel!.users.length??0,
+                itemBuilder: (context, index) {
+                  final recUser = recommendatedUsersModel!.users[index];
+                 {
+                   return ListTile(
+                    trailing: InkWell(onTap: (){
+                      setState(() {
+                        isLoading = true;
+                      });
+                      context.read<ProfileBloc>().add(ProfileInviteUserEvent(userId: 
+                      recUser.id, eventId: widget.eventId));
+
+                    },child: SvgPicture.asset('assets/icons/icon_invite.svg'),),
+                    leading: CircleAvatar(
+                      radius: 32,
+                      backgroundImage: recUser.photoUrl != null
+                          ? NetworkImage(recUser.photoUrl!)
+                          : AssetImage('assets/images/image_profile.png'),
+                    ), horizontalTitleGap: 12,
+                    title: Text(
+                      recUser.name ?? 'Неизвестный',
+                      style: TextStyle(
+                          fontSize: 17.14,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: recUser.hasRecentBan!= null ?  
+                    recUser.hasRecentBan! ? (Text('На данного пользователя поступали жалобы, будьте бдительны.',style: 
+                    TextStyle(fontFamily: 'Gilroy',fontSize: 8.85,color: Colors.red,height: 1),)):null :null
+                  );
                   }
                   
                 },
@@ -147,7 +209,7 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
                     child: Divider(),
                   );
                 },
-              ),
+              ):Container()
             ],
           ),
         ),

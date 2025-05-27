@@ -69,30 +69,24 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
         backgroundColor: Colors.white,
         body: isLoading
             ? LoaderWidget()
-            : Stack(
-                children: [
-                  Container(
+            : Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage(
-                          "assets/images/image_select_event.png",
-                        ),
+                          "assets/images/background.png",),
                         fit: BoxFit.cover,
                       ),
                     ),
-                  ),
-                  Padding(
+                child: Padding(
                     padding: EdgeInsets.only(
                       right: 40,
                       left: 40,
                     ),
                     child: SingleChildScrollView(
-                      physics: NeverScrollableScrollPhysics(),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
+                      child:  Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                          SizedBox(height: 25,),
                            GridView.count(
   shrinkWrap: true,
   physics: NeverScrollableScrollPhysics(),
@@ -143,15 +137,16 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
       ),
     );
   }),
-)
-,
+),
+SizedBox(height: 45,),
+
                             Padding(
-                              padding: const EdgeInsets.only(right: 10),
+                              padding: const EdgeInsets.only(right: 10,),
                               child: Center(
                                   child: SvgPicture.asset(
                                       'assets/texts/text_select_event.svg')),
                             ),
-                            const SizedBox(height: 35),
+                            const SizedBox(height: 45),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -180,8 +175,7 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                       ),
                     ),
                   )
-                ],
-              ),
+              
       ),
     );
   }

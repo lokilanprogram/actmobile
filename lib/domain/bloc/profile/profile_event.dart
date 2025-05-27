@@ -11,11 +11,24 @@ class SearchEventsOnMapEvent extends ProfileEvent{
 
   SearchEventsOnMapEvent({required this.latitude, required this.longitude});
 }
+
+class ProfileInviteUserEvent extends ProfileEvent{
+  final String userId;
+  final String eventId;
+
+  ProfileInviteUserEvent({required this.userId, required this.eventId});
+}
 class InitializeMapEvent extends ProfileEvent{
   final double latitude;
   final double longitude;
 
   InitializeMapEvent({required this.latitude, required this.longitude});
+}
+
+class ProfileRecommendUsersEvent extends ProfileEvent{
+  final String eventId;
+
+  ProfileRecommendUsersEvent({required this.eventId});
 }
 
 class ProfileUpdateEvent extends ProfileEvent {

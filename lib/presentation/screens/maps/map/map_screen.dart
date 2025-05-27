@@ -66,7 +66,6 @@ _onScroll(MapContentGestureContext gestureContext,) async {
       context.read<ProfileBloc>().add(SearchEventsOnMapEvent(latitude: gestureContext.point.coordinates.lat.toDouble()
       , longitude:  gestureContext.point.coordinates.lng.toDouble()));
     }
-  print("${gestureContext.point.coordinates.lat} and ${gestureContext.point.coordinates.lng}");
 }
 
 _onTap(MapContentGestureContext context,) async {
@@ -77,15 +76,12 @@ _onTap(MapContentGestureContext context,) async {
     final distanceLng = (event.longitude! - context.point.coordinates.lng).abs();
 
     if (distanceLat < threshold && distanceLng < threshold) {
-      print('Tapped on event: ${event.title}');
       await Get.bottomSheet(
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
          CardEventOnMap(organizedEvent: event,)) ;
     }
   }
-
-  print("Tapped on empty map area");
 }
 
   @override
@@ -346,11 +342,9 @@ _onTap(MapContentGestureContext context,) async {
       pointAnnotationManager= pointNewAnnotationManager;
     });
     await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
-    // await mapboxMap
-    //     .loadStyleURI('mapbox://styles/acti/cma9wrmfh00i701Зsdhqrjg5mj');
-    
-  
-
+    await mapboxMap.logo.updateSettings(LogoSettings(enabled: false));
+    await mapboxMap.attribution.updateSettings(AttributionSettings(enabled: false));
+    await mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
   }
   
 }

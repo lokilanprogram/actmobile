@@ -5,6 +5,7 @@ import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/data/models/public_user_model.dart';
+import 'package:acti_mobile/data/models/recommendated_user_model.dart';
 import 'package:acti_mobile/data/models/searched_events_model.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
 import 'package:acti_mobile/domain/api/auth/auth_api.dart';
@@ -162,6 +163,28 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         }
       } catch (e) {
         emit(ProfileLogoutErrorState());
+      }
+    });
+
+       on<ProfileInviteUserEvent>((event, emit) async {
+      try {
+        final isInvited = await ProfileApi().inviteUser(event.userId, event.eventId);
+        if (isInvited != null) {
+          emit(ProfileInvitedUserState());
+        }
+      } catch (e) {
+        emit(ProfileInvitedUserErrorState());
+      }
+    });
+
+      on<ProfileRecommendUsersEvent>((event, emit) async {
+      try {
+        final recommendatedUsersModel = await EventsApi().getProfileRecommendedUsers(event.eventId);
+        if (recommendatedUsersModel != null) {
+          emit(ProfileRecommentedUsersState(recommendatedUsersModel: recommendatedUsersModel));
+        }
+      } catch (e) {
+        emit(ProfileRecommentedUsersErrorState(errorText: 'Произошла ошибка'));
       }
     });
     on<ProfileGetEventDetailEvent>((event, emit) async {

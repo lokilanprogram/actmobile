@@ -188,6 +188,10 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                           Navigator.push(context, MaterialPageRoute(builder: (context)=> 
                           MapScreen(selectedScreenIndex: 0,)));
                         }
+                        if(index ==2){
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                          MapScreen(selectedScreenIndex: 2)));
+                        }
                          if(index == 3){
                          Navigator.pop(context);
                         }

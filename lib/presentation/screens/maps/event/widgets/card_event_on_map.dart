@@ -34,13 +34,10 @@ class CardEventOnMap extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(child: buildHeader(organizedEvent.title)),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.more_vert),
-                ),
+             
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 25),
             ClipRRect(borderRadius: BorderRadius.circular(15),
               child: Stack(
                 children: [
@@ -70,10 +67,12 @@ class CardEventOnMap extends StatelessWidget {
                 ],
               )),
             const SizedBox(height: 16),
-            buildInfoRow(Icons.calendar_today, '${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)} | ${organizedEvent.timeStart.substring(0,5)} – ${organizedEvent.timeEnd.substring(0,5)}',
+            buildInfoRow(organizedEvent,context, Icons.calendar_today, '${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)} | ${organizedEvent.timeStart.substring(0,5)} – ${organizedEvent.timeEnd.substring(0,5)}',
             organizedEvent.timeStart, organizedEvent.timeEnd, organizedEvent.address),
             const SizedBox(height: 16),
-            buildSpotsIndicator(organizedEvent.restrictions.any((restict)=> restict == 'isUnlimited'), organizedEvent.freeSlots, organizedEvent.slots),
+            buildSpotsIndicator(organizedEvent.restrictions.any((restict)=> restict == 'isUnlimited'), organizedEvent.freeSlots, organizedEvent.slots,
+            organizedEvent.participants.where((user)=>user.status=='confirmed').map
+                ((user)=>user.user.photoUrl).toList()),
             const SizedBox(height: 38),
             InkWell(onTap: () async{
              Navigator.push(context, MaterialPageRoute(builder: (context)=>

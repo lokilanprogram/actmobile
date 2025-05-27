@@ -35,12 +35,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     });
 
       on<StartChatMessageEvent>((event, emit) async{
+        bool? isSent = false;
       try{
           final accessToken = await storage.read(key: accessStorageToken);
          final createdChat =  await ChatApi().createPrivateChat(event.userId);
          if(createdChat!=null){
-          final sentMessageModel = await ChatApi().sendMessage(createdChat.id, event.message);
-        if(sentMessageModel!=null){
+           if(event.imagePath==null){
+             isSent = await ChatApi().sendMessage(createdChat.id, event.message);
+          }else{
+             isSent = await ChatApi().sendFileMessage(createdChat.id, event.message,event.imagePath!);
+          }       
+           if(isSent!=null){
         final chatModel = await ChatApi().getChatHistory(createdChat.id);
           emit(StartedChatMessageState(chatModel: chatModel!,
             chatId: createdChat.id,accessToken:accessToken! ));

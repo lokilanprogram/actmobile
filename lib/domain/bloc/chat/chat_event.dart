@@ -24,8 +24,9 @@ class DeleteChatEvent extends ChatEvent{
 class StartChatMessageEvent extends ChatEvent{
   final String userId;
   final String message;
+  final String? imagePath;
 
-  StartChatMessageEvent({required this.userId, required this.message});
+  StartChatMessageEvent({required this.userId, required this.message, required this.imagePath});
 }
 
 class GetChatHistoryEvent extends ChatEvent{

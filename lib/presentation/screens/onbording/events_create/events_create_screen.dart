@@ -18,8 +18,8 @@ class EventsCreateScreen extends StatelessWidget {
                         fit: BoxFit.cover,
                       ),
                     ),
-        child: SafeArea(
-          child: SingleChildScrollView(
+        child:
+         SingleChildScrollView(
             child: Column(
                 children: [
                Padding(
@@ -66,7 +66,7 @@ class EventsCreateScreen extends StatelessWidget {
                 ],
               ),
           ),
-        ),
+      
       ),
       
     );

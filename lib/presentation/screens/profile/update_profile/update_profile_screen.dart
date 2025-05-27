@@ -92,8 +92,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       emailController = TextEditingController(text: widget.profileModel.email);
       selectedCategories = widget.profileModel.categories;
       isOrganizationRepresentative = widget.profileModel.isOrganization;
-      _selectedTab = widget.profileModel.hideMyEvents!=null ? (widget.profileModel.hideMyEvents! ? 'my':''):'';
-      _selectedTab = widget.profileModel.hideAttendedEvents!=null ? (widget.profileModel.hideAttendedEvents! ? 'visited':''):'';
+      _selectedTab = widget.profileModel.hideMyEvents!=null ? (widget.profileModel.hideMyEvents! ? 'my':widget.profileModel.hideAttendedEvents!=null ? (widget.profileModel.hideAttendedEvents! ? 'visited':''):''):'';
     });
   }
 
@@ -108,7 +107,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
           if(widget.profileModel.email != state.profileModel.email){
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Проверьте почту и перейдите по ссылке для активации'),backgroundColor: Colors.green,));
           }
-          Navigator.pop(context, state.profileModel);
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                          MapScreen(selectedScreenIndex: 3,)));
         }
         if(state is ProfileUpdatedErrorState){
           setState(() {
@@ -227,11 +227,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   style: titleTextStyleEdit),
                               SizedBox(height: 4),
                               TextInputNameWidget(controller: surnameController,text: 'Введите фамилию',
-                              validator: (val){
-                                if(val!.isEmpty){
-                                return 'Заполните фамилию';
-                                }
-                              },),
+                              validator:null,),
                               SizedBox(height: 16),
                              Row(
                                  crossAxisAlignment: CrossAxisAlignment.center,
@@ -347,9 +343,17 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   Expanded(
                                     child: GestureDetector(
                                       onTap: () {
-                                        setState(() {
+                                        if(_selectedTab =='my'){
+                                          setState(() {
+                                            _selectedTab = '';
+                                          });
+                                        }else{
+                                          setState(() {
                                           _selectedTab = 'my';
                                         });
+
+                                        }
+                                        
                                       },
                                       child: Container(
                                         padding: EdgeInsets.symmetric(
@@ -377,9 +381,15 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   Expanded(
                                     child: GestureDetector(
                                       onTap: () {
-                                        setState(() {
+                                       if(_selectedTab =='visited'){
+                                         setState(() {
+                                          _selectedTab = '';
+                                        });
+                                       }else{
+                                         setState(() {
                                           _selectedTab = 'visited';
                                         });
+                                       }
                                       },
                                       child: Container(
                                         padding: EdgeInsets.symmetric(

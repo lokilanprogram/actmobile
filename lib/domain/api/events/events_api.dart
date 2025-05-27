@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:acti_mobile/data/models/alter_event_model.dart';
 import 'package:acti_mobile/data/models/mapbox_reverse_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
+import 'package:acti_mobile/data/models/recommendated_user_model.dart';
 import 'package:acti_mobile/data/models/searched_events_model.dart';
 import 'package:dio/dio.dart';
 import 'package:acti_mobile/configs/constants.dart';
@@ -50,6 +51,24 @@ class EventsApi {
    if (response.statusCode == 200) {
     print(response.body);
     return true;
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return null;
+}
+ Future<RecommendatedUsersModel?> getProfileRecommendedUsers(String eventId) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+    final response = await http.get(
+    Uri.parse('$API/api/v1/events/$eventId/recommendations'),
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken'
+    },
+  );
+   if (response.statusCode == 200) {
+     return RecommendatedUsersModel.fromJson(jsonDecode(response.body));
   } else {
     throw Exception('Error: ${response.body}');
   }
@@ -191,10 +210,11 @@ Future<bool?> alterEvent({
       'slots':alterEvent.isUnlimited? 0:alterEvent.slots.toString(),
       'photos':photos,
         });
-        if(!alterEvent.isOnline){
+      
+  if(alterEvent.isOnline == false){
           formData.fields.add(MapEntry('latitude', alterEvent.selectedAddressModel!.latitude.toString()));
           formData.fields.add(MapEntry('longitude', alterEvent.selectedAddressModel!.longitude.toString()));
-        }
+   }
   try{
     if(isCreated){
       response = await dio.post(

@@ -101,6 +101,19 @@ Widget build(BuildContext context) {
                                       width: double.infinity,
                                       height: 350,
                                       fit: BoxFit.cover,
+                                      loadingBuilder: (BuildContext context, Widget child,
+                      ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return SizedBox(height: 350,
+                      child: Center(
+                        child: CircularProgressIndicator(color: mainBlueColor,
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );}
                                     )
                                   : Image.asset(
                                       'assets/images/image_profile.png',
@@ -136,7 +149,7 @@ Widget build(BuildContext context) {
                                 });
                                 context.read<ProfileBloc>().add(ProfileBlockUserEvent(userId: widget.userId));
                               },
-                              userName: publicUserModel.name,
+                              userName: publicUserModel.name ?? 'Неизвестный',
                               ),
                             ),
                             Positioned(
@@ -146,7 +159,7 @@ Widget build(BuildContext context) {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    publicUserModel.name,
+                                    publicUserModel.name ?? 'Неизвестный',
                                     style: TextStyle(
                                       fontFamily: 'Inter',
                                       fontSize: 32,
@@ -293,7 +306,7 @@ Widget build(BuildContext context) {
                      Navigator.push(context, MaterialPageRoute(builder: (context)=> ChatDetailScreen(
                       trailingText: null,
                       interlocutorAvatar: publicUserModel.photoUrl,
-                     interlocutorName: publicUserModel.name,interlocutorChatId:publicUserModel.chatId, interlocutorUserId: widget.userId,)));
+                     interlocutorName: publicUserModel.name ?? 'Неизвестный',interlocutorChatId:publicUserModel.chatId, interlocutorUserId: widget.userId,)));
 
                       }),
                         SizedBox(height: 15,),

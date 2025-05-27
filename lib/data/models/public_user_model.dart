@@ -12,9 +12,9 @@ String welcomeToJson(PublicUserModel data) => json.encode(data.toJson());
 
 class PublicUserModel {
   String? userId;
-    String name;
-    String surname;
-    String email;
+    String? name;
+    String? surname;
+    String? email;
     String? city;
     String? bio;
     bool isOrganization;

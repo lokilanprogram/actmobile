@@ -75,8 +75,6 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     setState(() {
       this.mapboxMap = mapboxMap;
     });
-     await mapboxMap
-        .loadStyleURI('mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj');
     await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
     final annotationPlugin = mapboxMap.annotations;
     final pointNewAnnotationManager = await annotationPlugin.createPointAnnotationManager();

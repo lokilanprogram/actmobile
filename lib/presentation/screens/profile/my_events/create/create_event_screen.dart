@@ -680,13 +680,15 @@ setState(() {
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none),
-              suffix: suffixText != null
+                 suffixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
+
+              suffixIcon: suffixText != null
                   ? Padding(
-                    padding: const EdgeInsets.only(right: 20),
+                    padding: EdgeInsets.only(right: 30),
                     child: Text(
-                              suffixText,
-                              style: TextStyle(fontFamily: 'Inter', fontSize: 14),
-                            ),
+                                suffixText,
+                                style: TextStyle(fontFamily: 'Inter', fontSize: 14),
+                              ),
                   )
                   : null,
               suffixStyle: TextStyle(color: Colors.black),
