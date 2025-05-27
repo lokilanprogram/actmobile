@@ -441,7 +441,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 ],
                               ),
                               Center(
-                                child: Wrap(
+                                child: Wrap(alignment: WrapAlignment.center,
                                     spacing: 10,
                                     runSpacing: 10,
                                     children: selectedCategories

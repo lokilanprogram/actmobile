@@ -38,8 +38,9 @@ class _MapScreenState extends State<MapScreen> {
   ScreenshotController screenshotController = ScreenshotController(); 
   int selectedIndex = 0;
   MapboxMap? mapboxMap;
+  late geolocator.LocationPermission currentPermission;
   late Position currentSelectedPosition;
-  late Position currentUserPosition;
+   Position? currentUserPosition;
   double currentZoom = 16;
   bool isLoading = false;
   bool showEvents = false;
@@ -81,6 +82,7 @@ _onTap(MapContentGestureContext context,) async {
         backgroundColor: Colors.transparent,
          CardEventOnMap(organizedEvent: event,)) ;
     }
+    print(context.point.coordinates.lng.toString() +' ' +  context.point.coordinates.lat.toString());
   }
 }
 
@@ -101,17 +103,32 @@ _onTap(MapContentGestureContext context,) async {
     setState(() {
       isLoading = true;
       selectedIndex = widget.selectedScreenIndex; 
-    });
+    });;
     final permission = await geolocator.Geolocator.checkPermission();
-    if (permission == geolocator.LocationPermission.denied) {
-      await geolocator.Geolocator.requestPermission();
+    setState(() {
+      currentPermission = permission;
+    });
+    if (currentPermission.name == 'denied' ) {
+     final permission = await geolocator.Geolocator.requestPermission();
+       setState(() {
+      currentPermission = permission;
+    });
     }
-    final position = await geolocator.Geolocator.getCurrentPosition();
+    if(currentPermission.name != 'denied' ){
+      final position = await geolocator.Geolocator.getCurrentPosition();
     setState(() {
       currentUserPosition = Position(position.longitude, position.latitude);
       currentSelectedPosition = Position(position.longitude, position.latitude);
     });
-    
+    }else{
+      setState(() {
+        currentUserPosition = null;
+        currentSelectedPosition = Position(37.60709779391965, 55.73523399526778);
+        isLoading = false; 
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Не удалось получить местоположение',
+      style: TextStyle(color: Colors.white),),backgroundColor: Colors.red,));
+    }
     context.read<ProfileBloc>().add(InitializeMapEvent(latitude: currentSelectedPosition.lat.toDouble(), longitude: currentSelectedPosition.lng.toDouble()));
   }
 
@@ -170,7 +187,9 @@ _onTap(MapContentGestureContext context,) async {
                   if (selectedIndex == 0)
                     MapWidget(
                       onStyleLoadedListener: (styleLoadedEventData) async {
-    await addUserIconToStyle(mapboxMap!);
+                        if(currentUserPosition!=null){
+                           await addUserIconToStyle(mapboxMap!);
+                        }
                          for(var event in searchedEventsModel!.events){
       
          final result = await screenshotController.captureFromWidget(
@@ -194,8 +213,8 @@ _onTap(MapContentGestureContext context,) async {
                         zoom: currentZoom,
                         center: Point(
                           coordinates: Position(
-                            currentUserPosition.lng,
-                            currentUserPosition.lat,
+                            currentSelectedPosition.lng,
+                            currentSelectedPosition.lat,
                           ),
                         ),
                       ),
@@ -319,11 +338,15 @@ _onTap(MapContentGestureContext context,) async {
             ),
             IconButton(
               onPressed: () async {
-                await mapboxMap!.setCamera(CameraOptions(
+                if(currentUserPosition!=null){
+                  await mapboxMap!.setCamera(CameraOptions(
                     center: Point(
                         coordinates: Position(
-                            currentUserPosition.lng, currentUserPosition.lat)),
+                            currentUserPosition!.lng, currentUserPosition!.lat)),
                     zoom: currentZoom));
+                }else{
+                  initialize();
+                }
               },
               icon: SvgPicture.asset('assets/left_drawer/my_location.svg'),
             ),

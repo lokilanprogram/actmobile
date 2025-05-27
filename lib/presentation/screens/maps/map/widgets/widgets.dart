@@ -76,6 +76,7 @@ Widget buildSpotsIndicator(bool isUnlimited, int freeSlots, int slots,List<Strin
         fontWeight: FontWeight.w600,
       ),
     ),
-    OverlappingAvatars(imageUrls: [])
+    Spacer(),
+    OverlappingAvatars(imageUrls: imageUrl)
   ],
 );

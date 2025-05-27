@@ -278,7 +278,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                             elevation: 1.2,
                             borderRadius: BorderRadius.circular(25),
                             child: SizedBox(height: 59,
-                                               width: MediaQuery.of(context).size.height * 0.4,
+                                               width: MediaQuery.of(context).size.height * 0.45,
                                                child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
                                                   children: [
                                                   Text('Заявки',style: TextStyle(color: mainBlueColor,
