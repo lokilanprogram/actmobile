@@ -22,7 +22,8 @@ class PopUpPublicUserButtons extends StatelessWidget {
             PopupMenuItem<int>(
               value: 0,
               onTap: (){
-                showBlockDialog(context, userName, blockFunction);
+                showBlockDialog(context, 'Блокировка пользователя','Вы точно хотите заблокировать пользователя $userName?',
+                 blockFunction);
               },
               child: Row(
                 children:  [

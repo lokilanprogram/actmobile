@@ -66,13 +66,11 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
                               selectedTab: selectedTab,
                               onTapMine: (){ 
                                setState(() {
-                                 selectedTab = "mine";
                                  isRequests = true;
                                 });
                               },
                               onTapVisited: (){
                                 setState(() {
-                                selectedTab = "visited";
                                 isRequests = false;
                                 });
                               },

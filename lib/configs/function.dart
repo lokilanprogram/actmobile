@@ -1,6 +1,6 @@
+import 'dart:io';
+
 import 'package:acti_mobile/configs/colors.dart';
-import 'package:acti_mobile/configs/constants.dart';
-import 'package:acti_mobile/presentation/screens/maps/event/widgets/card_event_on_map.dart';
 import 'package:acti_mobile/presentation/widgets/report_sheet_widget.dart';
 import 'package:acti_mobile/presentation/widgets/report_user_sheet.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +10,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 
 Future<void> addEventIconFromUrl(MapboxMap mapboxMap,String id, Uint8List imageData) async {
-   await mapboxMap.style.addStyleImage(
+  if(Platform.isIOS){
+     await mapboxMap.style.addStyleImage(
   id,   // ID
   2.5,                   // scale
   MbxImage(width: 
@@ -20,6 +21,34 @@ Future<void> addEventIconFromUrl(MapboxMap mapboxMap,String id, Uint8List imageD
   [],
   null,
 );
+  }else{
+  final codec = await ui.instantiateImageCodec(imageData);
+
+  final frame = await codec.getNextFrame();
+  final ui.Image image = frame.image;
+
+  // Преобразуем ui.Image → MbxImage
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  if (byteData == null) return;
+
+  final Uint8List imageBytes = byteData.buffer.asUint8List();
+
+  final mbxImage = MbxImage(
+    width: image.width,
+    height:image.height,
+    data: imageBytes,
+  );
+
+   await mapboxMap.style.addStyleImage(
+  id,   // ID
+  2.5,                   // scale
+  mbxImage,          // см. ниже, как получить MbxImage
+  false,
+  [],
+  [],
+  null,
+);
+  }
 }
 
 
@@ -430,7 +459,8 @@ String optionTwo,  Function cancelOne, Function cancelAll) {
   );
 }
 
-void showBlockDialog(BuildContext context, String name, Function function) {
+void showBlockDialog(BuildContext context,final String title, 
+final String subtitle, Function function) {
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -443,8 +473,8 @@ void showBlockDialog(BuildContext context, String name, Function function) {
           child:  Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Блокировка пользователя',
+                 Text(
+                 title ,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 18.35, fontWeight: FontWeight.w700,
                   color: Colors.black,
@@ -452,7 +482,7 @@ void showBlockDialog(BuildContext context, String name, Function function) {
                 ),
                 const SizedBox(height: 12),
                  Text(
-                  'Вы точно хотите заблокировать пользователя $name?',
+                  subtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300,
                   color: Colors.black,

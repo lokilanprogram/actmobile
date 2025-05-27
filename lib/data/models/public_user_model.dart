@@ -26,9 +26,11 @@ class PublicUserModel {
     bool? hideMyEvents;
     bool? hideAttendedEvents;
     bool? isBlockedByUser;
+    String? chatId;
 
     PublicUserModel({
       required this.userId,
+      required this.chatId,
       required this.isBlockedByUser,
         required this.name,
         required this.surname,
@@ -51,6 +53,7 @@ class PublicUserModel {
         surname: json["surname"],
         email: json["email"],
         city: json["city"],
+        chatId: json["chat_id"],
         bio: json["bio"],
         isOrganization: json["is_organization"],
         photoUrl: json["photo_url"],

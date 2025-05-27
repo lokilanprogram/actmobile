@@ -5,6 +5,9 @@ import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_around/events_around_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+import '../../../domain/websocket/websocket.dart';
 
 class InitialScreen extends StatefulWidget {
   const InitialScreen({super.key});
@@ -14,6 +17,7 @@ class InitialScreen extends StatefulWidget {
 }
 
 class _InitialScreenState extends State<InitialScreen> {
+  
   @override
   void initState() {
    initialize();
@@ -31,7 +35,8 @@ class _InitialScreenState extends State<InitialScreen> {
         try{
           await storage.write(key: userIdStorage, value: profile.id);
           if(profile.categories.isNotEmpty){
-            Navigator.push(context, MaterialPageRoute(builder: (_)=>MapScreen()));
+            connectToOnlineStatus(accessToken!);
+            Navigator.push(context, MaterialPageRoute(builder: (_)=>MapScreen(selectedScreenIndex: 0,)));
             }else{
               Navigator.push(context, MaterialPageRoute(builder: (_)=>EventsAroundScreen()));
             }

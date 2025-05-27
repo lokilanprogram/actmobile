@@ -3,6 +3,7 @@ import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/data/models/public_user_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
+import 'package:acti_mobile/presentation/screens/chats/chat_main/chat_main_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/widgets/blurred.dart';
@@ -289,7 +290,10 @@ Widget build(BuildContext context) {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       SendMessageBarWidget(function: (){
-                     Navigator.push(context, MaterialPageRoute(builder: (context)=> ChatDetailScreen(publicUserModel: publicUserModel,userId: widget.userId,)));
+                     Navigator.push(context, MaterialPageRoute(builder: (context)=> ChatDetailScreen(
+                      trailingText: null,
+                      interlocutorAvatar: publicUserModel.photoUrl,
+                     interlocutorName: publicUserModel.name,interlocutorChatId:publicUserModel.chatId, interlocutorUserId: widget.userId,)));
 
                       }),
                         SizedBox(height: 15,),
@@ -297,7 +301,11 @@ Widget build(BuildContext context) {
                         selectedIndex: 4, onTabSelected: (index){
                         if(index == 0){
                           Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                          MapScreen()));
+                          MapScreen(selectedScreenIndex: 0,)));
+                        }
+                        if(index == 2){
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                          MapScreen(selectedScreenIndex: 2,)));
                         }
                         if(index == 3){
                           Navigator.pop(context);

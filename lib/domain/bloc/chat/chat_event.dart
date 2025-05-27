@@ -2,22 +2,23 @@ part of 'chat_bloc.dart';
 
 @immutable
 abstract class ChatEvent {}
-
-class CreatePrivateChatEvent extends ChatEvent{
-  final String userId;
-
-  CreatePrivateChatEvent({required this.userId});
-}
-
 class SendMessageEvent extends ChatEvent{
   final String chatId;
-  final String userId;
   final String message;
+  final String? imagePath;
+  final bool isEmptyChat;
 
-  SendMessageEvent({required this.chatId, required this.message, required this.userId});
+  SendMessageEvent({required this.chatId, required this.message, required this.isEmptyChat,required 
+  this.imagePath});
 }
 
 class GetAllChatsEvent extends ChatEvent{}
+
+class DeleteChatEvent extends ChatEvent{
+  final String chatId;
+
+  DeleteChatEvent({required this.chatId});
+}
 
 
 class StartChatMessageEvent extends ChatEvent{

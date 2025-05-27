@@ -45,7 +45,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
  List<String> _suggestions = [];
   bool _isLoading = false;
 
-  Future<void> _searchCity(String city) async {
+  Future<void> _searchLocation(String city) async {
     if (city.isEmpty) {
       setState(() => _suggestions = []);
       return;
@@ -127,7 +127,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             child: IconButton(
               onPressed: () {
                 if(!widget.profileModel.isProfileCompleted){
-                  Navigator.push(context, MaterialPageRoute(builder: (_)=> MapScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_)=> MapScreen(selectedScreenIndex:0,)));
                 }else{
                   Navigator.pop(context);
                 }
@@ -259,7 +259,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       children: [
         TextFormField(
           controller: cityController,
-          onChanged: _searchCity,
+          onChanged: _searchLocation,
           style: TextStyle(fontSize: 11, fontFamily: 'Inter'),
           decoration: InputDecoration(
             hintText: 'Введите город',
@@ -451,7 +451,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                 child: CustomNavBarWidget(selectedIndex: 4, onTabSelected: (index){
                 if(index == 0){
                   Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                  MapScreen()));
+                  MapScreen(selectedScreenIndex: 0,)));
                 }
               }),
             )),

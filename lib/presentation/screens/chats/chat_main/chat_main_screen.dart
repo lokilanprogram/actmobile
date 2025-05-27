@@ -5,6 +5,7 @@ import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/tab_bar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 class ChatMainScreen extends StatefulWidget {
   const ChatMainScreen({super.key});
@@ -18,6 +19,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   late AllChatsModel allPrivateChats;
   late AllChatsModel allGroupChats;
   bool isLoading = false;
+  bool isPrivateChats = true;
   @override
   void initState() {
     initialize();
@@ -66,8 +68,16 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
             children: [
               TabBarWidget(
                   selectedTab: selectedTab,
-                  onTapMine: () {},
-                  onTapVisited: () {},
+                  onTapMine: () {
+                    setState(() {
+                      isPrivateChats = true;
+                    });
+                  },
+                  onTapVisited: () {
+                     setState(() {
+                      isPrivateChats = false;
+                    });
+                  },
                   firshTabText: 'Индивидуальные',
                   secondTabText: 'Групповые',
                   requestLentgh: null,
@@ -75,44 +85,92 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
               SizedBox(
                 height: 20,
               ),
-              Column(
+             isPrivateChats == true?  Column(
                 children: allPrivateChats.chats.map((chat){
-                  return ListTile(
-                leading: CircleAvatar(
-                  radius: 20,
-                  backgroundImage:chat.users.last.photoUrl==null?
-                  AssetImage('assets/images/image_profile.png'):
-                  NetworkImage(chat.users.last.photoUrl!),
-                  backgroundColor: Colors.transparent,
-                ),
-                title: Text(
-                  chat.users.last.name,
-                  style: TextStyle(
-                    fontFamily: 'Inter',fontWeight: FontWeight.bold,
-                    fontSize: 17
-                  ),
-                ),
-                subtitle: Text(chat.lastMessage?.content ??'...',
-                style: TextStyle(
-                    fontFamily: 'Inter',fontWeight: FontWeight.w500,
-                    fontSize: 15
-                  ),),
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ChatDetailScreen(
-                                publicUserModel: null,
-                                userId: null,
-                              )));
-                },
-              );
+                  return ChatListTileWidget(
+                    onDeletedFunction: (){
+                      setState(() {
+                        isLoading = true;
+                      });
+          context.read<ChatBloc>().add(GetAllChatsEvent());
+                    },
+                    chat: chat,isPrivateChats: isPrivateChats,);
                 }).toList(),
-              )
+              ): isPrivateChats == false?
+              Column(
+                children: allGroupChats.chats.map((chat){
+                  return ChatListTileWidget(onDeletedFunction: (){
+          context.read<ChatBloc>().add(GetAllChatsEvent());
+
+                  },
+                    chat: chat,isPrivateChats: isPrivateChats,);
+                }).toList(),
+              ):Container()
             ],
           ),
         ),
       ),
     );
+  }
+}
+
+class ChatListTileWidget extends StatelessWidget {
+  final Chat chat;
+  final Function onDeletedFunction;
+  final bool isPrivateChats;
+  const ChatListTileWidget({required this.onDeletedFunction,
+    super.key, required this.chat,required this.isPrivateChats
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+                    leading: CircleAvatar(
+    radius: 30,
+    backgroundImage:!isPrivateChats ? NetworkImage(chat.event!.photos.first):
+    (chat.users.first.photoUrl==null?
+    AssetImage('assets/images/image_profile.png'):
+    NetworkImage(chat.users.first.photoUrl!,)),
+    backgroundColor: Colors.transparent,
+                    ),
+                    title: Text(
+   !isPrivateChats? "${chat.event!.title} ${DateFormat('dd.MM.yy').format(chat.event!.dateStart)}": chat.users.first.name ?? 'not defined',
+    style: TextStyle(
+      fontFamily: 'Inter',fontWeight: FontWeight.bold,
+      fontSize: 17
+    ),
+                    ),
+                    trailing: Column(
+    children: [
+      Text(DateFormat('hh:mm').format(chat.createdAt),style: 
+      TextStyle(fontFamily: 'Inter',fontSize: 13),),
+    ],
+                    ),
+                    subtitle: Text(chat.lastMessage?.content ??'...',
+                    style: TextStyle(
+      fontFamily: 'Inter',fontWeight: FontWeight.w500,
+      fontSize: 15,color: Color.fromRGBO(102, 102, 102,1)
+    ),),
+                    onTap: ()async {
+  final result = await  Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ChatDetailScreen(
+              trailingText: !isPrivateChats ?  '${DateFormat('dd.MM.yyyy').format(chat.event!.dateStart)} | ${chat.event!.timeStart.substring(0,5)} – ${chat.event!.timeEnd.substring(0,5)}':null,
+              interlocutorAvatar:!isPrivateChats ? chat.event!.photos.first:
+              chat.users.first.photoUrl,
+              interlocutorName:!isPrivateChats? chat.event!.title :  (chat.users.first.name ?? 'not defined'),
+                  interlocutorChatId: chat.id,
+                  interlocutorUserId: null,
+                )));
+                if(result==true){
+                  onDeletedFunction();
+                }else{
+                  onDeletedFunction();
+
+                }
+                    },
+                  );
+
   }
 }

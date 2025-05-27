@@ -98,8 +98,8 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
   physics: NeverScrollableScrollPhysics(),
   crossAxisCount: 2,
   mainAxisSpacing: 10,
-  crossAxisSpacing: 12,
-  childAspectRatio: 3.5,
+  crossAxisSpacing: 14,
+  childAspectRatio: 4,
   children: List.generate(listOnbordingModel.categories.length, (index) {
     final event = listOnbordingModel.categories[index];
     final isSelected = selected[index];
@@ -145,7 +145,6 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
   }),
 )
 ,
-                            const SizedBox(height: 45),
                             Padding(
                               padding: const EdgeInsets.only(right: 10),
                               child: Center(

@@ -1,5 +1,7 @@
 
 import 'dart:convert';
+import 'dart:ffi';
+import 'dart:io';
 
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
@@ -7,10 +9,54 @@ import 'package:acti_mobile/data/models/chat_model.dart';
 import 'package:acti_mobile/data/models/created_chat_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/data/models/all_chats_model.dart';
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
+import 'package:dio/src/multipart_file.dart';
+import 'package:dio/src/form_data.dart';
 
 class ChatApi {
-Future<MessageModel?> sendMessage(String chatId,String message) async {
+  Future<bool?> sendFileMessage(String chatId,String message, String imagePath) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  Dio dio = Dio(); 
+  Response response;
+  if(accessToken != null){
+    final file = File(imagePath);
+            final bytes = file.readAsBytesSync();
+           final type = file.path.split('.').last;
+            final multipartFile = MultipartFile.fromBytes(
+              bytes,
+              filename: file.path.split('/').last,
+        contentType: DioMediaType('image', type),
+            );
+
+    FormData formData = FormData.fromMap({
+      'content':message,
+      'file':multipartFile
+        });
+   try{
+ response = await dio.post(
+    '$API/api/v1/chats/$chatId/files',
+    data: formData,
+    options: Options(
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'multipart/form-data',
+      },
+    ),
+  );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+    print(response.data);
+    return true;
+  } else {
+    throw Exception('Failed to create event: ${response.statusCode} ${response.data}');
+  }
+   }on DioException catch(e){
+    throw Exception('Error: ${e.response!.data['detail']}');
+  }
+  }
+  return null;
+}
+Future<bool?> sendMessage(String chatId,String message) async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){
     final response = await http.post(
@@ -22,7 +68,26 @@ Future<MessageModel?> sendMessage(String chatId,String message) async {
     body: jsonEncode(<String, dynamic>{'content': message}),
   );
    if (response.statusCode == 200) {
-    return MessageModel.fromJson(jsonDecode(response.body));
+    return true;
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return null;
+}
+
+Future<bool?> deleteChat(String chatId,) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+    final response = await http.delete(
+    Uri.parse('$API/api/v1/chats/$chatId'),
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken'
+    },
+  );
+   if (response.statusCode == 204) {
+    return true;
   } else {
     throw Exception('Error: ${response.body}');
   }

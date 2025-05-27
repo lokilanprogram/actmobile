@@ -23,10 +23,14 @@ abstract class ChatState {}
 
  class CreatedChatErrorState extends ChatState {}
 
- class SentMessageState extends ChatState {
-  final MessageModel messageModel;
+ class DeletedChatState extends ChatState {}
 
-  SentMessageState({required this.messageModel});
+ class DeletedChatErrorState extends ChatState {}
+
+ class SentMessageState extends ChatState {
+  final ChatModel? chatModel;
+
+  SentMessageState({ required this.chatModel});
  }
 
  class SentMessageErrorState extends ChatState {}

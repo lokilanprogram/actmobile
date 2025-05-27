@@ -44,7 +44,24 @@ class CardEventOnMap extends StatelessWidget {
             ClipRRect(borderRadius: BorderRadius.circular(15),
               child: Stack(
                 children: [
-                  Image.network(organizedEvent.photos.first,width: double.infinity,height:144,fit: BoxFit.cover,),
+                  Image.network(organizedEvent.photos.first,width: double.infinity,height:144,fit: BoxFit.cover,
+                  loadingBuilder: (BuildContext context, Widget child,
+                      ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return SizedBox(
+                      height: 144,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: mainBlueColor,
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
+                  ),
                  organizedEvent.price == 0? Positioned(left: 10,top: 5,
                     child: RestrictionContainer(text: 'Бесплатное')):Container(),
                  organizedEvent.restrictions.any((element)=>

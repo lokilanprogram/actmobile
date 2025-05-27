@@ -186,15 +186,15 @@ Future<bool?> alterEvent({
         alterEvent.withAnimals ? 'withAnimals': 'notWithAnimals',
       ],
       'category_id':alterEvent.categoryId,
-      'latitude':alterEvent.selectedAddressModel?.latitude,
-      'longitude':alterEvent.selectedAddressModel?.longitude,
       'is_recurring':alterEvent.isRecurring.toString(),
       'update_recurring':alterEvent.isRecurring.toString(),
       'slots':alterEvent.isUnlimited? 0:alterEvent.slots.toString(),
       'photos':photos,
         });
-    
- 
+        if(!alterEvent.isOnline){
+          formData.fields.add(MapEntry('latitude', alterEvent.selectedAddressModel!.latitude.toString()));
+          formData.fields.add(MapEntry('longitude', alterEvent.selectedAddressModel!.longitude.toString()));
+        }
   try{
     if(isCreated){
       response = await dio.post(

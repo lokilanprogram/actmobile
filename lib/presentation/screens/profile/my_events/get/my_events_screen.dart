@@ -186,7 +186,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                         selectedIndex: 4, onTabSelected: (index){
                         if(index == 0){
                           Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                          MapScreen()));
+                          MapScreen(selectedScreenIndex: 0,)));
                         }
                          if(index == 3){
                          Navigator.pop(context);

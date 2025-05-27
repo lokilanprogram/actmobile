@@ -26,7 +26,8 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geolocator;
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final int selectedScreenIndex;
+  const MapScreen({super.key, required this.selectedScreenIndex});
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -37,7 +38,8 @@ class _MapScreenState extends State<MapScreen> {
   ScreenshotController screenshotController = ScreenshotController(); 
   int selectedIndex = 0;
   MapboxMap? mapboxMap;
-  late Position currentPosition;
+  late Position currentSelectedPosition;
+  late Position currentUserPosition;
   double currentZoom = 16;
   bool isLoading = false;
   bool showEvents = false;
@@ -52,14 +54,14 @@ final String iconImageIdPrefix = "event-icon-";
 
 _onScroll(MapContentGestureContext gestureContext,) async {
    double distance = geolocator.Geolocator.distanceBetween(
-     currentPosition.lat.toDouble(), currentPosition.lng.toDouble(),
+     currentSelectedPosition.lat.toDouble(), currentSelectedPosition.lng.toDouble(),
       gestureContext.point.coordinates.lat.toDouble(), gestureContext.point.coordinates.lng.toDouble(),
     );
 
     if (distance > 100000) {
       print('more than 100 km');
       setState(() {
-        currentPosition = Position(gestureContext.point.coordinates.lng.toDouble(), gestureContext.point.coordinates.lat.toDouble());
+        currentSelectedPosition = Position(gestureContext.point.coordinates.lng.toDouble(), gestureContext.point.coordinates.lat.toDouble());
       });
       context.read<ProfileBloc>().add(SearchEventsOnMapEvent(latitude: gestureContext.point.coordinates.lat.toDouble()
       , longitude:  gestureContext.point.coordinates.lng.toDouble()));
@@ -100,21 +102,25 @@ _onTap(MapContentGestureContext context,) async {
   }
 
   void initialize() async {
-    setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+      selectedIndex = widget.selectedScreenIndex; 
+    });
     final permission = await geolocator.Geolocator.checkPermission();
     if (permission == geolocator.LocationPermission.denied) {
       await geolocator.Geolocator.requestPermission();
     }
     final position = await geolocator.Geolocator.getCurrentPosition();
     setState(() {
-      currentPosition = Position(position.longitude, position.latitude);
+      currentUserPosition = Position(position.longitude, position.latitude);
+      currentSelectedPosition = Position(position.longitude, position.latitude);
     });
     
-    context.read<ProfileBloc>().add(InitializeMapEvent(latitude: currentPosition.lat.toDouble(), longitude: currentPosition.lng.toDouble()));
+    context.read<ProfileBloc>().add(InitializeMapEvent(latitude: currentSelectedPosition.lat.toDouble(), longitude: currentSelectedPosition.lng.toDouble()));
   }
 
   final List<Widget> screens = [
-    Placeholder(color: Colors.orangeAccent), // Events
+    ChatMainScreen(),
     Placeholder(color: Colors.orangeAccent), // Events
     ChatMainScreen(), // Chats
     ProfileMenuScreen() // Profile
@@ -131,9 +137,14 @@ _onTap(MapContentGestureContext context,) async {
           });
         }
         if(state is SearchedEventsOnMapState){
-          setState(() {
-            searchedEventsModel?.events.addAll(state.searchedEventsModel.events);
-          });
+        setState(() {
+    final existingIds = searchedEventsModel?.events.map((e) => e.id).toSet() ?? {};
+    final newUniqueEvents = state.searchedEventsModel.events
+        .where((event) => !existingIds.contains(event.id))
+        .toList();
+
+    searchedEventsModel?.events.addAll(newUniqueEvents);
+  });
            
      for(var event in searchedEventsModel!.events){
          final result = await screenshotController.captureFromWidget(
@@ -142,7 +153,7 @@ _onTap(MapContentGestureContext context,) async {
            await addEventIconFromUrl(mapboxMap!, 'pointer:${event.id}', result);
             final pointAnnotationOptions = PointAnnotationOptions(
     geometry: Point(coordinates: Position(event.longitude!, event.latitude!)),
-    iconSize: 0.7,
+    iconSize: 0.75,
     image: result,
     iconImage: 'pointer:${event.id}', 
   );
@@ -162,6 +173,23 @@ _onTap(MapContentGestureContext context,) async {
                 children: [
                   if (selectedIndex == 0)
                     MapWidget(
+                      onStyleLoadedListener: (styleLoadedEventData) async {
+    await addUserIconToStyle(mapboxMap!);
+                         for(var event in searchedEventsModel!.events){
+      
+         final result = await screenshotController.captureFromWidget(
+    CategoryMarker(title: event.category!.name , iconUrl: event.category!.iconPath),
+  );
+           await addEventIconFromUrl(mapboxMap!, 'pointer:${event.id}', result);
+            final pointAnnotationOptions = PointAnnotationOptions(
+    geometry: Point(coordinates: Position(event.longitude!, event.latitude!)),
+    iconSize: 0.75,
+    image: result,
+    iconImage: 'pointer:${event.id}', 
+  );
+  await pointAnnotationManager.create(pointAnnotationOptions);
+          }
+                      },
                     onScrollListener:_onScroll,
                       onTapListener: _onTap,
                       styleUri:
@@ -170,8 +198,8 @@ _onTap(MapContentGestureContext context,) async {
                         zoom: currentZoom,
                         center: Point(
                           coordinates: Position(
-                            currentPosition.lng,
-                            currentPosition.lat,
+                            currentUserPosition.lng,
+                            currentUserPosition.lat,
                           ),
                         ),
                       ),
@@ -184,10 +212,6 @@ _onTap(MapContentGestureContext context,) async {
                     alignment: Alignment.centerRight,
                     child: buildMapControls(),
                   ),
-                  // Align(
-                  //   alignment: Alignment.center,
-                  //   child: CategoryMarker(title: 'Спорт',iconUrl: 'http://93.183.81.104/uploads/category_icons/1c6f0937-d2a4-41fe-9ef8-a34ad57a9a0e.png',),
-                  // ),
                   if (showEvents)
                     DraggableScrollableSheet(
                       controller: sheetController,
@@ -302,7 +326,7 @@ _onTap(MapContentGestureContext context,) async {
                 await mapboxMap!.setCamera(CameraOptions(
                     center: Point(
                         coordinates: Position(
-                            currentPosition.lng, currentPosition.lat)),
+                            currentUserPosition.lng, currentUserPosition.lat)),
                     zoom: currentZoom));
               },
               icon: SvgPicture.asset('assets/left_drawer/my_location.svg'),
@@ -322,24 +346,10 @@ _onTap(MapContentGestureContext context,) async {
       pointAnnotationManager= pointNewAnnotationManager;
     });
     await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
-  //  await mapboxMap
-  //      .loadStyleURI('mapbox://styles/acti/cma9wrmfh00i701Зsdhqrjg5mj');
+    // await mapboxMap
+    //     .loadStyleURI('mapbox://styles/acti/cma9wrmfh00i701Зsdhqrjg5mj');
     
-     for(var event in searchedEventsModel!.events){
-      
-         final result = await screenshotController.captureFromWidget(
-    CategoryMarker(title: event.category!.name , iconUrl: event.category!.iconPath),
-  );
-           await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}', result);
-            final pointAnnotationOptions = PointAnnotationOptions(
-    geometry: Point(coordinates: Position(event.longitude!, event.latitude!)),
-    iconSize: 0.75,
-    image: result,
-    iconImage: 'pointer:${event.id}', 
-  );
-  await pointAnnotationManager.create(pointAnnotationOptions);
-          }
-    await addUserIconToStyle(mapboxMap);
+  
 
   }
   

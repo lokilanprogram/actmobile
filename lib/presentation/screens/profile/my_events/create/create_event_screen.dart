@@ -1,8 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/data/models/mapbox_model.dart';
+import 'package:acti_mobile/data/models/mapbox_reverse_model.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:acti_mobile/data/models/mapbox_model.dart' as mapbox;
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/alter_event_model.dart';
 import 'package:acti_mobile/data/models/local_address_model.dart';
+import 'package:acti_mobile/data/models/local_city_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
@@ -66,6 +74,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   mask: '##.##.####',
   filter: {"#": RegExp(r'[0-9]')},
 );
+
+ List<mapbox.Feature> _suggestions = [];
+  bool _isLoading = false;
   Future<void> selectDate() async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -83,6 +94,38 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final List<String> _images = [];
   final picker = ImagePicker();
 
+
+  Future<void> _searchLocation(String place) async {
+    if (place.isEmpty) {
+      setState(() => _suggestions = []);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+     final url =
+  'https://api.mapbox.com/geocoding/v5/mapbox.places/$place.json'
+  '?language=ru&proximity=-74.70850,40.78375'
+  '&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg';
+
+
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final results = MapBoxModel.fromJson(jsonDecode(response.body));
+        setState(() {
+          _suggestions = results.features;
+        });
+      } else {
+        throw Exception('Ошибка: ${response.body}');
+      }
+    } catch (e) {
+      print('Ошибка поиска: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+  
   Future<void> _pickImage() async {
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
@@ -284,49 +327,97 @@ setState(() {
                 const SizedBox(height: 14),
                !isOnline  ? Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                            maxLines: 1,controller: addressController,
-                            decoration: InputDecoration(
-                              fillColor: Colors.grey[200],
-                              filled: true,
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    borderSide: BorderSide.none),
-                                hintText: 'Адрес',
-                                hintStyle: TextStyle(
-                                    fontFamily: 'Gilroy',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w400)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              onChanged: _searchLocation,
+                                maxLines: 1,controller: addressController,
+                                decoration: InputDecoration(
+                                  fillColor: Colors.grey[200],
+                                  filled: true,
+                                    border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                        borderSide: BorderSide.none),
+                                    hintText: 'Адрес',
+                                    hintStyle: TextStyle(
+                                        fontFamily: 'Gilroy',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w400)),
+                              ),
                           ),
-                      ),
-                      SizedBox(
-                        width: 5,
-                      ),
-                      InkWell(
-                        onTap: ()async{
-                         LocalAddressModel? localAddressModel =await Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                          MapPickerScreen(position: null, address: null,)));
-                          if(localAddressModel!=null){
-                            setState(() { 
-                              addressController.text = 'г. ${localAddressModel.properties!.fullAddress.split(', ')[2]}, ${localAddressModel.address}';
-                              selectedAddressModel = localAddressModel; 
-                            });
-                          }
-                        },
-                        child: Container(
-                          width: 49,
-                          decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 15, bottom: 15),
-                            child: SvgPicture.asset('assets/icons/icon_map.svg'),
+                          SizedBox(
+                            width: 5,
                           ),
-                        ),
-                      )
+                          InkWell(
+                            onTap: ()async{
+                             LocalAddressModel? localAddressModel =await Navigator.push(context, MaterialPageRoute(builder: (context)=> 
+                              MapPickerScreen(position: null, address: null,)));
+                              if(localAddressModel!=null){
+                                setState(() { 
+                                  addressController.text = 'г. ${localAddressModel.properties!.fullAddress.split(', ')[2]}, ${localAddressModel.address}';
+                                  selectedAddressModel = localAddressModel; 
+                                });
+                              }
+                            },
+                            child: Container(
+                              width: 49,
+                              decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 15, bottom: 15),
+                                child: SvgPicture.asset('assets/icons/icon_map.svg'),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+
+                      
+        const SizedBox(height: 4),
+        if (_isLoading)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Center(child: CircularProgressIndicator(
+              color: mainBlueColor ,strokeWidth: 1.2,
+            )),
+          )
+        else if (_suggestions.isNotEmpty)
+          Container(
+            constraints: BoxConstraints(maxHeight: 160),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _suggestions.length,
+              itemBuilder: (context, index) {
+                final city = _suggestions[index];
+                return ListTile(
+                  dense: true,
+                  title: Text(city.placeNameRu!, style: TextStyle(fontSize: 12,fontFamily: 'Gilroy')),
+                  onTap: () {
+                    final parts = city.placeNameRu?.split(', ');
+                    if(parts!.length == 6){
+                    addressController.text = 'г. ${parts[2]}, ${parts[5]}';
+                    }else{
+                    addressController.text = city.placeNameRu!;
+                    }
+                    setState(() {
+                      _suggestions = [];
+                      selectedAddressModel = LocalAddressModel(address:addressController.text.trim(),
+                      latitude: city.center!.last, longitude: city.center!.first, properties: null);
+                    });
+                  },
+                );
+              },
+            ),
+          ),
                     ],
                   ),
                 ):Container(),

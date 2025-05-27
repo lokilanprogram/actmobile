@@ -4,6 +4,7 @@ import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/map_picker/map_picker_screen.dart';
 import 'package:acti_mobile/presentation/widgets/image_widget.dart';
 import 'package:acti_mobile/presentation/widgets/popup_event_buttons.dart';
@@ -216,28 +217,36 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         // Автор и участники
                         Row(
                           children: [
-                             CircleAvatar(
-                              radius: 20,
-                              backgroundImage: organizedEvent.creator.photoUrl!= null?
-                                NetworkImage(
-                                organizedEvent.creator.photoUrl!)
-                                : AssetImage('assets/images/image_profile.png'), // Заменить на нужную
-                            ),
-                            const SizedBox(width: 10),
-                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(organizedEvent.creator.name ?? '...',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 17.8,
-                                        fontFamily: 'Inter',
-                                        color: mainBlueColor)),
-                                Text('Организатор',
-                                    style: TextStyle(
-                                        fontSize: 16, fontFamily: 'Gilroy')),
-                              ],
-                            ),
+                             InkWell(
+                              onTap: (){
+                                Navigator.push(context, MaterialPageRoute(builder: 
+                                (context)=> PublicUserScreen(userId: organizedEvent.creator.id!)));
+                                },
+                               child: Row(children: [
+                                CircleAvatar(
+                                radius: 20,
+                                backgroundImage: organizedEvent.creator.photoUrl!= null?
+                                  NetworkImage(
+                                  organizedEvent.creator.photoUrl!)
+                                  : AssetImage('assets/images/image_profile.png'), // Заменить на нужную
+                                                           ),
+                                                           const SizedBox(width: 10),
+                               Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(organizedEvent.creator.name ?? '...',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 17.8,
+                                          fontFamily: 'Inter',
+                                          color: mainBlueColor)),
+                                  Text('Организатор',
+                                      style: TextStyle(
+                                          fontSize: 16, fontFamily: 'Gilroy')),
+                                ],
+                                                           ),
+                               ],),
+                             ),
                             const Spacer(),
              GestureDetector(
               onTap: (){

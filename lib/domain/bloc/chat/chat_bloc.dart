@@ -4,6 +4,7 @@ import 'package:acti_mobile/data/models/chat_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/domain/api/chat/chat_api.dart';
 import 'package:bloc/bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:meta/meta.dart';
 part 'chat_event.dart';
 part 'chat_state.dart';
@@ -33,20 +34,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       }
     });
 
-    on<CreatePrivateChatEvent>((event, emit) async{
-      try{
-        final accessToken = await storage.read(key: accessStorageToken);
-        final createdChatModel = await ChatApi().createPrivateChat(event.userId);
-        if(createdChatModel!=null){
-        final chatModel = await ChatApi().getChatHistory(createdChatModel.id);
-          emit(CreatedChatState(chatModel: chatModel!,
-            chatId: createdChatModel.id,accessToken:accessToken! ));
-        }
-      }catch(e){
-        emit(CreatedChatErrorState());
-      }
-    });
-
       on<StartChatMessageEvent>((event, emit) async{
       try{
           final accessToken = await storage.read(key: accessStorageToken);
@@ -64,12 +51,34 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       }
     });
 
-      on<SendMessageEvent>((event, emit) async{
+     on<DeleteChatEvent>((event, emit) async{
       try{
-         final sentMessageModel = await ChatApi().sendMessage(event.chatId!, event.message);
+         final sentMessageModel = await ChatApi().deleteChat(event.chatId);
         if(sentMessageModel!=null){
+          emit(DeletedChatState());
+        }
+      }catch(e){
+        emit(DeletedChatErrorState());
+      }
+    });
+
+      on<SendMessageEvent>((event, emit) async{
+        ChatModel? chatModel;
+        bool? isSent = false;
+      try{
+        if(event.imagePath==null){
+             isSent = await ChatApi().sendMessage(event.chatId, event.message);
+          }else{
+             isSent = await ChatApi().sendFileMessage(event.chatId, event.message,event.imagePath!);
+          }
+         
+        if(isSent !=null && isSent == true){
+          
+          if(event.isEmptyChat){
+         chatModel = await ChatApi().getChatHistory(event.chatId);
+          }
           emit(SentMessageState(
-            messageModel: sentMessageModel));
+            chatModel: chatModel,));
         }
       }catch(e){
         emit(SentMessageErrorState());
