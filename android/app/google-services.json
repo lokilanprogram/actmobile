@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "927589486813",
+    "project_id": "acti-54f96",
+    "storage_bucket": "acti-54f96.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:927589486813:android:2315c019c7bf66d4a40b34",
+        "android_client_info": {
+          "package_name": "com.example.acti_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSPx33YxNkVQ9m5nb_U3Uchu1YpoiDSOg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
