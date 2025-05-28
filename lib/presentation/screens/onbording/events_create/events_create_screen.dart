@@ -10,21 +10,24 @@ class EventsCreateScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-
+        height: MediaQuery.of(context).size.height,
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage(
-                          "assets/images/background.png",),
+                          "assets/images/back.png",),
                         fit: BoxFit.cover,
+                      
                       ),
+                      
                     ),
         child:
          SingleChildScrollView(
             child: Column(
                 children: [
                Padding(
-                  padding: EdgeInsets.only(right: 40,left: 40,),
+                  padding: EdgeInsets.only(right: 40,left: 40,top: 60),
                    child: Align(
+                    alignment: Alignment.center,
                      child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 25,),

@@ -184,8 +184,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                   Positioned.fill(
                     child: SafeArea(
                         child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 30, right: 30, top: 10, bottom: 10),
+                          padding:  EdgeInsets.only(
+                              left: 30, right: 30, top: 10, bottom: MediaQuery.of(context).viewInsets.bottom),
                           child: ListView(
                             children: [
                               Center(
@@ -310,6 +310,12 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   return 'Заполните e-mail';
                                 }
                               },),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child:widget.profileModel.isEmailVerified? Text('Почта подтверждена ',style: TextStyle(fontFamily: 'Inter',color: Colors.green,
+                                  fontSize: 13,fontWeight: FontWeight.w400),): Text('Почта не подтверждена ',style: TextStyle(fontFamily: 'Inter',color: Colors.red,
+                                  fontSize: 13,fontWeight: FontWeight.w400),) ,
+                              ),
                               SizedBox(height: 16),
                               Text(
                                 'О себе',

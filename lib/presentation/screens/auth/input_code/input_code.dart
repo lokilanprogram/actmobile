@@ -51,7 +51,7 @@ class _InputCodeScreenState extends State<InputCodeScreen> {
         }
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         backgroundColor: Colors.white,
         body:isLoading ? LoaderWidget(): GestureDetector(
           onTap: () {

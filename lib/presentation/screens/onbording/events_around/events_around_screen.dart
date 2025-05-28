@@ -12,6 +12,7 @@ class EventsAroundScreen extends StatelessWidget {
       body: Stack(
         children: [
           Container(
+        height: MediaQuery.of(context).size.height,
                   decoration: BoxDecoration(
                     image: DecorationImage(
                       image: AssetImage("assets/images/image_events_around.png",),

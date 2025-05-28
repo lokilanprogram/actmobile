@@ -55,7 +55,7 @@ String address) => Padding(
                       ],),
             
             Row(children: [
-            Text(address,style: TextStyle(fontFamily: 'Gilroy',fontSize: 16,color: mainBlueColor,fontWeight: FontWeight.w400),),
+            Text(address,style: TextStyle(fontFamily: 'Gilroy',fontSize: 15,color: mainBlueColor,fontWeight: FontWeight.w400),),
             ],
           )
           ],),

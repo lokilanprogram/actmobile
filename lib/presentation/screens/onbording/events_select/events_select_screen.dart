@@ -73,7 +73,7 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage(
-                          "assets/images/background.png",),
+                          "assets/images/back.png",),
                         fit: BoxFit.cover,
                       ),
                     ),

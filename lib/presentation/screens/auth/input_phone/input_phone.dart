@@ -15,6 +15,7 @@ class InputPhoneScreen extends StatefulWidget {
 class _InputPhoneScreenState extends State<InputPhoneScreen> {
   final phoneController = TextEditingController();
   int phoneLentgh = 0;
+  final _formKey = GlobalKey<FormState>();
   final phoneFormatter = MaskTextInputFormatter(
   mask: '+7 ###-###-##-##',
   filter: {"#": RegExp(r'[0-9]')},
@@ -22,71 +23,78 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    resizeToAvoidBottomInset: false,
+    resizeToAvoidBottomInset: true,
         backgroundColor: Colors.white,
-        body:GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: SingleChildScrollView(
-                child: Stack(
-                            children: [
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    height: MediaQuery.of(context).size.height * 0.35,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(
-                          "assets/images/image_background.png",
+        body:Form(
+          key: _formKey,
+          child: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+            },
+            child: SingleChildScrollView(
+                  child: Stack(
+                              children: [
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Container(
+                      height: MediaQuery.of(context).size.height * 0.35,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(
+                            "assets/images/image_background.png",
+                          ),
+                          fit: BoxFit.cover,
                         ),
-                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 120, left: 45, right: 45),
-                  child: Column(
-                    children: [
-                      Align(
-                          alignment: Alignment.topCenter,
-                          child: SvgPicture.asset('assets/icons/icon_acti.svg')),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      Text(
-                        'Введите ваш номер\nдля входа',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontFamily: 'Gilroy',
-                            color: authBlueColor,
-                            fontSize: 27),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        'Вы получите Push-уведомление, которое\nнеобходимо принять',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontFamily: 'Gilroy', fontSize: 13),
-                      ),
-                      SizedBox(
-                        height: 15,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                            color: Color.fromRGBO(236, 236, 236, 1),
-                            borderRadius: BorderRadius.circular(25)),
-                        child: TextFormField(
+                  Padding(
+                    padding: const EdgeInsets.only(top: 120, left: 45, right: 45),
+                    child: Column(
+                      children: [
+                        Align(
+                            alignment: Alignment.topCenter,
+                            child: SvgPicture.asset('assets/icons/icon_acti.svg')),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        Text(
+                          'Введите ваш номер\nдля входа',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontFamily: 'Gilroy',
+                              color: authBlueColor,
+                              fontSize: 27),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                          'Вы получите Push-уведомление, которое\nнеобходимо принять',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontFamily: 'Gilroy', fontSize: 13),
+                        ),
+                        SizedBox(
+                          height: 15,
+                        ),
+                        TextFormField(
+                          
                           controller: phoneController,
+                          validator: (val){
+                            if(val!.isEmpty){
+                              return 'Заполните номер телефона';
+                            }
+                          },
                           onChanged: (val){
                             setState(() {
                               phoneLentgh = phoneController.length;
                             });
                           },
+                          keyboardType: TextInputType.phone,
                           inputFormatters: [phoneFormatter],
                           decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Color.fromRGBO(236, 236, 236, 1),
                             hintText: 'Телефон',
                             hintStyle: TextStyle(
                                 fontFamily: 'Gilroy', color: Colors.grey),
@@ -94,49 +102,64 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                               Icons.phone,
                               color: mainBlueColor,
                             ),
+                            focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                                borderSide: BorderSide(color: Colors.white)),
+                            border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                                borderSide: BorderSide(color: Colors.white)),
+                            errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                                borderSide: BorderSide(color: Colors.white)),
                             enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide(color: Colors.white)),
                             focusedBorder: OutlineInputBorder(
+                               borderRadius: BorderRadius.circular(25),
                               borderSide: BorderSide(color: Colors.white),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 15,
-                      ),
-                    InkWell(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=> InputLoadingScreen(phone: phoneController.text.trim())));
-                        },
-                        child: Container(
-                          height: 59,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(25),
-                              color: mainBlueColor),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 30, vertical: 14),
-                            child: Center(
-                                child: Text(
-                              'Далее',
-                              style: TextStyle(
-                                  color: Colors.white, fontFamily: 'Inter'),
-                            )),
+                        SizedBox(
+                          height: 15,
+                        ),
+                      InkWell(
+                          onTap: () {
+                            if(_formKey.currentState!.validate()){
+                              _formKey.currentState!.save();
+                              Navigator.push(context, MaterialPageRoute(builder: (context)=> InputLoadingScreen(phone: phoneController.text.trim())));
+
+                            }
+                          },
+                          child: Container(
+                            height: 59,
+                            width: MediaQuery.of(context).size.width,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(25),
+                                color: mainBlueColor),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 30, vertical: 14),
+                              child: Center(
+                                  child: Text(
+                                'Далее',
+                                style: TextStyle(
+                                    color: Colors.white, fontFamily: 'Inter'),
+                              )),
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      SvgPicture.asset('assets/texts/text_term.svg'),
-                    ],
-                  ),
-                )
-                            ],
-                          ),
-              )),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        SvgPicture.asset('assets/texts/text_term.svg'),
+                      ],
+                    ),
+                  )
+                              ],
+                            ),
+                )),
+        ),
         
       
     );

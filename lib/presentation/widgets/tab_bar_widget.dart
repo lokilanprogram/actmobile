@@ -70,7 +70,7 @@ class _TabBarWidgetState extends State<TabBarWidget> {
                           widget.firshTabText,
                           style: TextStyle(
                               color: _selectedTab == "mine" ? Colors.white : Colors.black,
-                              fontSize:widget.firshTabText =='Индивидуальные'?18: 19,
+                              fontSize:widget.firshTabText =='Индивидуальные' || widget.firshTabText == 'Групповые' ?null: 19,
                               fontFamily: 'Gilroy',
                               fontWeight:
                                   _selectedTab == "mine" ? FontWeight.bold : FontWeight.w400),

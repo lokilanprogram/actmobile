@@ -1,5 +1,8 @@
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/api/profile/profile_api.dart';
+import 'package:acti_mobile/domain/firebase/firebase.dart';
+import 'package:acti_mobile/domain/firebase/notification/notification.dart';
 import 'package:acti_mobile/presentation/screens/auth/select_input/select_input_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_around/events_around_screen.dart';
@@ -17,6 +20,7 @@ class InitialScreen extends StatefulWidget {
 }
 
 class _InitialScreenState extends State<InitialScreen> {
+  ProfileModel? profile;
   
   @override
   void initState() {
@@ -25,18 +29,27 @@ class _InitialScreenState extends State<InitialScreen> {
   }
 
   initialize() async {
+    try{
     final accessToken = await storage.read(key: accessStorageToken);
     final refreshToken = await storage.read(key: refreshStorageToken);
-    final profile = await ProfileApi().getProfile(); 
+    if(accessToken!=null){
+     profile = await ProfileApi().getProfile(); 
+    }
     print('access token ---- $accessToken');
     print('refresh token ---- $refreshToken');
     await Future.delayed(Duration(seconds: 1)).then((_) async {
       if (profile != null) {
         try{
-          await storage.write(key: userIdStorage, value: profile.id);
-          if(profile.categories.isNotEmpty){
+          await storage.write(key: userIdStorage, value: profile!.id);
+          if(profile!.categories.isNotEmpty){
             connectToOnlineStatus(accessToken!);
-            Navigator.push(context, MaterialPageRoute(builder: (_)=>MapScreen(selectedScreenIndex: 0,)));
+    await FirebaseApi().initNotifications();
+
+    await NotificationService().initNotification();
+    await FirebaseApi().setupInteractedMessage();
+            Navigator.push(context, MaterialPageRoute(builder: (_)=>MapScreen(
+              selectedScreenIndex: 0,
+            )));
             }else{
               Navigator.push(context, MaterialPageRoute(builder: (_)=>EventsAroundScreen()));
             }
@@ -49,6 +62,10 @@ class _InitialScreenState extends State<InitialScreen> {
         Navigator.push(context, MaterialPageRoute(builder: (_)=>SelectInputScreen()));
       }
     });
+    }catch(e){
+      await deleteAuthTokens();
+      Navigator.push(context, MaterialPageRoute(builder: (_)=>SelectInputScreen()));
+    }
   }
 
   @override
