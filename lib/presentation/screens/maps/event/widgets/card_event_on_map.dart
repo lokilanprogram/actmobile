@@ -66,7 +66,7 @@ class CardEventOnMap extends StatelessWidget {
                     child: SvgPicture.asset('assets/icons/icon_adult_white.svg')):Container(),
                 ],
               )),
-            const SizedBox(height: 16),
+            const SizedBox(height: 16), 
             buildInfoRow(organizedEvent,context, Icons.calendar_today, '${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)} | ${organizedEvent.timeStart.substring(0,5)} – ${organizedEvent.timeEnd.substring(0,5)}',
             organizedEvent.timeStart, organizedEvent.timeEnd, organizedEvent.address),
             const SizedBox(height: 16),

@@ -16,7 +16,7 @@ abstract class ChatState {}
  class CreatedChatState extends ChatState {
   final String chatId;
   final String accessToken;
-  final ChatModel chatModel;
+  final ChatMessagesModel chatModel;
 
   CreatedChatState({required this.chatId, required this.accessToken, required this.chatModel});
  }
@@ -28,7 +28,7 @@ abstract class ChatState {}
  class DeletedChatErrorState extends ChatState {}
 
  class SentMessageState extends ChatState {
-  final ChatModel? chatModel;
+  final ChatMessagesModel? chatModel;
 
   SentMessageState({ required this.chatModel});
  }
@@ -36,9 +36,10 @@ abstract class ChatState {}
  class SentMessageErrorState extends ChatState {}
  
  class GotChatHistoryState extends ChatState {
-  final ChatModel chatModel;
+  final ChatMessagesModel chatModel;
+  final ChatInfoModel? chatInfoModel;
 
-  GotChatHistoryState({required this.chatModel});
+  GotChatHistoryState({required this.chatModel, required this.chatInfoModel});
  }
 
  class GotChatHistoryErrorState extends ChatState {}
@@ -46,7 +47,7 @@ abstract class ChatState {}
 class StartedChatMessageState extends ChatState {
   final String chatId;
   final String accessToken;
-  final ChatModel chatModel;
+  final ChatMessagesModel chatModel;
 
   StartedChatMessageState({required this.chatId, required this.accessToken, required this.chatModel});
 }

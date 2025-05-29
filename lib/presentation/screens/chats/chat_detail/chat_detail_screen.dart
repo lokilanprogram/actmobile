@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/data/models/chat_info_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
@@ -44,9 +45,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   List<MessageModel> messages = [];
   String? interlocutorName;
   String? interlocutorAvatar;
+  String? trailing;
 
    XFile? file;
    bool isUpdatedPhoto = false;
+
+    bool isReaded = false;
 
   @override
   void initState() {
@@ -70,6 +74,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
     setState(() {
       profileUserId = userId;
+      trailing = widget.trailingText;
       chatId = widget.interlocutorChatId;
       interlocutorName = widget.interlocutorName;
       interlocutorAvatar = widget.interlocutorAvatar;
@@ -103,15 +108,24 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       token: state.accessToken,
     );
             messages = state.chatModel.messages; 
-            chatId = state.chatId;
+            chatId = state.chatId; 
           });
         }
-        if(state is GotChatHistoryState){
-          setState(() {
-            messages = state.chatModel.messages;
-            isLoading = false;
-          });
-        }
+        if (state is GotChatHistoryState) {
+
+  Future.delayed(Duration(milliseconds: 100), () {
+    setState(() {
+      chatId = state.chatInfoModel!.id;
+      interlocutorAvatar = state.chatInfoModel!.users.first.photoUrl;
+      interlocutorName = state.chatInfoModel!.users.first.name;
+      trailing = state.chatInfoModel!.event != null
+          ? '${DateFormat('dd.MM.yyyy').format(state.chatInfoModel!.event!.dateStart)} | ${state.chatInfoModel!.event!.timeStart.substring(0, 5)} – ${state.chatInfoModel!.event!.timeEnd.substring(0, 5)}'
+          : null;
+      messages = state.chatModel.messages;
+        isLoading = false;
+    });
+  });
+}
 
           if(state is DeletedChatState){
           setState(() {
@@ -224,7 +238,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 onTap: (){
                   if(chatId!=null){
                     showBlockDialog(context, 'Удалить диалог?',
-                    widget.trailingText!=null? 'Вы точно хотите удалить групповой чат?': 'Вы точно хотите удалить диалог c пользователем $interlocutorName?', (){
+                   trailing!=null? 'Вы точно хотите удалить групповой чат?': 'Вы точно хотите удалить диалог c пользователем $interlocutorName?', (){
                       setState(() {
                         isLoading = true;
                       });
@@ -253,11 +267,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Row(
-                      children: [interlocutorAvatar == null
+                      children: [interlocutorAvatar == null && widget.trailingText == null
                                     ? CircleAvatar(
                                         maxRadius: 26,
                                         backgroundImage: AssetImage(
                                           'assets/images/image_profile.png',
+                                        )):interlocutorAvatar == null &&widget.trailingText!=null?
+                                        CircleAvatar(
+                                        maxRadius: 26,
+                                        backgroundImage: AssetImage(
+                                          'assets/images/image_default_event.png',
                                         ))
                                     : CircleAvatar(
                                         maxRadius: 26,
@@ -319,20 +338,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: StreamBuilder(
               stream: webSocketService!.stream,
               builder: (context, snapshot) {
-                   if (snapshot.hasData) {
-      final result = ChatSnapshotModel.fromJson(jsonDecode(snapshot.data));
-                    if(result.type =='user_typing'){
-                      print(result.type);
-                    }
+                  if (snapshot.hasData) {
+       final result = ChatSnapshotModel.fromJson(jsonDecode(snapshot.data));
+                    if(result.type =='new_message'){
+                      print(result);
+                    
       final newMessage = result.message;
-      final alreadyExists = messages.any((m) => m.id == newMessage.id);
+      final alreadyExists = messages.any((m) => m.id == newMessage!.id);
       if (!alreadyExists) {
          WidgetsBinding.instance.addPostFrameCallback((_) {
           setState(() {
-            messages.add(newMessage);
+            messages.add(newMessage!);
           });
         });
-      }
+                    }
+                    }else if(result.type=='message_status_update'){
+                       WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            isReaded = true;
+          });
+        });
+                      print(result);
+                    }
+     
     }return ListView.builder(
   shrinkWrap: true,
   primary: false,
@@ -400,8 +428,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   ),
                                 ),
                                 SizedBox(width: 5,),
-                                isMe
-                                    ? SvgPicture.asset(
+                                isMe == true && isReaded == true
+                                    ?  SvgPicture.asset(
                                         'assets/icons/icon_readed.svg',
                                       )
                                     : const SizedBox.shrink(),

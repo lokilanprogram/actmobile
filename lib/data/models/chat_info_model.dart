@@ -4,66 +4,41 @@
 
 import 'dart:convert';
 
-AllChatsModel welcomeFromJson(String str) => AllChatsModel.fromJson(json.decode(str));
+ChatInfoModel welcomeFromJson(String str) => ChatInfoModel.fromJson(json.decode(str));
 
-String welcomeToJson(AllChatsModel data) => json.encode(data.toJson());
+String welcomeToJson(ChatInfoModel data) => json.encode(data.toJson());
 
-class AllChatsModel {
-    int total;
-    int offset;
-    int limit;
-    List<Chat> chats;
-
-    AllChatsModel({
-        required this.total,
-        required this.offset,
-        required this.limit,
-        required this.chats,
-    });
-
-    factory AllChatsModel.fromJson(Map<String, dynamic> json) => AllChatsModel(
-        total: json["total"],
-        offset: json["offset"],
-        limit: json["limit"],
-        chats: List<Chat>.from(json["chats"].map((x) => Chat.fromJson(x))),
-    );
-
-    Map<String, dynamic> toJson() => {
-        "total": total,
-        "offset": offset,
-        "limit": limit,
-        "chats": List<dynamic>.from(chats.map((x) => x.toJson())),
-    };
-}
-
-class Chat {
+class ChatInfoModel {
     String id;
     String type;
     DateTime createdAt;
     String creatorId;
     String? eventId;
-    LastMessage? lastMessage;
+    int unreadCount;
+    LastMessage lastMessage;
     List<User> users;
     Event? event;
 
-    Chat({
+    ChatInfoModel({
         required this.id,
         required this.type,
         required this.createdAt,
         required this.creatorId,
         required this.eventId,
+        required this.unreadCount,
         required this.lastMessage,
         required this.users,
         required this.event,
     });
 
-    factory Chat.fromJson(Map<String, dynamic> json) => Chat(
+    factory ChatInfoModel.fromJson(Map<String, dynamic> json) => ChatInfoModel(
         id: json["id"],
         type: json["type"],
         createdAt: DateTime.parse(json["created_at"]),
         creatorId: json["creator_id"],
-        eventId: json["event_id"],
-        lastMessage: json["last_message"] == null ? null : LastMessage.fromJson(json["last_message"]),
+        eventId: json["event_id"]!= null? json["event_id"]:null,
+        unreadCount: json["unread_count"],
+        lastMessage: LastMessage.fromJson(json["last_message"]),
         users: List<User>.from(json["users"].map((x) => User.fromJson(x))),
         event:json["event"]!= null? Event.fromJson(json["event"]):null,
     );
@@ -74,7 +49,8 @@ class Chat {
         "created_at": createdAt.toIso8601String(),
         "creator_id": creatorId,
         "event_id": eventId,
-        "last_message": lastMessage?.toJson(),
+        "unread_count": unreadCount,
+        "last_message": lastMessage.toJson(),
         "users": List<dynamic>.from(users.map((x) => x.toJson())),
         "event": event?.toJson(),
     };
@@ -88,10 +64,10 @@ class Event {
     DateTime dateEnd;
     String timeStart;
     String timeEnd;
-    double price;
+    int price;
     int slots;
-    double? latitude;
-    double? longitude;
+    int latitude;
+    int longitude;
     List<String> photos;
     List<String> restrictions;
     bool isRecurring;
@@ -123,10 +99,9 @@ class Event {
         timeEnd: json["time_end"],
         price: json["price"],
         slots: json["slots"],
-        latitude: json["latitude"]?.toDouble(),
-        longitude: json["longitude"]?.toDouble(),
-        photos:json["photos"]!=null?
-         List<String>.from(json["photos"].map((x) => x)):[],
+        latitude: json["latitude"],
+        longitude: json["longitude"],
+        photos: List<String>.from(json["photos"].map((x) => x)),
         restrictions: List<String>.from(json["restrictions"].map((x) => x)),
         isRecurring: json["is_recurring"],
     );
@@ -154,7 +129,7 @@ class LastMessage {
     String chatId;
     String userId;
     String content;
-    dynamic attachmentUrl;
+    String? attachmentUrl;
     String status;
     String messageType;
     DateTime createdAt;
@@ -198,16 +173,18 @@ class LastMessage {
 }
 
 class User {
-    String? name;
+    String id;
+    String name;
     String? surname;
     String? email;
     String? bio;
     bool? isOrganization;
     String? photoUrl;
-    String status;
+    String? status;
     bool? isEmailVerified;
 
     User({
+        required this.id,
         required this.name,
         required this.surname,
         required this.email,
@@ -219,6 +196,7 @@ class User {
     });
 
     factory User.fromJson(Map<String, dynamic> json) => User(
+        id: json["id"],
         name: json["name"],
         surname: json["surname"],
         email: json["email"],
@@ -230,6 +208,7 @@ class User {
     );
 
     Map<String, dynamic> toJson() => {
+        "id": id,
         "name": name,
         "surname": surname,
         "email": email,

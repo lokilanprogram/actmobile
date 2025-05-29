@@ -1,3 +1,4 @@
+import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -16,8 +17,8 @@ class ActivityBarWidget extends StatelessWidget {
         onTap: (){
         isVerified ?  Navigator.push(context, MaterialPageRoute(builder: (context)=>
           CreateEventScreen(organizedEventModel: null,))): 
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Проверьте почту и перейдите по ссылке для активации'),
-          backgroundColor: Colors.green,));
+          
+          showAlertOKDialog(context,null,isTitled: true,title:  'Подтвердите почту');
         },
         child: Material(
           elevation: 1.2,

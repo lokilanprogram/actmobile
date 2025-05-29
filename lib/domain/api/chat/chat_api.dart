@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/data/models/chat_info_model.dart';
 import 'package:acti_mobile/data/models/chat_model.dart';
 import 'package:acti_mobile/data/models/created_chat_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
@@ -118,6 +119,25 @@ Future<AllChatsModel?> getAllChats(String chatType) async {
   }
   return null;
 }
+ Future<ChatInfoModel?> getChatInfo(String chatId) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken != null){
+    final response = await http.get(
+    Uri.parse('$API/api/v1/chats/$chatId'),
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken'
+    },
+  );
+   if (response.statusCode == 200) {
+    return ChatInfoModel.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return null;
+}
+
   Future<CreatedChatModel?> createPrivateChat(String userId) async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){
@@ -138,7 +158,7 @@ Future<AllChatsModel?> getAllChats(String chatType) async {
   return null;
 }
 
-  Future<ChatModel?> getChatHistory(String chatId) async {
+  Future<ChatMessagesModel?> getChatHistory(String chatId) async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){
     final response = await http.get(
@@ -149,7 +169,7 @@ Future<AllChatsModel?> getAllChats(String chatType) async {
     },
   );
    if (response.statusCode == 200) {
-    return ChatModel.fromJson(jsonDecode(response.body));
+    return ChatMessagesModel.fromJson(jsonDecode(response.body));
   } else {
     throw Exception('Error: ${response.body}');
   }

@@ -167,7 +167,12 @@ Future<bool?> alterEvent({
   FormData formData;
   List<MultipartFile> photos = [];
   Response response;
+  final now = DateTime.now();
 
+  final timezoneOffset = now.timeZoneOffset; // например, Duration(hours: 7)
+
+// Преобразовать в формат +07:00
+String offsetString = '${timezoneOffset.isNegative ? '-' : '+'}${timezoneOffset.inHours.abs().toString().padLeft(2, '0')}:${(timezoneOffset.inMinutes.abs() % 60).toString().padLeft(2, '0')}';
   for (var photo in alterEvent.images) {
     if(!photo.contains('http://93.183.81.104')){
         final file = File(photo);
@@ -193,8 +198,8 @@ Future<bool?> alterEvent({
       'type':alterEvent.type,
       'address':alterEvent.isOnline? null: alterEvent.address,
       'date_start':alterEvent.isRecurring? alterEvent.recurringDay : alterEvent.dateStart,
-      'time_start':alterEvent.timeStart.substring(0,8),
-      'time_end':alterEvent.timeEnd.substring(0,8),
+      'time_start': '${alterEvent.timeStart.substring(0, 8)}$offsetString',
+      'time_end': '${alterEvent.timeEnd.substring(0, 8)}$offsetString',
       'price':alterEvent.price!= null? alterEvent.price.toString() : '0',
       'create_group_chat':alterEvent.isGroupChat.toString(),
       'restrictions':[

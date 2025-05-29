@@ -11,8 +11,9 @@ import 'package:geolocator/geolocator.dart' as geolocator;
 
 class MapPickerScreen extends StatefulWidget {
   final Position? position;
+  final bool? isCreated;
   final String? address;
-  const MapPickerScreen({super.key, required this.position, required this.address});
+  const MapPickerScreen({super.key, required this.position, required this.address, required this.isCreated});
 
   @override
   State<MapPickerScreen> createState() => _MapPickerScreenState();
@@ -124,7 +125,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             child: Stack(
                 children: [
                   MapWidget(
-                    onTapListener:widget.position!= null? null: _onTap,
+                    onTapListener:widget.isCreated == true ? _onTap:null,
                     styleUri: 'mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj',
                     cameraOptions: CameraOptions(
                       zoom: currentZoom,
@@ -301,7 +302,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                                 color: mainBlueColor),
                             child:Center(
                                   child: Text(
-                                widget.position!= null ?'Закрыть':'Сохранить',
+                                widget.isCreated == false ?'Закрыть':'Сохранить',
                                 style: TextStyle(
                                     color: Colors.white, fontFamily: 'Gilroy',fontSize: 17,
                                     fontWeight: FontWeight.bold),

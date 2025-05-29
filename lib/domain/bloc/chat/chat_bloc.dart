@@ -1,7 +1,9 @@
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/all_chats_model.dart';
+import 'package:acti_mobile/data/models/chat_info_model.dart';
 import 'package:acti_mobile/data/models/chat_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
+import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/api/chat/chat_api.dart';
 import 'package:bloc/bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,9 +15,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ChatBloc() : super(ChatInitial()) {
      on<GetChatHistoryEvent>((event, emit) async{
       try{
-        final chatModel = await ChatApi().getChatHistory(event.chatId);
+        final chatInfoModel = await ChatApi().getChatInfo(event.chatId);
+        final chatModel = await ChatApi().getChatHistory(chatInfoModel!.id);
         if(chatModel!=null){
-          emit(GotChatHistoryState(chatModel: chatModel ));
+          emit(GotChatHistoryState(chatModel: chatModel ,chatInfoModel: chatInfoModel));
         }
       }catch(e){
         emit(GotChatHistoryErrorState());
@@ -68,7 +71,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     });
 
       on<SendMessageEvent>((event, emit) async{
-        ChatModel? chatModel;
+        ChatMessagesModel? chatModel;
         bool? isSent = false;
       try{
         if(event.imagePath==null){

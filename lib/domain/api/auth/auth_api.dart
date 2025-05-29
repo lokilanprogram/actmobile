@@ -27,6 +27,26 @@ Future<TokenModel?> authRefreshToken() async {
   return null;
 }
 
+Future<bool?> sendFcmToken(String token) async {
+  final accessToken = await storage.read(key: accessStorageToken);
+  if(accessToken!=null){
+     final response = await http.post(
+    Uri.parse('$API/api/v1/auth/fcm-token'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      "Content-Type": "application/json",
+    },
+    body: jsonEncode(<String, dynamic>{'fcm_token': token}),
+  );
+   if (response.statusCode == 200) {
+    return true;
+  } else {
+    throw Exception('Error: ${response.body}');
+  }
+  }
+  return null;
+}
+
 Future<bool> authLogout() async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){

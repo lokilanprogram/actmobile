@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/card_event_on_map.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
@@ -44,6 +45,7 @@ class _MapScreenState extends State<MapScreen> {
   double currentZoom = 16;
   bool isLoading = false;
   bool showEvents = false;
+  DeepLinkService? _deepLinkService;
   DraggableScrollableController sheetController =
       DraggableScrollableController();
   SearchedEventsModel? searchedEventsModel;    
@@ -96,6 +98,7 @@ _onTap(MapContentGestureContext context,) async {
           showEvents = false;
         });
       }
+      _deepLinkService!.dispose();
     });
   }
 
@@ -103,7 +106,11 @@ _onTap(MapContentGestureContext context,) async {
     setState(() {
       isLoading = true;
       selectedIndex = widget.selectedScreenIndex; 
-    });;
+      _deepLinkService = DeepLinkService(navigatorKey);
+    });
+    if(_deepLinkService!=null){
+    await _deepLinkService!.initDeepLinks();
+    }
     final permission = await geolocator.Geolocator.checkPermission();
     setState(() {
       currentPermission = permission;

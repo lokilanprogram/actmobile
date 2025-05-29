@@ -4,6 +4,7 @@ import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/widgets/widgets.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/map_picker/map_picker_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/requests/event_request_screen.dart';
@@ -18,8 +19,10 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class EventDetailHomeScreen extends StatefulWidget {
   final String eventId;
+  final bool isCompletedEvent;
   final OrganizedEventModel organizedEventModel;
-  const EventDetailHomeScreen({super.key, required this.eventId, required this.organizedEventModel});
+  const EventDetailHomeScreen({super.key, required this.isCompletedEvent,
+  required this.eventId, required this.organizedEventModel});
 
   @override
   State<EventDetailHomeScreen> createState() => _EventDetailHomeScreenState();
@@ -101,9 +104,9 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                     Stack(
                       children: [
                            SizedBox(height: 200,
-                             child: PageView.builder(
+                             child:organizedEvent.photos.isNotEmpty? PageView.builder(
                                        controller: _pageController,
-                                       itemCount: organizedEvent.photos!.length,
+                                       itemCount: organizedEvent.photos.length,
                                        onPageChanged: (index) {
                                          setState(() {
                                            _currentPage = index;
@@ -111,13 +114,18 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                        },
                                        itemBuilder: (context, index) {
                                          return Image.network(
-                                           organizedEvent.photos![index],
+                                           organizedEvent.photos[index],
                                            width: double.infinity,
                                            height: 200,
                                            fit: BoxFit.cover,
                                          );
                                        },
-                                     ),
+                                     ):Image.asset(
+                                           'assets/images/image_big_default_event.png',
+                                           width: double.infinity,
+                                           height: 200,
+                                           fit: BoxFit.cover,
+                                         ),
                            ),
                         Positioned(
                             top: 50,
@@ -281,7 +289,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                width: MediaQuery.of(context).size.height * 0.45,
                                                child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
                                                   children: [
-                                                  Text('Заявки',style: TextStyle(color: mainBlueColor,
+                                                  Text(widget.isCompletedEvent?'Участники': 'Заявки',style: TextStyle(color: mainBlueColor,
                                                   fontFamily: 'Inter',fontSize: 22, fontWeight: FontWeight.bold),),
                                                   SizedBox(width: 15,),
                                                   SvgPicture.asset('assets/icons/icon_next_blue.svg')
@@ -301,13 +309,16 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                   ),
                                 ),
                       
-                                const SizedBox(height: 20),
+                                Column(crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 20),
                       
                                 // Дата и время
                                organizedEvent.isRecurring ? infoRepeatedRow(
                                   'assets/icons/icon_time.svg',
                                   false,
-                                  getWeeklyRepeatText(organizedEvent.dateStart),
+                                  'Проходит '+ getWeeklyRepeatOnlyWeekText(organizedEvent.dateStart),
+                                  organizedEvent.dateStart,
                                   '${organizedEvent.timeStart.substring(0,5)}–${organizedEvent.timeEnd.substring(0,5)}',
                                    trailing: formatDuration(organizedEvent.timeStart, organizedEvent.timeEnd),
                                 ): infoRow(
@@ -347,6 +358,8 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                   style: TextStyle(
                                       fontSize: 16, fontFamily: 'Gilroy', height: 1),
                                 ),
+                                  ],
+                                )
                               ],
                             ),
                           ),
@@ -357,7 +370,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                 ),
               ),
             ),
-            Padding(
+           widget.isCompletedEvent?Container(): Padding(
               padding: const EdgeInsets.only(bottom: 60,left: 30,right: 30 ),
               child: buildCancelWidget(),
             ),
@@ -372,7 +385,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                             organizedEvent.isRecurring ? showCancelActivityDialog(context,'Вы хотите отменить одно мероприятие или всю серию?','Одно', 'Все', (){
+                             organizedEvent.isRecurring ? showCancelActivityDialog(context,'Вы хотите отменить одно мероприятие или всю серию?','Ближайшее', 'Все', (){
                               setState(() {
                                 isLoading = true;
                               });
@@ -450,12 +463,14 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
               ],
             ),
             if (subtitle.isNotEmpty)
+            SizedBox(height: 8,),
               GestureDetector(
                 onTap: (){
                   if(organizedEvent.latitude != null && organizedEvent.longitude!=null){
 
                    Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                          MapPickerScreen(position: Position(organizedEvent.longitude!, organizedEvent.latitude!), address: organizedEvent.address,)));
+                          MapPickerScreen(isCreated: false,
+                            position: Position(organizedEvent.longitude!, organizedEvent.latitude!), address: organizedEvent.address,)));
                   }
                 },
                 child: Row(
@@ -481,80 +496,4 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
   }
 }
 
- Widget infoRepeatedRow(
-  String iconPath,
-  bool isLocation,
-  String recurringdays,
-  String time, {
-  String? trailing,
-}) {
-  final parts = recurringdays.split(' ');
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Row(children: [
-        Padding(
-        padding: const EdgeInsets.only(top: 5),
-        child: SvgPicture.asset(iconPath),
-      ),
-        const SizedBox(width: 10),
-      Text(
-              'Дата и время',
-              style: const TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Inter',
-                fontSize: 17.8,
-              ),
-            ),
-      ],),
-      const SizedBox(width: 10),
-      Row(
-              children: [
-                Expanded( // 👈 Эта часть тоже оборачивается
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontFamily: 'Gilroy',
-                        color: Colors.black,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: '${parts[0]} ',
-                          style: const TextStyle(fontWeight: FontWeight.normal,
-                          color: Color.fromRGBO(7, 7, 7,1),
-                            fontFamily: 'Gilroy',),
-                        ),
-                        TextSpan(
-                          text: parts[1],
-                          style: const TextStyle(fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',),
-                        ),
-                        TextSpan(
-                          text: ' | $time   ',
-                          style: TextStyle(
-                            fontFamily: 'Gilroy',
-                            color: isLocation ? Colors.blue : Colors.black,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                        TextSpan(
-                          text:trailing,
-                          style: TextStyle(
-                            fontFamily: 'Gilroy',
-                            color:Colors.grey,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                    overflow: TextOverflow.fade,
-                  ),
-                ),
-              ],
-            ),
-    ],
-  );
-}
+ 

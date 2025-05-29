@@ -611,6 +611,8 @@ class TextInputNameWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+        textCapitalization: TextCapitalization.sentences,
+
       style: TextStyle(fontSize: 18, fontFamily: 'Inter'),
       controller: controller,
       validator: validator,

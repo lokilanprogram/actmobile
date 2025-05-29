@@ -1,26 +1,32 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:acti_mobile/domain/api/auth/auth_api.dart';
+import 'package:acti_mobile/domain/api/chat/chat_api.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
 import 'package:acti_mobile/main.dart';
-import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
-import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
+import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class FirebaseApi {
   final firebaseMessaging = FirebaseMessaging.instance;
   Future<void> initNotifications() async {
+    String? token;
     NotificationSettings settings = await firebaseMessaging.requestPermission();
     if(Platform.isIOS){
-    await Future.delayed(Duration(seconds: 1));
-    final apnsToken =  await firebaseMessaging.getAPNSToken();
-   print('Firebase apns token ${apnsToken}');
-
-  }
-   final token = await firebaseMessaging.getToken();
-   print('Firebase token ${token}');
+     token =  await firebaseMessaging.getAPNSToken();
+   print('Firebase apns token ${token}');
+    await Future.delayed(Duration(seconds: 2));
+    }else{
+    token = await firebaseMessaging.getToken();
+   print('Firebase token  ${token}');
+   }
   
+   if(token != null){
+    await AuthApi().sendFcmToken(token);
+  }
     await firebaseMessaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
@@ -40,6 +46,7 @@ class FirebaseApi {
     if (initialMessage != null) {
       _handleMessage(initialMessage);
     }
+    
 
     // Also handle any interaction when the app is in the background via a
     // Stream listener
@@ -52,20 +59,22 @@ class FirebaseApi {
     });
   }
 
-  void _handleMessage(RemoteMessage message) {
+  Future<void> _handleMessage(RemoteMessage message) async {
   final decoded = message.data;
-  if (decoded['event_id'] != null) {
-    navigatorKey.currentState?.push(
-      MaterialPageRoute(
-        builder: (context) => MapScreen(selectedScreenIndex: 0,),
-      ),
-    ).then((_){
-      navigatorKey.currentState?.push(
+  String? eventId = decoded['event_id'];
+  String? chatId = decoded["chat_id"];
+  if (eventId != null) {
+     navigatorKey.currentState?.push(
       MaterialPageRoute(
         builder: (context) => EventDetailScreen(eventId: decoded['event_id'],),
       ),
     );
-    });
   }
+  if(chatId != null){
+        navigatorKey.currentState?.push(
+         MaterialPageRoute(builder: (_) => ChatDetailScreen(interlocutorAvatar: null,interlocutorChatId: chatId,
+         interlocutorName: '...',trailingText: null,interlocutorUserId: null,),
+        ));
+       }
 }
 }

@@ -83,15 +83,29 @@ String normalizePhone(String input) {
 }
 const hintTextStyleEdit = TextStyle(fontFamily:'Inter',fontSize: 14,fontWeight: FontWeight.w300,color: Colors.grey);
 const titleTextStyleEdit = TextStyle(fontFamily: 'Inter',fontSize: 13,fontWeight: FontWeight.w400);
+String getWeeklyRepeatOnlyWeekText(DateTime date) {
+  const weekdays = {
+    DateTime.monday: 'по понедельникам.',
+    DateTime.tuesday: 'по вторникам.',
+    DateTime.wednesday: 'по средам.',
+    DateTime.thursday: 'по четвергам.',
+    DateTime.friday: 'по пятницам.',
+    DateTime.saturday: 'по субботам.',
+    DateTime.sunday: 'по воскресеньям.',
+  };
+
+  return weekdays[date.weekday] ?? '';
+}
+
 String getWeeklyRepeatText(DateTime date) {
   const weekdays = {
-    DateTime.monday: 'Каждый понедельник',
-    DateTime.tuesday: 'Каждый вторник',
-    DateTime.wednesday: 'Каждую среду',
-    DateTime.thursday: 'Каждый четверг',
-    DateTime.friday: 'Каждую пятницу',
-    DateTime.saturday: 'Каждую субботу',
-    DateTime.sunday: 'Каждое воскресенье',
+    DateTime.monday: 'каждый понедельник',
+    DateTime.tuesday: 'каждый вторник',
+    DateTime.wednesday: 'каждую среду',
+    DateTime.thursday: 'каждый четверг',
+    DateTime.friday: 'каждую пятницу',
+    DateTime.saturday: 'каждую субботу',
+    DateTime.sunday: 'каждое воскресенье',
   };
 
   return weekdays[date.weekday] ?? '';

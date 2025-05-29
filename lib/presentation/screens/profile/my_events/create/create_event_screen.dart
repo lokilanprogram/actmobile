@@ -5,6 +5,7 @@ import 'package:acti_mobile/data/models/mapbox_model.dart';
 import 'package:acti_mobile/data/models/mapbox_reverse_model.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:geotypes/src/geojson.dart';
 import 'package:acti_mobile/data/models/mapbox_model.dart' as mapbox;
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
@@ -191,6 +192,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           }
         }
       setState(() {
+        selectedAddressModel = LocalAddressModel(address: 
+        event.address, latitude: event.latitude, longitude: event.longitude, properties: null);
         titleController.text = event.title;
         descriptionController.text = event.description;
         isRecurring = event.isRecurring;
@@ -354,7 +357,10 @@ setState(() {
                           InkWell(
                             onTap: ()async{
                              LocalAddressModel? localAddressModel =await Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                              MapPickerScreen(position: null, address: null,)));
+                              MapPickerScreen(isCreated: true,
+                                position:selectedAddressModel != null? Position(
+                                selectedAddressModel!.longitude!, selectedAddressModel!.latitude!):null,
+                              address: null,)));
                               if(localAddressModel!=null){
                                 setState(() { 
                                   addressController.text = 'г. ${localAddressModel.properties!.fullAddress.split(', ')[2]}, ${localAddressModel.address}';
@@ -851,9 +857,8 @@ if (startDateTime.isAfter(endDateTime)) {
     SnackBar(content: Text('Дата события должна быть в будущем')),
   );
 } else if (_images.isEmpty) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Выберите фотографию')),
-  );
+  final defaultImage =await getImageFileFromAssets('assets/images/image_default_event.png');
+  _images.add(defaultImage.path);
 } else if(selectedCategory != null){
             setState(() {
             isLoading = true;
@@ -868,11 +873,7 @@ if (startDateTime.isAfter(endDateTime)) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Выберите категорию')));
           }
 }else{
-  if (_images.isEmpty) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Выберите фотографию')),
-  );
-} else if(selectedCategory != null){
+  if(selectedCategory != null){
          await Future.delayed(Duration(seconds: 2)).then((val){
             setState(() {
             isLoading = true;

@@ -127,7 +127,7 @@ class ChatListTileWidget extends StatelessWidget {
     return ListTile(
                     leading: CircleAvatar(
     radius: 30,
-    backgroundImage:!isPrivateChats ? NetworkImage(chat.event!.photos.first):
+    backgroundImage:!isPrivateChats ?(chat.event!.photos.isNotEmpty?NetworkImage(chat.event!.photos.first):AssetImage('assets/images/image_default_event.png')): 
     (chat.users.first.photoUrl==null?
     AssetImage('assets/images/image_profile.png'):
     NetworkImage(chat.users.first.photoUrl!,)),
@@ -157,7 +157,7 @@ class ChatListTileWidget extends StatelessWidget {
         MaterialPageRoute(
             builder: (context) => ChatDetailScreen(
               trailingText: !isPrivateChats ?  '${DateFormat('dd.MM.yyyy').format(chat.event!.dateStart)} | ${chat.event!.timeStart.substring(0,5)} – ${chat.event!.timeEnd.substring(0,5)}':null,
-              interlocutorAvatar:!isPrivateChats ? chat.event!.photos.first:
+              interlocutorAvatar:!isPrivateChats ? chat.event!.photos.isNotEmpty?chat.event!.photos.first:null:
               chat.users.first.photoUrl,
               interlocutorName:!isPrivateChats? chat.event!.title :  (chat.users.first.name ?? 'not defined'),
                   interlocutorChatId: chat.id,

@@ -3,6 +3,7 @@ import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
+import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/map_picker/map_picker_screen.dart';
@@ -28,7 +29,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   bool isJoined = false;
   bool isBlocked = false;
   late OrganizedEventModel organizedEvent;
-
+  ProfileModel? profileModel; 
+  
   @override
   void initState() {
     initialize();
@@ -69,6 +71,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         }
         if(state is ProfileGotEventDetailState){
           setState(() {
+            profileModel = state.profileModel;
             isLoading = false;
             organizedEvent = state.eventModel;
             isJoined = state.eventModel.join_status == 'confirmed' 
@@ -108,13 +111,27 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             children: [
               Stack(
                 children: [
-                  // вото
+                  organizedEvent.photos.isNotEmpty?
                   Image.network(
-                    organizedEvent.photos!.first,
+                    organizedEvent.photos.first,
                     width: double.infinity,
                     height: 260,
                     fit: BoxFit.cover,
-                  ),
+                     loadingBuilder: (BuildContext context, Widget child,
+                      ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return SizedBox(height: 260,
+                      child: Center(
+                        child: CircularProgressIndicator(color: mainBlueColor,
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );}
+                  ):Image.asset('assets/images/image_default_event.png',
+                  width: double.infinity,height: 260,fit: BoxFit.cover,),
                   Positioned(
                       top: 50,
                       right: 20,
@@ -281,7 +298,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         const SizedBox(height: 20),
           
                         // Дата и время
-                        infoRow(
+                        infoRow(organizedEvent,
                           'assets/icons/icon_time.svg',
                           false,
                           'Дата и время',
@@ -295,7 +312,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ),
           
                         // Место
-                        infoRow(
+                        infoRow(organizedEvent,
                           'assets/icons/icon_location.svg',
                           true,
                           'Место',
@@ -308,7 +325,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ),
           
                         // Места
-                        infoRow(
+                        infoRow(organizedEvent,
                           'assets/icons/icon_people.svg',
                           false,
                           organizedEvent.restrictions!= null?
@@ -338,13 +355,17 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           height: 59,
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () {  
+                              if(profileModel!.isEmailVerified) {
                               setState(() {
                                 isLoading = true;
                               });
                               isJoined ?
                               context.read<ProfileBloc>().add(ProfileLeaveEvent(eventId: organizedEvent.id))
                              : context.read<ProfileBloc>().add(ProfileJoinEvent(eventId: organizedEvent.id));
+                              }else{
+          showAlertOKDialog(context,null,isTitled: true,title:  'Подтвердите почту');
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -390,9 +411,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
   }
 
-  Widget infoRow(
+  Widget infoRow(OrganizedEventModel organizedEvent,
       String iconPath, bool isLocation, String title, String subtitle,
       {String? trailing}) {
+
+  final recurringdays = 'Проходит '+ getWeeklyRepeatOnlyWeekText(organizedEvent.dateStart);
+  final parts = recurringdays.split(' ');
     return 
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,16 +436,93 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         fontSize: 17.8)),
               ],
             ),
+            SizedBox(height:trailing!=null? 8:0, ),
             if (subtitle.isNotEmpty)
               GestureDetector(
-                onTap: (){
+                onTap:isLocation? (){
                     if(organizedEvent.latitude != null && organizedEvent.longitude!=null){
-
                    Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                          MapPickerScreen(position: Position(organizedEvent.longitude!, organizedEvent.latitude!), address: organizedEvent.address,)));
+                          MapPickerScreen(isCreated: false,
+                            position: Position(organizedEvent.longitude!, organizedEvent.latitude!), address: organizedEvent.address,)));
                   }
-                },
-                child: Row(
+                }:(){},
+                child:trailing!= null && organizedEvent.isRecurring? 
+                Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+              Row(
+          mainAxisSize: MainAxisSize.min,
+              children: [
+             RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Gilroy',
+                        color: Colors.black,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: '${parts[0]} ',
+                          style: const TextStyle(fontWeight: FontWeight.normal,
+                          color: Color.fromRGBO(7, 7, 7,1),
+                            fontFamily: 'Gilroy',),
+                        ),
+                        TextSpan(
+                          text: '${parts[1]} ',
+                          style: const TextStyle(fontWeight: FontWeight.normal,
+                          color: Color.fromRGBO(7, 7, 7,1),
+                            fontFamily: 'Gilroy',),
+                        ),
+                         TextSpan(
+                          text: parts[2],
+                          style: const TextStyle(fontWeight: FontWeight.bold,
+                            fontFamily: 'Gilroy',),
+                        ),
+                      ],
+                    ),
+                    overflow: TextOverflow.fade,
+                  ),
+                
+              ],
+            ),
+            SizedBox(height: 5,),
+            RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Gilroy',
+                        color: Colors.black,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: 'Ближайшее: ${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)}',
+                          style: const TextStyle(fontWeight: FontWeight.normal,
+                          color: Color.fromRGBO(7, 7, 7,1),
+                            fontFamily: 'Gilroy',),
+                        ),
+                        TextSpan(
+                          text:' | ${organizedEvent.timeStart.substring(0,5)}–${organizedEvent.timeEnd.substring(0,5)} ',
+                          style: TextStyle(
+                            fontFamily: 'Gilroy',
+                            color:  Colors.black,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                        TextSpan(
+                          text:formatDuration(organizedEvent.timeStart, organizedEvent.timeEnd),
+                          style: TextStyle(
+                            fontFamily: 'Gilroy',
+                            color:Colors.grey,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                    overflow: TextOverflow.fade,
+                  ),
+          ],
+        ): Row(
                   children: [
                     Text(
                       subtitle,

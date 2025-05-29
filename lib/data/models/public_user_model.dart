@@ -21,7 +21,7 @@ class PublicUserModel {
     String? photoUrl;
     String? status;
     List<Category> categories;
-    List<OrganizedEventModel> organizedEvents;
+    List<OrganizedEventModel>? organizedEvents;
     List<Review> reviews;
     bool? hideMyEvents;
     bool? hideAttendedEvents;
@@ -59,7 +59,8 @@ class PublicUserModel {
         photoUrl: json["photo_url"],
         status: json["status"],
         categories: List<Category>.from(json["categories"].map((x) => Category.fromJson(x))),
-        organizedEvents: List<OrganizedEventModel>.from(json["organized_events"].map((x) => OrganizedEventModel.fromJson(x))),
+        organizedEvents: json["organized_events"]!=null?
+         List<OrganizedEventModel>.from(json["organized_events"].map((x) => OrganizedEventModel.fromJson(x))):[],
         reviews: List<Review>.from(json["reviews"].map((x) => Review.fromJson(x))),
         hideMyEvents: json["hide_my_events"],
         hideAttendedEvents: json["hide_attended_events"], userId: json['user_id'],
@@ -75,7 +76,6 @@ class PublicUserModel {
         "photo_url": photoUrl,
         "status": status,
         "categories": List<dynamic>.from(categories.map((x) => x.toJson())),
-        "organized_events": List<dynamic>.from(organizedEvents.map((x) => x.toString())),
         "reviews": List<dynamic>.from(reviews.map((x) => x.toJson())),
         "hide_my_events": hideMyEvents,
         "hide_attended_events": hideAttendedEvents,

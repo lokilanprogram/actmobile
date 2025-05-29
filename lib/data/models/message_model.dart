@@ -12,7 +12,7 @@ String welcomeToJson(MessageModel data) => json.encode(data.toJson());
 //     final welcome = welcomeFromJson(jsonString);
 class ChatSnapshotModel {
     String type;
-    MessageModel message;
+    MessageModel? message;
 
     ChatSnapshotModel({
         required this.type,
@@ -21,12 +21,13 @@ class ChatSnapshotModel {
 
     factory ChatSnapshotModel.fromJson(Map<String, dynamic> json) => ChatSnapshotModel(
         type: json["type"],
-        message: MessageModel.fromJson(json["message"]),
+        message:json["message"]!=null?
+         MessageModel.fromJson(json["message"]):null,
     );
 
     Map<String, dynamic> toJson() => {
         "type": type,
-        "message": message.toJson(),
+        "message": message?.toJson(),
     };
 }
 

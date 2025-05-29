@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:path_provider/path_provider.dart';
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/presentation/widgets/report_sheet_widget.dart';
 import 'package:acti_mobile/presentation/widgets/report_user_sheet.dart';
@@ -51,6 +51,15 @@ Future<void> addEventIconFromUrl(MapboxMap mapboxMap,String id, Uint8List imageD
   }
 }
 
+Future<File> getImageFileFromAssets(String path) async {
+  final byteData = await rootBundle.load('assets/$path');
+
+  final file = File('${(await getTemporaryDirectory()).path}/$path');
+  await file.create(recursive: true);
+  await file.writeAsBytes(byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+
+  return file;
+}
 
 Future<void> addUserIconToStyle(MapboxMap mapboxMap) async {
   final ByteData bytes = await rootBundle.load('assets/icons/icon_current_location.png');

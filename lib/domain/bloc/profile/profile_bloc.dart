@@ -187,11 +187,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         emit(ProfileRecommentedUsersErrorState(errorText: 'Произошла ошибка'));
       }
     });
-    on<ProfileGetEventDetailEvent>((event, emit) async {
+     on<ProfileGetEventDetailEvent>((event, emit) async {
       try {
         final eventDetail = await EventsApi().getProfileEvent(event.eventId);
-        if (eventDetail != null) {
-          emit(ProfileGotEventDetailState(eventModel: eventDetail));
+        final profile = await ProfileApi().getProfile();
+        if (eventDetail != null && profile != null) {
+          emit(ProfileGotEventDetailState(eventModel: eventDetail, profileModel: profile));
         }
       } catch (e) {
         emit(ProfileGotEventDetailErrorState());

@@ -3,7 +3,6 @@ import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/widget/my_events_card.dart';
-import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
 import 'package:acti_mobile/presentation/widgets/activity_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/app_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/dashed_line_painter.dart';
@@ -133,7 +132,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                Column(
                                 children: profileEventModels!.events.map((event){
                                   return MyCardEventWidget(
-                                    isOpacityCard: false,
+                                    isCompletedEvent: false,
                                     isPublicUser: false,
                                     organizedEvent: event,
                                   );
@@ -146,7 +145,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                 children: profileEventModels!.events.where((event)=>event.status 
                                 =='completed').map((event){
                                   return MyCardEventWidget(
-                                    isOpacityCard: true,
+                                    isCompletedEvent: true,
                                     isPublicUser: false,
                                     organizedEvent: event,
                                   );
@@ -159,7 +158,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                Column(
                                 children: profileVisitedEventModels!.events.map((event){
                                   return MyCardEventWidget(
-                                    isOpacityCard: false,
+                                    isCompletedEvent: false,
                                     isPublicUser: true,
                                     organizedEvent: event,
                                   );

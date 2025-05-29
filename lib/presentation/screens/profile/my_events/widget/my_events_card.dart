@@ -12,9 +12,9 @@ import 'package:intl/intl.dart';
 class MyCardEventWidget extends StatelessWidget {
   final OrganizedEventModel organizedEvent;
   final bool isPublicUser;
-  final bool isOpacityCard; 
+  final bool isCompletedEvent; 
   const MyCardEventWidget({
-    super.key, required this.organizedEvent, required this.isPublicUser, required this.isOpacityCard,
+    super.key, required this.organizedEvent, required this.isPublicUser, required this.isCompletedEvent,
     
   });
 
@@ -25,20 +25,19 @@ class MyCardEventWidget extends StatelessWidget {
   final reccuringPartDays = reccuringDays?.split(' ');
     return GestureDetector(
       onTap: (){
-        if(!isOpacityCard){
-          Navigator.push(context, MaterialPageRoute(builder: (_)=>
+         Navigator.push(context, MaterialPageRoute(builder: (_)=>
        isPublicUser? EventDetailScreen(
           eventId: organizedEvent.id,
         ):EventDetailHomeScreen(
+          isCompletedEvent: isCompletedEvent,
           organizedEventModel: organizedEvent,
           eventId: organizedEvent.id,
         )));
-        }
       },
       child: Padding(
         padding: const EdgeInsets.only(bottom: 15),
         child: Opacity(
-          opacity:isOpacityCard ?0.59: 1,
+          opacity:isCompletedEvent ?0.59: 1,
           child: Card(elevation: 0.6,color: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15)
@@ -50,10 +49,14 @@ class MyCardEventWidget extends StatelessWidget {
               topLeft: Radius.circular(15),
               bottomLeft: Radius.circular(15)
             ),
-                  child: Image.network(organizedEvent.photos.first,
+                  child:organizedEvent.photos.isNotEmpty? Image.network(organizedEvent.photos.first,
                   width: 130,
                   height: 215,
-                  fit: BoxFit.cover,),
+                  fit: BoxFit.cover,):Image.asset('assets/images/image_default_event.png',
+                  width: 130,
+                  height: 215,
+                  fit: BoxFit.cover,
+                  ),
                 ),
                   SizedBox(width: 10,),
                 Expanded(

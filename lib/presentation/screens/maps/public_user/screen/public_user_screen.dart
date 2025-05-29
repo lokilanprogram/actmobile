@@ -283,11 +283,11 @@ Widget build(BuildContext context) {
                 
                               // Карточки событий
                               Column(
-                                children: publicUserModel.organizedEvents
-                                    .map((event) => MyCardEventWidget(isOpacityCard: false, organizedEvent: event,isPublicUser: true,))
-                                    .toList(),
+                                children:publicUserModel.organizedEvents!= null? publicUserModel.organizedEvents!
+                                    .map((event) => MyCardEventWidget(isCompletedEvent: false, organizedEvent: event,isPublicUser: true,))
+                                    .toList():[],
                               ),
-                               SizedBox(height:publicUserModel.organizedEvents.length == 1? 200:0),
+                               SizedBox(height:publicUserModel.organizedEvents?.length == 1? 200:0),
                             ],
                           ),
                         ),

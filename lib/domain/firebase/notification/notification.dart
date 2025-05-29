@@ -1,5 +1,12 @@
+import 'dart:convert';
+
+import 'package:acti_mobile/domain/api/chat/chat_api.dart';
+import 'package:acti_mobile/main.dart';
+import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 
 class NotificationService {
   static final NotificationService _notificationService =
@@ -38,23 +45,22 @@ class NotificationService {
     print('background for messaging');
   }
 
-  static void notificationTapForeground(NotificationResponse notification) {
-    // if (notification.id == 1) {
-    //   Map<String, dynamic> decoded = jsonDecode(notification.payload!);
-    //   sectionANavigatorKey.currentState!.push(MaterialPageRoute(
-    //       builder: (context) => AdvertsHomeFilterPage(
-    //           advertsHomeCategoryModel: AdvertsHomeCategoryModel(
-    //               isTriple: false,
-    //               categoryFetchedModel: CategoryFetchedModel(
-    //                   id: int.parse(decoded['id']),
-    //                   name: decoded['localized_name']),
-    //               subCategoryFetchedModel: null,
-    //               lat: null,
-    //               lon: null,
-    //               priceMax: null,
-    //               priceMin: null))));
-    // }
-    print('foreground for messaging and listings');
+  static Future<void> notificationTapForeground(NotificationResponse notification) async {
+    if(notification.payload!=null){
+      final Map<String, dynamic> data = jsonDecode(notification.payload!);
+       String? eventId = data['event_id'];
+       String? chatId = data['chat_id'];
+       if(eventId != null){
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (_) => EventDetailScreen(eventId: eventId)),
+        );
+       }
+       if(chatId != null){
+         MaterialPageRoute(builder: (_) => ChatDetailScreen(interlocutorAvatar: null,interlocutorChatId: null,
+         interlocutorName: '...',trailingText: null,interlocutorUserId: null,),
+        );
+       }
+    }
   }
 
   Future<void> showMessageNotification(String title, String body) async {

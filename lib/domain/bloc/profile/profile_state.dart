@@ -82,9 +82,12 @@ class ProfileGotListEventsErrorState extends ProfileState {}
 
 class ProfileGotEventDetailState extends ProfileState {
   final OrganizedEventModel eventModel;
+  final ProfileModel profileModel;
 
-  ProfileGotEventDetailState({required this.eventModel});
+  ProfileGotEventDetailState({required this.eventModel,
+  required this.profileModel});
 }
+
 
 class ProfileGotEventDetailErrorState extends ProfileState {}
 

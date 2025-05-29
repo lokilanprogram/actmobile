@@ -1,6 +1,7 @@
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/api/profile/profile_api.dart';
+import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/firebase/firebase.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
 import 'package:acti_mobile/presentation/screens/auth/select_input/select_input_screen.dart';
@@ -21,7 +22,6 @@ class InitialScreen extends StatefulWidget {
 
 class _InitialScreenState extends State<InitialScreen> {
   ProfileModel? profile;
-  
   @override
   void initState() {
    initialize();

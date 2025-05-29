@@ -6,24 +6,24 @@ import 'dart:convert';
 
 import 'package:acti_mobile/data/models/message_model.dart';
 
-ChatModel welcomeFromJson(String str) => ChatModel.fromJson(json.decode(str));
+ChatMessagesModel welcomeFromJson(String str) => ChatMessagesModel.fromJson(json.decode(str));
 
-String welcomeToJson(ChatModel data) => json.encode(data.toJson());
+String welcomeToJson(ChatMessagesModel data) => json.encode(data.toJson());
 
-class ChatModel {
+class ChatMessagesModel {
     int total;
     int offset;
     int limit;
     List<MessageModel> messages;
 
-    ChatModel({
+    ChatMessagesModel({
         required this.total,
         required this.offset,
         required this.limit,
         required this.messages,
     });
 
-    factory ChatModel.fromJson(Map<String, dynamic> json) => ChatModel(
+    factory ChatMessagesModel.fromJson(Map<String, dynamic> json) => ChatMessagesModel(
         total: json["total"],
         offset: json["offset"],
         limit: json["limit"],
