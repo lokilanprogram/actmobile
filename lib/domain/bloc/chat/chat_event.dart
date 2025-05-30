@@ -35,3 +35,9 @@ class GetChatHistoryEvent extends ChatEvent{
   GetChatHistoryEvent({required this.chatId,});
 }
 
+class GetChatFromPushHistoryEvent extends ChatEvent{
+  final String chatId;
+
+  GetChatFromPushHistoryEvent({required this.chatId,});
+}
+

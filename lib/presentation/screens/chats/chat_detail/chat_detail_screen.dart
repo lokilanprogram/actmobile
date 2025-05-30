@@ -64,13 +64,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     });
     final userId = await storage.read(key: userIdStorage);
     final accessToken = await storage.read(key: accessStorageToken);
-    if(widget.interlocutorChatId!=null){
+    if(widget.interlocutorChatId!=null && widget.interlocutorName!= '...'){
       webSocketService = ChatWebSocketService(
       chatId: widget.interlocutorChatId!,
       token: accessToken!,
     );
     
     context.read<ChatBloc>().add(GetChatHistoryEvent(chatId: widget.interlocutorChatId!));
+    } else if(widget.interlocutorChatId != null &&
+    widget.interlocutorName == '...' && widget.interlocutorUserId ==null 
+    && widget.interlocutorAvatar == null && widget.trailingText == null){
+       webSocketService = ChatWebSocketService(
+      chatId: widget.interlocutorChatId!,
+      token: accessToken!,
+    );
+      context.read<ChatBloc>().add(GetChatFromPushHistoryEvent(chatId: widget.interlocutorChatId!));
     }
     setState(() {
       profileUserId = userId;
@@ -84,6 +92,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   @override
   dispose(){
+    messages.clear();
+    chatId = null;
+    trailing = null;
+    interlocutorAvatar = null;
+    interlocutorName = null;
+    profileUserId = null;
     webSocketService?.dispose();
     super.dispose();
   }
@@ -91,7 +105,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) => scrollToEnd());
-
+    
     return BlocListener<ChatBloc, ChatState>(
       listener: (context, state)  {
         if(state is SentMessageState){
@@ -112,19 +126,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           });
         }
         if (state is GotChatHistoryState) {
-
-  Future.delayed(Duration(milliseconds: 100), () {
-    setState(() {
-      chatId = state.chatInfoModel!.id;
-      interlocutorAvatar = state.chatInfoModel!.users.first.photoUrl;
-      interlocutorName = state.chatInfoModel!.users.first.name;
-      trailing = state.chatInfoModel!.event != null
-          ? '${DateFormat('dd.MM.yyyy').format(state.chatInfoModel!.event!.dateStart)} | ${state.chatInfoModel!.event!.timeStart.substring(0, 5)} – ${state.chatInfoModel!.event!.timeEnd.substring(0, 5)}'
-          : null;
-      messages = state.chatModel.messages;
+          setState(() {
+            isLoading = true;
+          });
+             setState(() {
+       messages = state.chatModel.messages;
         isLoading = false;
     });
-  });
 }
 
           if(state is DeletedChatState){
@@ -329,7 +337,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           children: [
                             messages.isEmpty
                                 ? Expanded(
-                                    child: ListView(
+                                    child: Column(
+
                                       children: [
                                       ],
                                     ),
@@ -338,6 +347,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: StreamBuilder(
               stream: webSocketService!.stream,
               builder: (context, snapshot) {
+
                   if (snapshot.hasData) {
        final result = ChatSnapshotModel.fromJson(jsonDecode(snapshot.data));
                     if(result.type =='new_message'){
@@ -361,7 +371,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       print(result);
                     }
      
-    }return ListView.builder(
+    }
+                
+                return ListView.builder(
   shrinkWrap: true,
   primary: false,
   itemCount: messages.length,

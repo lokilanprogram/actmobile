@@ -14,7 +14,8 @@ Future<void> writeAuthTokens(String accessToken, String? refreshToken) async {
   print('refresh token inserted --- $refreshToken');
 }
 
-Future<void> deleteAuthTokens() async {
+Future<void> deleteAuthTokens(bool isHere) async {
+  print(isHere.toString()); 
   await storage.delete(key: accessStorageToken);
   await storage.delete(key: refreshStorageToken);
   await storage.delete(key: userIdStorage);

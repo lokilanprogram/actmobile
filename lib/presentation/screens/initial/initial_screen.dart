@@ -1,5 +1,6 @@
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
+import 'package:acti_mobile/domain/api/auth/auth_api.dart';
 import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/firebase/firebase.dart';
@@ -38,32 +39,26 @@ class _InitialScreenState extends State<InitialScreen> {
     print('access token ---- $accessToken');
     print('refresh token ---- $refreshToken');
     await Future.delayed(Duration(seconds: 1)).then((_) async {
-      if (profile != null) {
-        try{
-          await storage.write(key: userIdStorage, value: profile!.id);
-          if(profile!.categories.isNotEmpty){
-            connectToOnlineStatus(accessToken!);
-    await FirebaseApi().initNotifications();
-
+   if (profile != null) {
+        await FirebaseApi().initNotifications();
     await NotificationService().initNotification();
     await FirebaseApi().setupInteractedMessage();
+          await storage.write(key: userIdStorage, value: profile!.id);
+          if(profile!.categories.isNotEmpty){
             Navigator.push(context, MaterialPageRoute(builder: (_)=>MapScreen(
               selectedScreenIndex: 0,
             )));
             }else{
               Navigator.push(context, MaterialPageRoute(builder: (_)=>EventsAroundScreen()));
             }
-       
-        }catch(e){
-          await deleteAuthTokens();
-          Navigator.push(context, MaterialPageRoute(builder: (_)=>SelectInputScreen()));
-        }
       }else{
+      await deleteAuthTokens(false);
         Navigator.push(context, MaterialPageRoute(builder: (_)=>SelectInputScreen()));
       }
     });
     }catch(e){
-      await deleteAuthTokens();
+      print(e.toString());
+      await deleteAuthTokens(true);
       Navigator.push(context, MaterialPageRoute(builder: (_)=>SelectInputScreen()));
     }
   }

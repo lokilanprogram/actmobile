@@ -104,9 +104,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
           setState(() {
             isLoading = false;
           });
-          if(widget.profileModel.email != state.profileModel.email){
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Проверьте почту и перейдите по ссылке для активации'),backgroundColor: Colors.green,));
-          }
                           Navigator.push(context, MaterialPageRoute(builder: (context)=> 
                           MapScreen(selectedScreenIndex: 3,)));
         }

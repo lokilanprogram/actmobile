@@ -23,7 +23,7 @@ class NotificationService {
 
   Future<void> initNotification() async {
     final AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/vivli');
+        AndroidInitializationSettings('@mipmap/icon_acti');
 
     final initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: false,
@@ -71,14 +71,15 @@ class NotificationService {
       NotificationDetails(
         android: AndroidNotificationDetails('channel_two', 'Channel Two',
             channelShowBadge: true,
-            color: Colors.black,
             styleInformation: BigTextStyleInformation(''),
             playSound: true,
+           color: Colors.white,
             ongoing: true,
+              largeIcon: DrawableResourceAndroidBitmap('@mipmap/icon_acti'),
             importance: Importance.max,
             enableVibration: true,
             priority: Priority.high,
-            icon: '@mipmap/vivli'),
+            icon: '@mipmap/icon_acti'),
       ),
     );
   }
@@ -92,15 +93,16 @@ class NotificationService {
         NotificationDetails(
           android: AndroidNotificationDetails('channel_two', 'Channel Two',
               channelShowBadge: true,
-              color: Colors.black,
               subText: body,
+              largeIcon: DrawableResourceAndroidBitmap('@mipmap/icon_acti'),
+           color: Colors.white,
               styleInformation: BigTextStyleInformation(''),
               playSound: true,
               ongoing: true,
               importance: Importance.max,
               enableVibration: true,
               priority: Priority.high,
-              icon: '@mipmap/vivli'),
+              icon: '@mipmap/icon_acti'),
         ),
         payload: payload);
   }

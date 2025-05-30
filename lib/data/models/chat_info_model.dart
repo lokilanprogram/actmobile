@@ -64,11 +64,11 @@ class Event {
     DateTime dateEnd;
     String timeStart;
     String timeEnd;
-    int price;
+    double price;
     int slots;
-    int latitude;
-    int longitude;
-    List<String> photos;
+    double? latitude;
+    double? longitude;
+    List<String>? photos;
     List<String> restrictions;
     bool isRecurring;
 
@@ -101,7 +101,8 @@ class Event {
         slots: json["slots"],
         latitude: json["latitude"],
         longitude: json["longitude"],
-        photos: List<String>.from(json["photos"].map((x) => x)),
+        photos:json["photos"]!=null?
+         List<String>.from(json["photos"].map((x) => x)):[],
         restrictions: List<String>.from(json["restrictions"].map((x) => x)),
         isRecurring: json["is_recurring"],
     );
@@ -118,7 +119,6 @@ class Event {
         "slots": slots,
         "latitude": latitude,
         "longitude": longitude,
-        "photos": List<dynamic>.from(photos.map((x) => x)),
         "restrictions": List<dynamic>.from(restrictions.map((x) => x)),
         "is_recurring": isRecurring,
     };

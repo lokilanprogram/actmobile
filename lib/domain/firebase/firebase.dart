@@ -25,7 +25,11 @@ class FirebaseApi {
    }
   
    if(token != null){
+    try{
     await AuthApi().sendFcmToken(token);
+    }catch(e){
+      print(e.toString());
+    }
   }
     await firebaseMessaging.setForegroundNotificationPresentationOptions(
       alert: true,

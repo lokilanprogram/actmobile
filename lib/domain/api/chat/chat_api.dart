@@ -162,7 +162,9 @@ Future<AllChatsModel?> getAllChats(String chatType) async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){
     final response = await http.get(
-    Uri.parse('$API/api/v1/chats/$chatId/history'),
+    Uri.parse('$API/api/v1/chats/$chatId/history').replace(queryParameters: {
+      'limit':1000.toString()
+    }),
     headers: {
       "Content-Type": "application/json",
       'Authorization': 'Bearer $accessToken'

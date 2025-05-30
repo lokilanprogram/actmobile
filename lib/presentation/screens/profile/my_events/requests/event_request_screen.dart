@@ -2,6 +2,7 @@ import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/recommendated_user_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/widgets/app_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/error_widget.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
@@ -109,6 +110,10 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
                 itemBuilder: (context, index) {
                   final participant = participants[index];
                    return ListTile(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                      PublicUserScreen(userId: participant.id)));
+                    },
                     trailing: participant.status == 'pending'
                         ? InkWell(
                            onTap: (){

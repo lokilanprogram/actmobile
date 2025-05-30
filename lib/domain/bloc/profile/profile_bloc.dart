@@ -158,7 +158,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       try {
         final isLogout = await AuthApi().authLogout();
         if (isLogout) {
-          await deleteAuthTokens();
+          await deleteAuthTokens(false);
           emit(ProfileLogoutState());
         }
       } catch (e) {

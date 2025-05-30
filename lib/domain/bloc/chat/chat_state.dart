@@ -42,7 +42,16 @@ abstract class ChatState {}
   GotChatHistoryState({required this.chatModel, required this.chatInfoModel});
  }
 
+
  class GotChatHistoryErrorState extends ChatState {}
+
+
+ class GotChatFromPushHistoryState extends ChatState {
+  final ChatMessagesModel chatModel;
+  final ChatInfoModel? chatInfoModel;
+
+  GotChatFromPushHistoryState({required this.chatModel, required this.chatInfoModel});
+ }
 
 class StartedChatMessageState extends ChatState {
   final String chatId;

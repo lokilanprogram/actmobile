@@ -24,7 +24,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         emit(GotChatHistoryErrorState());
       }
     });
-
      on<GetAllChatsEvent>((event, emit) async{
       try{
         final allPrivateChats = await ChatApi().getAllChats('private');
