@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class OrgToggleTooltip extends StatefulWidget {
-  const OrgToggleTooltip({Key? key}) : super(key: key);
+  const OrgToggleTooltip({super.key});
 
   @override
   State<OrgToggleTooltip> createState() => _OrgToggleTooltipState();

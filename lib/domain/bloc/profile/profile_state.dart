@@ -8,7 +8,8 @@ final class ProfileInitial extends ProfileState {}
 class ProfileGotState extends ProfileState {
   final ProfileModel profileModel;
   final List<SimiliarUsersModel> similiarUsersModel;
-  ProfileGotState({required this.profileModel,required this.similiarUsersModel});
+  ProfileGotState(
+      {required this.profileModel, required this.similiarUsersModel});
 }
 
 class ProfileGotErrorState extends ProfileState {}
@@ -17,30 +18,31 @@ class ProfileUpdatedState extends ProfileState {
   final ProfileModel profileModel;
 
   ProfileUpdatedState({required this.profileModel});
-
 }
 
 class ProfileUpdatedErrorState extends ProfileState {}
 
-class ProfileLogoutState extends ProfileState{}
-class ProfileLogoutErrorState extends ProfileState{}
+class ProfileLogoutState extends ProfileState {}
 
+class ProfileLogoutErrorState extends ProfileState {}
 
 class ProfileGotListEventsState extends ProfileState {
   final ProfileEventModels? profileEventsModels;
   final ProfileEventModels? profileVisitedEventsModels;
   final bool isVerified;
 
-  ProfileGotListEventsState({required this.profileVisitedEventsModels, required this.profileEventsModels, required this.isVerified});
-
+  ProfileGotListEventsState(
+      {required this.profileVisitedEventsModels,
+      required this.profileEventsModels,
+      required this.isVerified});
 }
 
-class ProfileJoinedState extends ProfileState{
+class ProfileJoinedState extends ProfileState {
   final OrganizedEventModel eventModel;
   ProfileJoinedState({required this.eventModel});
 }
 
-class ProfileJoinedErrorState extends ProfileState{
+class ProfileJoinedErrorState extends ProfileState {
   final String errorText;
 
   ProfileJoinedErrorState({required this.errorText});
@@ -58,36 +60,38 @@ class InitializeMapState extends ProfileState {
   InitializeMapState({required this.searchedEventsModel});
 }
 
-class InitializeMapErrorState extends ProfileState{}
+class InitializeMapErrorState extends ProfileState {}
 
 class SearchedEventsOnMapErrorState extends ProfileState {}
 
-class ProfileReportedEventState extends ProfileState{
-}
-class ProfileReportedEventErrorState extends ProfileState{
+class ProfileReportedEventState extends ProfileState {}
+
+class ProfileReportedEventErrorState extends ProfileState {
   final String errorText;
 
   ProfileReportedEventErrorState({required this.errorText});
 }
-class ProfileLeftState extends ProfileState{
-  final OrganizedEventModel eventModel;
-  ProfileLeftState({required this.eventModel});}
 
-class ProfileLeftErrorState extends ProfileState{
+class ProfileLeftState extends ProfileState {
+  final OrganizedEventModel eventModel;
+  ProfileLeftState({required this.eventModel});
+}
+
+class ProfileLeftErrorState extends ProfileState {
   final String errorText;
 
   ProfileLeftErrorState({required this.errorText});
 }
+
 class ProfileGotListEventsErrorState extends ProfileState {}
 
 class ProfileGotEventDetailState extends ProfileState {
   final OrganizedEventModel eventModel;
   final ProfileModel profileModel;
 
-  ProfileGotEventDetailState({required this.eventModel,
-  required this.profileModel});
+  ProfileGotEventDetailState(
+      {required this.eventModel, required this.profileModel});
 }
-
 
 class ProfileGotEventDetailErrorState extends ProfileState {}
 
@@ -99,14 +103,15 @@ class ProfileGotPublicUserState extends ProfileState {
 
 class ProfileGotPublicUserErrorState extends ProfileState {}
 
-class ProfileAcceptedUserOnActivityState extends ProfileState{
+class ProfileAcceptedUserOnActivityState extends ProfileState {
   final String userId;
   final List<Participant> participants;
 
-  ProfileAcceptedUserOnActivityState({required this.userId, required this.participants});
+  ProfileAcceptedUserOnActivityState(
+      {required this.userId, required this.participants});
 }
 
-class ProfileAcceptedUserOnActivityErrorState extends ProfileState{}
+class ProfileAcceptedUserOnActivityErrorState extends ProfileState {}
 
 class ProfileBlockedUserState extends ProfileState {}
 
@@ -120,10 +125,9 @@ class ProfileReportedUserErrorState extends ProfileState {
   ProfileReportedUserErrorState({required this.errorText});
 }
 
-class ProfileInvitedUserState extends ProfileState{
+class ProfileInvitedUserState extends ProfileState {}
 
-}
-class ProfileInvitedUserErrorState extends ProfileState{}
+class ProfileInvitedUserErrorState extends ProfileState {}
 
 class ProfileCanceledActivityState extends ProfileState {}
 

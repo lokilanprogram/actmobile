@@ -329,7 +329,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           'assets/icons/icon_people.svg',
                           false,
                           organizedEvent.restrictions!= null?
-                                 (organizedEvent.restrictions!
+                                 (organizedEvent.restrictions
                                  .any((restrict)=>restrict == 'isUnlimited') ?'Неограниченно' :'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест'):
                                  'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
                           '',
@@ -415,7 +415,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       String iconPath, bool isLocation, String title, String subtitle,
       {String? trailing}) {
 
-  final recurringdays = 'Проходит '+ getWeeklyRepeatOnlyWeekText(organizedEvent.dateStart);
+  final recurringdays = 'Проходит ${getWeeklyRepeatOnlyWeekText(organizedEvent.dateStart)}';
   final parts = recurringdays.split(' ');
     return 
         Column(

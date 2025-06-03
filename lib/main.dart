@@ -4,19 +4,28 @@ import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
+import 'package:acti_mobile/presentation/screens/events/providers/filter_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MapboxOptions.setAccessToken(
       'pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg');
-   await Firebase.initializeApp(options: FirebaseOptions( 
-          apiKey:Platform.isAndroid ? "AIzaSyBSPx33YxNkVQ9m5nb_U3Uchu1YpoiDSOg":"AIzaSyBhorOPzeLBM2gICrTlhw32hEmOpjGcZkM",
-          appId: Platform.isAndroid ? "1:927589486813:android:2315c019c7bf66d4a40b34" : "1:368466897752:ios:d78a2747650774472dd32d",
+  await Firebase.initializeApp(
+      options: FirebaseOptions(
+          apiKey: Platform.isAndroid
+              ? "AIzaSyBSPx33YxNkVQ9m5nb_U3Uchu1YpoiDSOg"
+              : "AIzaSyBhorOPzeLBM2gICrTlhw32hEmOpjGcZkM",
+          appId: Platform.isAndroid
+              ? "1:927589486813:android:2315c019c7bf66d4a40b34"
+              : "1:368466897752:ios:d78a2747650774472dd32d",
           messagingSenderId: "927589486813",
           projectId: "acti-54f96"));
   runApp(const MyApp());
@@ -33,18 +42,29 @@ class MyApp extends StatelessWidget {
         BlocProvider<AuthBloc>(
           create: (context) => AuthBloc(),
         ),
-         BlocProvider<ProfileBloc>(
+        BlocProvider<ProfileBloc>(
           create: (context) => ProfileBloc(),
         ),
         BlocProvider<ChatBloc>(
           create: (context) => ChatBloc(),
         ),
-        ],
+        ChangeNotifierProvider<FilterProvider>(
+          create: (context) => FilterProvider(),
+        ),
+      ],
       child: GetMaterialApp(
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: [
+          const Locale('ru', ''), // Russian
+          const Locale('en', ''), // English
+        ],
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
-        home: InitialScreen(
-        ),
+        home: InitialScreen(),
       ),
     );
   }

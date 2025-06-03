@@ -21,7 +21,7 @@ Widget buildHeader(String title) => Text(
 
 Widget buildInfoRow(OrganizedEventModel organizedEvent,BuildContext context, IconData icon, String dateTimeText, String startTime, String timeEnd,
 String address) {
-  final recurringdays = 'Проходит '+ getWeeklyRepeatOnlyWeekText(organizedEvent.dateStart);
+  final recurringdays = 'Проходит ${getWeeklyRepeatOnlyWeekText(organizedEvent.dateStart)}';
   final parts = recurringdays.split(' ');
   return Padding(
   padding: EdgeInsets.symmetric(vertical: 8),

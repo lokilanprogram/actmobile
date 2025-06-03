@@ -1,0 +1,2 @@
+/Users/andreysinelnikov/Acti-Mobile/android/app/.cxx/Debug/jgc22173/x86/CMakeFiles/edit_cache.dir
+/Users/andreysinelnikov/Acti-Mobile/android/app/.cxx/Debug/jgc22173/x86/CMakeFiles/rebuild_cache.dir
