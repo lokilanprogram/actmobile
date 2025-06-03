@@ -402,15 +402,53 @@ class _EventsScreenState extends State<EventsScreen> {
           appBar: isLoading
               ? null
               : AppBar(
+                  // leading: showVotes
+                  //     ? IconButton(
+                  //         onPressed: () async {
+                  //           setState(() {
+                  //             showVotes = !showVotes;
+                  //           });
+                  //           if (showVotes && _votes.isEmpty && !_votesLoading) {
+                  //             await _fetchVotes();
+                  //           }
+                  //         },
+                  //         // icon: SvgPicture.asset('assets/icons/back.svg')
+                  //         icon: Icon(Icons.arrow_back_ios_new),
+                  //       )
+                  //     : Container(
+                  //         width: 10,
+                  //       ),
                   automaticallyImplyLeading: false,
                   backgroundColor: Colors.white,
-                  title: Text(
-                    showVotes ? 'Голосование' : 'События',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 23,
-                    ),
+                  title: Row(
+                    children: [
+                      showVotes
+                          ? IconButton(
+                              onPressed: () async {
+                                setState(() {
+                                  showVotes = !showVotes;
+                                });
+                                if (showVotes &&
+                                    _votes.isEmpty &&
+                                    !_votesLoading) {
+                                  await _fetchVotes();
+                                }
+                              },
+                              // icon: SvgPicture.asset('assets/icons/back.svg')
+                              icon: Icon(Icons.arrow_back_ios_new),
+                            )
+                          : Container(
+                              width: 10,
+                            ),
+                      Text(
+                        showVotes ? 'Голосование' : 'События',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 23,
+                        ),
+                      ),
+                    ],
                   ),
                   bottom: PreferredSize(
                     preferredSize: Size.fromHeight(60),
@@ -508,49 +546,54 @@ class _EventsScreenState extends State<EventsScreen> {
                     ),
                   ),
                   actions: [
-                    Container(
-                      height: 32,
-                      width: 100,
-                      margin: EdgeInsets.only(right: 16.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        gradient: LinearGradient(
-                          colors: [
-                            mainBlueColor,
-                            Color.fromRGBO(98, 207, 102, 1),
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                      ),
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                    showVotes
+                        ? Container()
+                        : Container(
+                            height: 32,
+                            width: 100,
+                            margin: EdgeInsets.only(right: 16.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              gradient: LinearGradient(
+                                colors: [
+                                  mainBlueColor,
+                                  Color.fromRGBO(98, 207, 102, 1),
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                            ),
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 0),
+                              ),
+                              onPressed: () async {
+                                setState(() {
+                                  showVotes = !showVotes;
+                                });
+                                if (showVotes &&
+                                    _votes.isEmpty &&
+                                    !_votesLoading) {
+                                  await _fetchVotes();
+                                }
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('Голосование',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12)),
+                                ],
+                              ),
+                            ),
                           ),
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                        ),
-                        onPressed: () async {
-                          setState(() {
-                            showVotes = !showVotes;
-                          });
-                          if (showVotes && _votes.isEmpty && !_votesLoading) {
-                            await _fetchVotes();
-                          }
-                        },
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('Голосование',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w600, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                    ),
                     Container(
                       height: 32,
                       width: 115,
