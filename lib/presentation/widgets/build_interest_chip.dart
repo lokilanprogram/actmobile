@@ -3,15 +3,17 @@ import 'package:flutter/material.dart';
 
 Widget buildInterestChip(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         border: Border.all(color: Color(0xFF4A8EFF),width: 1.2),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        label,
-        style: const TextStyle(
-            color: mainBlueColor, fontSize: 11, fontFamily: 'Inter'),
+      child: Center(
+        child: Text(
+          label,
+          style: const TextStyle(
+              color: mainBlueColor, fontSize: 11, fontFamily: 'Inter'),
+        ),
       ),
     );
   }

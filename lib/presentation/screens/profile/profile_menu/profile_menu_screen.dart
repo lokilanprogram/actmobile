@@ -11,6 +11,7 @@ import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/widgets/blurred.dart';
+import 'package:acti_mobile/presentation/widgets/category_list.dart';
 import 'package:acti_mobile/presentation/widgets/popup_profile_buttons.dart';
 import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
@@ -172,34 +173,47 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                       height: 350,
                                       fit: BoxFit.cover,
                                     ),
+                              // Positioned(
+                              //   top: 77,
+                              //   right: 60,
+                              //   child: Icon(Icons.notifications_none_outlined,
+                              //       color: Colors.white),
+                              // ),
                               Positioned(
-                                top: 77,
-                                right: 60,
-                                child: Icon(Icons.notifications_none_outlined,
-                                    color: Colors.white),
-                              ),
-                              Positioned(
-                                  top: 77,
-                                  right: 20,
-                                  child: PopUpProfileButtons(
-                                    deleteFunction: () {
-                                      setState(() {
-                                        isLoading = true;
-                                      });
-                                      context
-                                          .read<ProfileBloc>()
-                                          .add(ProfileLogoutEvent());
-                                    },
-                                    editFunction: () async {
-                                      await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (_) =>
-                                                  UpdateProfileScreen(
-                                                    profileModel: profileModel,
-                                                  )));
-                                    },
-                                    settingsFunction: _openSettingsModal,
+                                  top: 48,
+                                  right: 10,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        width: 40,
+                                        height: 40,
+                                        child: Icon(Icons.notifications_none_outlined,
+                                            color: Colors.white),
+                                      ),
+                                        //const SizedBox(width: 8),
+                                      PopUpProfileButtons(
+                                        deleteFunction: () {
+                                          setState(() {
+                                            isLoading = true;
+                                          });
+                                          context
+                                              .read<ProfileBloc>()
+                                              .add(ProfileLogoutEvent());
+                                        },
+                                        editFunction: () async {
+                                          await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      UpdateProfileScreen(
+                                                        profileModel:
+                                                            profileModel,
+                                                      )));
+                                        },
+                                        settingsFunction: _openSettingsModal,
+                                      ),
+                                    ],
                                   )),
                               Positioned(
                                 bottom: 0,
@@ -223,7 +237,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                         children: [
                                           Text(
                                             profileModel.surname != null
-                                                ? '${capitalize(profileModel.surname!)} ${capitalize(profileModel.name!)}'
+                                                ? '${capitalize(profileModel.surname!)}${capitalize(profileModel.name!)}'
                                                 : capitalize(
                                                         profileModel.name!) ??
                                                     'Неизвестное имя',
@@ -308,13 +322,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                 const SizedBox(height: 15),
                                 // Interests
                                 Center(
-                                  child: Wrap(
-                                      spacing: 10,
-                                      runSpacing: 10,
-                                      children: profileModel.categories
-                                          .map((event) =>
-                                              buildInterestChip(event.name))
-                                          .toList()),
+                                  child: CategoryList(profileModel: profileModel),
                                 ),
 
                                 const SizedBox(height: 25),

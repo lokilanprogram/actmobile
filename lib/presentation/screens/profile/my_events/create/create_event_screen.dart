@@ -79,14 +79,19 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   bool _isLoading = false;
   Future<void> selectDate() async {
     final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2025),
-      lastDate: DateTime(2026),
-    );
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2025),
+        lastDate: DateTime(2026),
+        locale: const Locale('ru'));
 
     setState(() {
       selectedDate = pickedDate;
+      if (pickedDate == null) {
+        final _date = DateTime.now();
+        dateController.text =
+            formatDate('${_date.day}.${_date.month}.${_date.year}');
+      }
       dateController.text = formatDate(
           '${pickedDate!.day}.${pickedDate.month}.${pickedDate.year}');
     });
@@ -106,7 +111,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     try {
       final url =
           'https://api.mapbox.com/geocoding/v5/mapbox.places/$place.json'
-          '?language=ru&proximity=-74.70850,40.78375'
+          '?language=ru&proximity=-74.70850,40.78375&country=ru'
           '&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg';
 
       final response = await http.get(Uri.parse(url));
@@ -865,21 +870,30 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   Widget _buildCategoryChips() {
     return Center(
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 10,
-        runSpacing: 10,
-        children: eventCategories
-            .map((event) => GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedCategory =
-                        (selectedCategory == event) ? null : event;
-                  });
-                },
-                child: _buildCategoryChip(event)))
-            .toList(),
-      ),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final double spacing = 10;
+        final int columns = 3;
+        final double itemWidth =
+            (constraints.maxWidth - spacing * (columns - 1)) / columns;
+        return Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 10,
+          runSpacing: 10,
+          children: eventCategories
+              .map((event) => SizedBox(
+                    width: itemWidth,
+                    child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedCategory =
+                                (selectedCategory == event) ? null : event;
+                          });
+                        },
+                        child: _buildCategoryChip(event)),
+                  ))
+              .toList(),
+        );
+      }),
     );
   }
 
@@ -887,7 +901,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final isSelected = selectedCategory == event;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      //padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
       decoration: BoxDecoration(
         color: isSelected ? Color(0xFF4A8EFF) : Colors.transparent,
         border: Border.all(
@@ -896,12 +911,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         ),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        event.name,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Color(0xFF4A8EFF),
-          fontSize: 11,
-          fontFamily: 'Inter',
+      child: Center(
+        child: Text(
+          event.name,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Color(0xFF4A8EFF),
+            fontSize: 11,
+            fontFamily: 'Inter',
+          ),
         ),
       ),
     );
