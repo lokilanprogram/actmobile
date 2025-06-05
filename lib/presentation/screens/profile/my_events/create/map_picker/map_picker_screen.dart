@@ -109,8 +109,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     tappedProperties = address.features.first.properties;
     tappedPosition = Position(context.point.coordinates.lng, context.point.coordinates.lat);
   });
-  print("OnTap coordinate: {${context.point.coordinates.lng}, ${context.point.coordinates.lat}}" +
-      " point: {x: ${context.touchPosition.x}, y: ${context.touchPosition.y}}");
+  print("OnTap coordinate: {${context.point.coordinates.lng}, ${context.point.coordinates.lat}}" " point: {x: ${context.touchPosition.x}, y: ${context.touchPosition.y}}");
 }
 
 

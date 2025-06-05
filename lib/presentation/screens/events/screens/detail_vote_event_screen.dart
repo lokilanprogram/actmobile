@@ -1,6 +1,7 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
+import 'package:acti_mobile/configs/date_utils.dart' as custom_date;
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
@@ -308,10 +309,15 @@ class _DetailVoteEventScreenState extends State<DetailVoteEventScreen> {
                                   'assets/icons/icon_time.svg',
                                   false,
                                   'Дата и время',
-                                  '${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)} | ${organizedEvent.timeStart.split('+')[0].substring(0, 5)} – ${organizedEvent.timeEnd.split('+')[0].substring(0, 5)}',
-                                  trailing: formatDuration(
+                                  custom_date.DateUtils.formatEventTime(
+                                      organizedEvent.dateStart,
                                       organizedEvent.timeStart,
-                                      organizedEvent.timeEnd)),
+                                      organizedEvent.timeEnd,
+                                      organizedEvent.type == 'online'),
+                                  trailing:
+                                      custom_date.DateUtils.formatDuration(
+                                          organizedEvent.timeStart,
+                                          organizedEvent.timeEnd)),
 
                               Padding(
                                 padding:
@@ -552,15 +558,14 @@ class _DetailVoteEventScreenState extends State<DetailVoteEventScreen> {
                           children: [
                             TextSpan(
                               text:
-                                  'Ближайшее: ${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)}',
+                                  'Ближайшее: ${custom_date.DateUtils.formatEventDate(organizedEvent.dateStart, organizedEvent.timeStart, organizedEvent.type == 'online')}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.normal,
                                   color: Color.fromRGBO(7, 7, 7, 1),
                                   fontFamily: 'Gilroy'),
                             ),
                             TextSpan(
-                              text:
-                                  ' | ${organizedEvent.timeStart.substring(0, 5)}–${organizedEvent.timeEnd.substring(0, 5)} ',
+                              text: ' ',
                               style: TextStyle(
                                 fontFamily: 'Gilroy',
                                 color: Colors.black,
@@ -568,7 +573,8 @@ class _DetailVoteEventScreenState extends State<DetailVoteEventScreen> {
                               ),
                             ),
                             TextSpan(
-                              text: formatDuration(organizedEvent.timeStart,
+                              text: custom_date.DateUtils.formatDuration(
+                                  organizedEvent.timeStart,
                                   organizedEvent.timeEnd),
                               style: TextStyle(
                                 fontFamily: 'Gilroy',
