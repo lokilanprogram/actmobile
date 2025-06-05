@@ -1,5 +1,7 @@
 import 'package:acti_mobile/configs/geolocator_utils.dart';
+import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
+import 'package:acti_mobile/domain/websocket/websocket.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/card_event_on_map.dart';
 import 'package:flutter/services.dart';
@@ -139,6 +141,8 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       currentPermission = permission;
     });
+    final accessToken = await storage.read(key: accessStorageToken);
+    connectToOnlineStatus(accessToken!);
     if (currentPermission.name == 'denied') {
       final permission = await geolocator.Geolocator.requestPermission();
       setState(() {

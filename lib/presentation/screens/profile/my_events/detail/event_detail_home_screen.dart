@@ -327,12 +327,48 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                         fontSize: 17.8,
                                                         fontFamily: 'Inter',
                                                         color: mainBlueColor)),
-                                                Text('Организатор',
-                                                    style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontFamily: 'Gilroy')),
+                                                Text(
+                                                  'Организатор',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontFamily: 'Gilroy'),
+                                                ),
                                               ],
                                             ),
+                                            // organizedEvent.creator
+                                            //             .isOrganization !=
+                                            //         null
+                                            //     ? (organizedEvent
+                                            //             .creator.isOrganization!
+                                            //         ? Container(
+                                            //             padding:
+                                            //                 const EdgeInsets
+                                            //                     .symmetric(
+                                            //                     vertical: 6,
+                                            //                     horizontal: 14),
+                                            //             decoration:
+                                            //                 BoxDecoration(
+                                            //               border: BoxBorder.all(
+                                            //                   color:
+                                            //                       Colors.blue),
+                                            //               borderRadius:
+                                            //                   BorderRadius
+                                            //                       .circular(20),
+                                            //             ),
+                                            //             child: Text(
+                                            //               "label",
+                                            //               style:
+                                            //                   const TextStyle(
+                                            //                       color: Colors
+                                            //                           .blue,
+                                            //                       fontSize:
+                                            //                           12.46,
+                                            //                       fontFamily:
+                                            //                           'Gilroy'),
+                                            //             ),
+                                            //           )
+                                            //         : Container())
+                                            //     : Container()
                                           ],
                                         ),
                                         SizedBox(

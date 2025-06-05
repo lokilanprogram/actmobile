@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:ui';
 
@@ -6,6 +7,8 @@ import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
+import 'package:acti_mobile/domain/api/events/events_api.dart';
+import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
@@ -95,6 +98,13 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => InitialScreen()));
         }
+        if (state is ProfileDeleteState) {
+          setState(() {
+            isLoading = false;
+          });
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => InitialScreen()));
+        }
         if (state is ProfileGotState) {
           setState(() {
             profileModel = state.profileModel;
@@ -120,6 +130,14 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
 
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text('Ошибка')));
+        }
+        if (state is ProfileDeleteErrorState) {
+          setState(() {
+            isLoading = false;
+          });
+
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Ошибка удаления профиля')));
         }
         if (state is ProfileGotErrorState) {
           setState(() {
@@ -188,10 +206,11 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                       SizedBox(
                                         width: 40,
                                         height: 40,
-                                        child: Icon(Icons.notifications_none_outlined,
+                                        child: Icon(
+                                            Icons.notifications_none_outlined,
                                             color: Colors.white),
                                       ),
-                                        //const SizedBox(width: 8),
+                                      //const SizedBox(width: 8),
                                       PopUpProfileButtons(
                                         deleteFunction: () {
                                           setState(() {
@@ -220,46 +239,43 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                 left: 0,
                                 right: 0,
                                 child: ClipRRect(
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(
-                                        sigmaX: 20, sigmaY: 20),
-                                    child: Container(
-                                      height: 120,
-                                      padding: const EdgeInsets.only(
-                                          left: 20, right: 20, top: 10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(
-                                            0.3), // Тёмный полупрозрачный фон
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            profileModel.surname != null
-                                                ? '${capitalize(profileModel.surname!)}${capitalize(profileModel.name!)}'
-                                                : capitalize(
-                                                        profileModel.name!) ??
-                                                    'Неизвестное имя',
-                                            style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontSize: 32,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
+                                  child: Container(
+                                    height: 120,
+                                    padding: const EdgeInsets.only(
+                                        left: 20, right: 20, top: 10),
+                                    // decoration: BoxDecoration(
+                                    //   color: Colors.grey.withOpacity(
+                                    //       0.3), // Тёмный полупрозрачный фон
+                                    // ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          profileModel.surname != null &&
+                                                  profileModel.surname != ""
+                                              ? '${capitalize(profileModel.surname!)} ${capitalize(profileModel.name!)}'
+                                              : capitalize(
+                                                      profileModel.name!) ??
+                                                  'Неизвестное имя',
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 32,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
                                           ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            capitalize(profileModel.status),
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.white70,
-                                            ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          capitalize(profileModel.status),
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white70,
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -321,8 +337,10 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                 ),
                                 const SizedBox(height: 15),
                                 // Interests
-                                Center(
-                                  child: CategoryList(profileModel: profileModel),
+                                buildInterestsGrid(
+                                  profileModel.categories
+                                      .map((e) => e.name)
+                                      .toList(),
                                 ),
 
                                 const SizedBox(height: 25),
@@ -508,7 +526,20 @@ class SettingsPage extends StatelessWidget {
             children: [
               Switch(
                 value: provider.notificationsEnabled,
-                onChanged: (v) => provider.setNotifications(v),
+                onChanged: (v) async {
+                  try {
+                    provider.setNotifications(v);
+                    await EventsApi().changeNotificationSettings(enabled: v);
+                  } catch (e) {
+                    provider.setNotifications(!v);
+                    developer.log(
+                        '[NOTIFICATIONS_SWITCH] Ошибка настройки уведомлений: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('Ошибка настройки уведомлений: $e')),
+                    );
+                  }
+                },
               ),
               const SizedBox(width: 8),
               const Text('Уведомления', style: TextStyle(fontSize: 18)),
@@ -551,24 +582,43 @@ class SettingsPage extends StatelessWidget {
         const SizedBox(height: 24),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: [
-              Icon(Icons.exit_to_app, size: 22),
-              SizedBox(width: 8),
-              Text('Выйти', style: TextStyle(fontSize: 18)),
-            ],
+          child: GestureDetector(
+            onTap: () {
+              context.read<ProfileBloc>().add(ProfileLogoutEvent());
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.exit_to_app, size: 22),
+                SizedBox(width: 8),
+                Text('Выйти', style: TextStyle(fontSize: 18)),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: [
-              Icon(Icons.delete_outline, color: Colors.red, size: 22),
-              SizedBox(width: 8),
-              Text('Удалить профиль',
-                  style: TextStyle(fontSize: 18, color: Colors.red)),
-            ],
+          child: GestureDetector(
+            onTap: () {
+                showBlockDialog(
+                    context,
+                    'Удалить профиль',
+                    'Вы точно хотите удалить профиль без\nвозможности восстановления?',
+                    () {
+                  context
+                      .read<ProfileBloc>()
+                      .add(ProfileDeleteEvent());
+                });
+            },
+            child: Row(
+              children: [
+                Icon(Icons.delete_outline, color: Colors.red, size: 22),
+                SizedBox(width: 8),
+                Text('Удалить профиль',
+                    style: TextStyle(fontSize: 18, color: Colors.red)),
+              ],
+            ),
           ),
         ),
         const Spacer(),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/data/models/mapbox_model.dart';
 import 'package:acti_mobile/data/models/mapbox_reverse_model.dart';
+import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:geotypes/src/geojson.dart';
@@ -294,365 +295,381 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               .showSnackBar(SnackBar(content: Text('Ошибка')));
         }
       },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: isLoading
-            ? null
-            : AppBarWidget(
-                title: widget.organizedEventModel != null
-                    ? 'Обновление активности'
-                    : "Создание активности"),
-        body: isLoading
-            ? LoaderWidget()
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (_images.isEmpty) ...[
-                            _buildLargeAddButton(),
-                          ] else ...[
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildImage(
-                                    _images[0],
-                                    MediaQuery.of(context).size.height * 0.24,
-                                    118),
-                                const SizedBox(width: 14),
-                                _buildSmallAddButton(),
-                              ],
-                            ),
-                          ],
-                          const SizedBox(height: 16),
-                          if (bottomGrid.isNotEmpty)
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: bottomGrid,
-                            ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Название события',
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 13),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildTextField("Введите название вашего события",
-                          controller: titleController),
-                      const SizedBox(height: 20),
-                      _buildSwitchTile("Событие ОНЛАЙН", isOnline,
-                          (v) => setState(() => isOnline = v)),
-                      isOnline
-                          ? Padding(
-                              padding: const EdgeInsets.only(
-                                  top: 5, bottom: 5, left: 5),
-                              child: Text(
-                                'Для онлайн-события укажите в описании ссылку на подключение или иной способ доступа.',
-                                style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w300,
-                                    color: Color.fromRGBO(137, 137, 137, 1),
-                                    height: 1),
-                              ),
-                            )
-                          : Container(),
-                      const SizedBox(height: 14),
-                      !isOnline
-                          ? Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Column(
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus(); // скрыть клавиатуру
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: isLoading
+              ? null
+              : AppBarWidget(
+                  title: widget.organizedEventModel != null
+                      ? 'Обновление активности'
+                      : "Создание активности"),
+          body: isLoading
+              ? LoaderWidget()
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_images.isEmpty) ...[
+                              _buildLargeAddButton(),
+                            ] else ...[
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextFormField(
-                                          onChanged: _searchLocation,
-                                          maxLines: 1,
-                                          controller: addressController,
-                                          decoration: InputDecoration(
-                                              fillColor: Colors.grey[200],
-                                              filled: true,
-                                              border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  borderSide: BorderSide.none),
-                                              hintText: 'Адрес',
-                                              hintStyle: TextStyle(
-                                                  fontFamily: 'Gilroy',
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w400)),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 5,
-                                      ),
-                                      InkWell(
-                                        onTap: () async {
-                                          LocalAddressModel? localAddressModel =
-                                              await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          MapPickerScreen(
-                                                            isCreated: true,
-                                                            position: selectedAddressModel !=
-                                                                    null
-                                                                ? Position(
-                                                                    selectedAddressModel!
-                                                                        .longitude!,
-                                                                    selectedAddressModel!
-                                                                        .latitude!)
-                                                                : null,
-                                                            address: null,
-                                                          )));
-                                          if (localAddressModel != null) {
-                                            setState(() {
-                                              addressController.text =
-                                                  'г. ${localAddressModel.properties!.fullAddress.split(', ')[2]}, ${localAddressModel.address}';
-                                              selectedAddressModel =
-                                                  localAddressModel;
-                                            });
-                                          }
-                                        },
-                                        child: Container(
-                                          width: 49,
-                                          decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(10)),
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                top: 15, bottom: 15),
-                                            child: SvgPicture.asset(
-                                                'assets/icons/icon_map.svg'),
+                                  _buildImage(
+                                      _images[0],
+                                      MediaQuery.of(context).size.height * 0.24,
+                                      118),
+                                  const SizedBox(width: 14),
+                                  _buildSmallAddButton(),
+                                ],
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                            if (bottomGrid.isNotEmpty)
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: bottomGrid,
+                              ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Название события',
+                          style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildTextField("Введите название вашего события",
+                            controller: titleController),
+                        const SizedBox(height: 20),
+                        _buildSwitchTile("Событие ОНЛАЙН", isOnline,
+                            (v) => setState(() => isOnline = v)),
+                        isOnline
+                            ? Padding(
+                                padding: const EdgeInsets.only(
+                                    top: 5, bottom: 5, left: 5),
+                                child: Text(
+                                  'Для онлайн-события укажите в описании ссылку на подключение или иной способ доступа.',
+                                  style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w300,
+                                      color: Color.fromRGBO(137, 137, 137, 1),
+                                      height: 1),
+                                ),
+                              )
+                            : Container(),
+                        const SizedBox(height: 14),
+                        !isOnline
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: TextFormField(
+                                            onChanged: _searchLocation,
+                                            maxLines: 1,
+                                            controller: addressController,
+                                            decoration: InputDecoration(
+                                                fillColor: Colors.grey[200],
+                                                filled: true,
+                                                border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15),
+                                                    borderSide:
+                                                        BorderSide.none),
+                                                hintText: 'Адрес',
+                                                hintStyle: TextStyle(
+                                                    fontFamily: 'Gilroy',
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.w400)),
                                           ),
                                         ),
-                                      )
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  if (_isLoading)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 8.0),
-                                      child: Center(
-                                          child: CircularProgressIndicator(
-                                        color: mainBlueColor,
-                                        strokeWidth: 1.2,
-                                      )),
-                                    )
-                                  else if (_suggestions.isNotEmpty)
-                                    Container(
-                                      constraints:
-                                          BoxConstraints(maxHeight: 160),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[100],
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                            color: Colors.grey[300]!),
-                                      ),
-                                      child: ListView.builder(
-                                        shrinkWrap: true,
-                                        itemCount: _suggestions.length,
-                                        itemBuilder: (context, index) {
-                                          final city = _suggestions[index];
-                                          return ListTile(
-                                            dense: true,
-                                            title: Text(city.placeNameRu!,
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontFamily: 'Gilroy')),
-                                            onTap: () {
-                                              final parts =
-                                                  city.placeNameRu?.split(', ');
-                                              if (parts!.length == 6) {
-                                                addressController.text =
-                                                    'г. ${parts[2]}, ${parts[5]}';
-                                              } else {
-                                                addressController.text =
-                                                    city.placeNameRu!;
-                                              }
+                                        SizedBox(
+                                          width: 5,
+                                        ),
+                                        InkWell(
+                                          onTap: () async {
+                                            LocalAddressModel?
+                                                localAddressModel =
+                                                await Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            MapPickerScreen(
+                                                              isCreated: true,
+                                                              position: selectedAddressModel !=
+                                                                      null
+                                                                  ? Position(
+                                                                      selectedAddressModel!
+                                                                          .longitude!,
+                                                                      selectedAddressModel!
+                                                                          .latitude!)
+                                                                  : null,
+                                                              address: null,
+                                                            )));
+                                            if (localAddressModel != null) {
                                               setState(() {
-                                                _suggestions = [];
+                                                addressController.text =
+                                                    'г. ${localAddressModel.properties!.fullAddress.split(', ')[2]}, ${localAddressModel.address}';
                                                 selectedAddressModel =
-                                                    LocalAddressModel(
-                                                        address:
-                                                            addressController
-                                                                .text
-                                                                .trim(),
-                                                        latitude:
-                                                            city.center!.last,
-                                                        longitude:
-                                                            city.center!.first,
-                                                        properties: null);
+                                                    localAddressModel;
                                               });
-                                            },
-                                          );
-                                        },
-                                      ),
+                                            }
+                                          },
+                                          child: Container(
+                                            width: 49,
+                                            decoration: BoxDecoration(
+                                                color: Colors.grey[200],
+                                                borderRadius:
+                                                    BorderRadius.circular(10)),
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 15, bottom: 15),
+                                              child: SvgPicture.asset(
+                                                  'assets/icons/icon_map.svg'),
+                                            ),
+                                          ),
+                                        )
+                                      ],
                                     ),
-                                ],
-                              ),
-                            )
-                          : Container(),
-                      SizedBox(height: isOnline ? 0 : 14),
-                      _buildSwitchTile("Повторяющееся событие", isRecurring,
-                          (v) => setState(() => isRecurring = v)),
-                      const SizedBox(height: 14),
-                      !isRecurring
-                          ? Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                      child: TextFormField(
-                                    maxLines: 1,
-                                    controller: dateController,
-                                    inputFormatters: [dateFormatter],
-                                    decoration: InputDecoration(
-                                      hintText: 'Дата',
-                                      hintStyle: TextStyle(
-                                        fontFamily: 'Gilroy',
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.grey[200],
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 12, vertical: 16),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(15),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                    ),
-                                  )),
-                                  SizedBox(
-                                    width: 5,
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      selectDate();
-                                    },
-                                    child: Container(
-                                      width: 49,
-                                      decoration: BoxDecoration(
-                                          color: Colors.grey[200],
+                                    const SizedBox(height: 4),
+                                    if (_isLoading)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 8.0),
+                                        child: Center(
+                                            child: CircularProgressIndicator(
+                                          color: mainBlueColor,
+                                          strokeWidth: 1.2,
+                                        )),
+                                      )
+                                    else if (_suggestions.isNotEmpty)
+                                      Container(
+                                        constraints:
+                                            BoxConstraints(maxHeight: 160),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[100],
                                           borderRadius:
-                                              BorderRadius.circular(10)),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 15, bottom: 15),
-                                        child: SvgPicture.asset(
-                                            'assets/icons/icon_calendar_activity.svg'),
+                                              BorderRadius.circular(10),
+                                          border: Border.all(
+                                              color: Colors.grey[300]!),
+                                        ),
+                                        child: ListView.builder(
+                                          shrinkWrap: true,
+                                          itemCount: _suggestions.length,
+                                          itemBuilder: (context, index) {
+                                            final city = _suggestions[index];
+                                            return ListTile(
+                                              dense: true,
+                                              title: Text(city.placeNameRu!,
+                                                  style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontFamily: 'Gilroy')),
+                                              onTap: () {
+                                                final parts = city.placeNameRu
+                                                    ?.split(', ');
+                                                if (parts!.length == 6) {
+                                                  addressController.text =
+                                                      'г. ${parts[2]}, ${parts[5]}';
+                                                } else {
+                                                  addressController.text =
+                                                      city.placeNameRu!;
+                                                }
+                                                setState(() {
+                                                  _suggestions = [];
+                                                  selectedAddressModel =
+                                                      LocalAddressModel(
+                                                          address:
+                                                              addressController
+                                                                  .text
+                                                                  .trim(),
+                                                          latitude:
+                                                              city.center!.last,
+                                                          longitude: city
+                                                              .center!.first,
+                                                          properties: null);
+                                                });
+                                              },
+                                            );
+                                          },
+                                        ),
                                       ),
+                                  ],
+                                ),
+                              )
+                            : Container(),
+                        SizedBox(height: isOnline ? 0 : 14),
+                        _buildSwitchTile("Повторяющееся событие", isRecurring,
+                            (v) => setState(() => isRecurring = v)),
+                        const SizedBox(height: 14),
+                        !isRecurring
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                        child: TextFormField(
+                                      maxLines: 1,
+                                      controller: dateController,
+                                      inputFormatters: [dateFormatter],
+                                      decoration: InputDecoration(
+                                        hintText: 'Дата',
+                                        hintStyle: TextStyle(
+                                          fontFamily: 'Gilroy',
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.grey[200],
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 16),
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                      ),
+                                    )),
+                                    SizedBox(
+                                      width: 5,
                                     ),
-                                  )
+                                    InkWell(
+                                      onTap: () {
+                                        selectDate();
+                                      },
+                                      child: Container(
+                                        width: 49,
+                                        decoration: BoxDecoration(
+                                            color: Colors.grey[200],
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 15, bottom: 15),
+                                          child: SvgPicture.asset(
+                                              'assets/icons/icon_calendar_activity.svg'),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              )
+                            : DayOfWeekSelector(
+                                selectedDay: recurringDay!,
+                                onChanged: (val) {
+                                  setState(() {
+                                    recurringDay = val!;
+                                  });
+                                }),
+                        const SizedBox(height: 28),
+                        Text(
+                          'Время начала:',
+                          style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                        startTimePicker(),
+                        const SizedBox(height: 28),
+                        Text(
+                          'Время конца:',
+                          style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                        endTimePicker(),
+                        const SizedBox(height: 28),
+                        Text(
+                          'Стоимость участия',
+                          style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildTextField("Введите цену",
+                            isPrice: true,
+                            suffixText: "₽",
+                            controller: priceController),
+                        const SizedBox(height: 24),
+                        _buildSwitchTile("Ограничение 18+", is18plus,
+                            (v) => setState(() => is18plus = v)),
+                        const SizedBox(height: 10),
+                        _buildSwitchTile("Можно с детьми", isKidsAllowed, (v) {
+                          setState(() => isKidsAllowed = v);
+                          if (isKidsAllowed) {
+                            showKidsAlertDialog(context, '');
+                          }
+                        }),
+                        const SizedBox(height: 10),
+                        _buildSwitchTile("Можно с животными", isPetFriendly,
+                            (v) => setState(() => isPetFriendly = v)),
+                        const SizedBox(height: 10),
+                        _buildSwitchTile(
+                            "Количество человек неограниченно",
+                            isUnlimited,
+                            (v) => setState(() => isUnlimited = v)),
+                        SizedBox(height: isUnlimited ? 0 : 24),
+                        isUnlimited == true
+                            ? Container()
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Количество человек',
+                                    style: TextStyle(
+                                        fontFamily: 'Inter', fontSize: 13),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildPeopleCounter(),
                                 ],
                               ),
-                            )
-                          : DayOfWeekSelector(
-                              selectedDay: recurringDay!,
-                              onChanged: (val) {
-                                setState(() {
-                                  recurringDay = val!;
-                                });
-                              }),
-                      const SizedBox(height: 28),
-                      Text(
-                        'Время начала:',
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 13),
-                      ),
-                      const SizedBox(height: 8),
-                      startTimePicker(),
-                      const SizedBox(height: 28),
-                      Text(
-                        'Время конца:',
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 13),
-                      ),
-                      const SizedBox(height: 8),
-                      endTimePicker(),
-                      const SizedBox(height: 28),
-                      Text(
-                        'Стоимость участия',
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 13),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildTextField("Введите цену",
-                          isPrice: true,
-                          suffixText: "₽",
-                          controller: priceController),
-                      const SizedBox(height: 24),
-                      _buildSwitchTile("Ограничение 18+", is18plus,
-                          (v) => setState(() => is18plus = v)),
-                      const SizedBox(height: 10),
-                      _buildSwitchTile("Можно с детьми", isKidsAllowed, (v) {
-                        setState(() => isKidsAllowed = v);
-                        if (isKidsAllowed) {
-                          showKidsAlertDialog(context, '');
-                        }
-                      }),
-                      const SizedBox(height: 10),
-                      _buildSwitchTile("Можно с животными", isPetFriendly,
-                          (v) => setState(() => isPetFriendly = v)),
-                      const SizedBox(height: 10),
-                      _buildSwitchTile("Количество человек неограниченно",
-                          isUnlimited, (v) => setState(() => isUnlimited = v)),
-                      SizedBox(height: isUnlimited ? 0 : 24),
-                      isUnlimited == true
-                          ? Container()
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Количество человек',
-                                  style: TextStyle(
-                                      fontFamily: 'Inter', fontSize: 13),
-                                ),
-                                const SizedBox(height: 8),
-                                _buildPeopleCounter(),
-                              ],
-                            ),
-                      SizedBox(height: isUnlimited ? 10 : 24),
-                      widget.organizedEventModel == null
-                          ? _buildSwitchTile(
-                              "Создать групповой чат",
-                              isGroupChat,
-                              (v) => setState(() => isGroupChat = v))
-                          : Container(),
-                      SizedBox(
-                          height: widget.organizedEventModel != null ? 12 : 24),
-                      Text(
-                        'Описание',
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 13),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildTextField("Опишите ваше событие",
-                          maxLines: 4, controller: descriptionController),
-                      const SizedBox(height: 28),
-                      Text(
-                        'Категория:',
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 13),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildCategoryChips(),
-                      const SizedBox(height: 28),
-                      _buildSaveButton(),
-                      const SizedBox(height: 28),
-                    ],
+                        SizedBox(height: isUnlimited ? 10 : 24),
+                        widget.organizedEventModel == null
+                            ? _buildSwitchTile(
+                                "Создать групповой чат",
+                                isGroupChat,
+                                (v) => setState(() => isGroupChat = v))
+                            : Container(),
+                        SizedBox(
+                            height:
+                                widget.organizedEventModel != null ? 12 : 24),
+                        Text(
+                          'Описание',
+                          style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildTextField("Опишите ваше событие",
+                            maxLines: 4, controller: descriptionController),
+                        const SizedBox(height: 28),
+                        Text(
+                          'Категория:',
+                          style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildCategoryChips(),
+                        const SizedBox(height: 28),
+                        _buildSaveButton(),
+                        const SizedBox(height: 28),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+        ),
       ),
     );
   }
@@ -869,31 +886,34 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   }
 
   Widget _buildCategoryChips() {
+    final chunks = chunkList(eventCategories, 3);
+
     return Center(
-      child: LayoutBuilder(builder: (context, constraints) {
-        final double spacing = 10;
-        final int columns = 3;
-        final double itemWidth =
-            (constraints.maxWidth - spacing * (columns - 1)) / columns;
-        return Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 10,
-          runSpacing: 10,
-          children: eventCategories
-              .map((event) => SizedBox(
-                    width: itemWidth,
+      child: Column(
+        children: chunks.map((chunk) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                for (int i = 0; i < chunk.length; i++) ...[
+                  Expanded(
                     child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            selectedCategory =
-                                (selectedCategory == event) ? null : event;
-                          });
-                        },
-                        child: _buildCategoryChip(event)),
-                  ))
-              .toList(),
-        );
-      }),
+                      onTap: () {
+                        setState(() {
+                          selectedCategory =
+                              (selectedCategory == chunk[i]) ? null : chunk[i];
+                        });
+                      },
+                      child: _buildCategoryChip(chunk[i]),
+                    ),
+                  ),
+                  if (i != chunk.length - 1) const SizedBox(width: 8),
+                ],
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -901,8 +921,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final isSelected = selectedCategory == event;
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      //padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
       decoration: BoxDecoration(
         color: isSelected ? Color(0xFF4A8EFF) : Colors.transparent,
         border: Border.all(

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class OrgToggleTooltip extends StatefulWidget {
-  const OrgToggleTooltip({super.key});
+  final ScrollController scrollController;
+
+  const OrgToggleTooltip({super.key, required this.scrollController});
 
   @override
   State<OrgToggleTooltip> createState() => _OrgToggleTooltipState();
@@ -21,6 +23,19 @@ class _OrgToggleTooltipState extends State<OrgToggleTooltip> {
     }
   }
 
+  @override
+  void initState() {
+    super.initState();
+    widget.scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_overlayEntry != null) {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
+    }
+  }
+
   OverlayEntry _createOverlayEntry() {
     RenderBox renderBox = context.findRenderObject() as RenderBox;
     final size = renderBox.size;
@@ -28,7 +43,7 @@ class _OrgToggleTooltipState extends State<OrgToggleTooltip> {
 
     return OverlayEntry(
       builder: (context) => Positioned(
-        top: offset.dy +size.height + 8,
+        top: offset.dy + size.height + 8,
         left: offset.dx + size.width / 2 - 140 / 2, // Центр под иконкой
         child: Material(
           color: Colors.transparent,
