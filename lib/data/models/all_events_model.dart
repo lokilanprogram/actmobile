@@ -269,7 +269,7 @@ class VoteModel {
       id: json['id'],
       title: json['title'],
       description: json['description'] ?? '',
-      imageUrl: json['organizer']?['photo_url'] ?? '',
+      imageUrl: json['photos'] ?? '',
       date: DateTime.parse(json['date_start']),
       time: formattedTime,
       votes: json['vote_count'] ?? 0,

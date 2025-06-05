@@ -164,9 +164,49 @@ class _EventsScreenState extends State<EventsScreen> {
     });
 
     try {
+      // --- Формируем параметры длительности ---
+      int? durationMin;
+      int? durationMax;
+      switch (filterProvider.selectedDurationFilter) {
+        case 'short':
+          durationMin = 0;
+          durationMax = 2;
+          break;
+        case 'medium':
+          durationMin = 3;
+          durationMax = 5;
+          break;
+        case 'long':
+          durationMin = 6;
+          durationMax = 24;
+          break;
+      }
+
+      // --- Формируем ограничения ---
+      List<String> restrictions = [];
+
+      if (filterProvider.isAnimalsAllowedSelected) {
+        restrictions.add('withAnimals');
+      }
+
+      if (filterProvider.isFreeSelected) {
+        restrictions.add('isUnlimited');
+      }
+
+      if (filterProvider.selectedAgeRestrictions.contains('isAdults')) {
+        restrictions.add('isKidsNotAllowed');
+      } else if (filterProvider.selectedAgeRestrictions
+          .contains('isKidsAllowed')) {
+        restrictions.add('withKids');
+      }
+
       final events = await EventsApi().searchEvents(
-        latitude: _currentPosition?.latitude ?? 55.751244,
-        longitude: _currentPosition?.longitude ?? 37.618423,
+        latitude: filterProvider.selectedMapAddressModel?.latitude ??
+            _currentPosition?.latitude ??
+            55.751244,
+        longitude: filterProvider.selectedMapAddressModel?.longitude ??
+            _currentPosition?.longitude ??
+            37.618423,
         radius: filterProvider.selectedRadius.round(),
         address: filterProvider.cityFilterText.isNotEmpty
             ? filterProvider.cityFilterText
@@ -179,19 +219,21 @@ class _EventsScreenState extends State<EventsScreen> {
             : null,
         time_from: filterProvider.selectedTimeFrom,
         time_to: filterProvider.selectedTimeTo,
-        type: filterProvider.isOnlineSelected ? 'online' : 'offline',
-        price_min: filterProvider.isFreeSelected
-            ? 0.0
-            : double.tryParse(filterProvider.priceMinText),
-        price_max: filterProvider.isFreeSelected
-            ? 0.0
-            : double.tryParse(filterProvider.priceMaxText),
-        restrictions: filterProvider.selectedAgeRestrictions.isEmpty
-            ? null
-            : filterProvider.selectedAgeRestrictions,
+        type: filterProvider.isOnlineSelected ? 'online' : null,
+        price_min: filterProvider.priceMinText.isNotEmpty
+            ? double.tryParse(filterProvider.priceMinText)
+            : null,
+        price_max: filterProvider.priceMaxText.isNotEmpty
+            ? double.tryParse(filterProvider.priceMaxText)
+            : null,
+        restrictions: restrictions.isNotEmpty ? restrictions : null,
         category_ids: filterProvider.selectedCategoryIds.isEmpty
             ? null
             : filterProvider.selectedCategoryIds,
+        duration_min: durationMin,
+        duration_max: durationMax,
+        slots_min: filterProvider.slotsMin,
+        slots_max: filterProvider.slotsMax,
         search_query:
             _searchController.text.isNotEmpty ? _searchController.text : null,
         offset: _offset,
@@ -402,22 +444,6 @@ class _EventsScreenState extends State<EventsScreen> {
           appBar: isLoading
               ? null
               : AppBar(
-                  // leading: showVotes
-                  //     ? IconButton(
-                  //         onPressed: () async {
-                  //           setState(() {
-                  //             showVotes = !showVotes;
-                  //           });
-                  //           if (showVotes && _votes.isEmpty && !_votesLoading) {
-                  //             await _fetchVotes();
-                  //           }
-                  //         },
-                  //         // icon: SvgPicture.asset('assets/icons/back.svg')
-                  //         icon: Icon(Icons.arrow_back_ios_new),
-                  //       )
-                  //     : Container(
-                  //         width: 10,
-                  //       ),
                   automaticallyImplyLeading: false,
                   backgroundColor: Colors.white,
                   title: Row(
@@ -434,7 +460,6 @@ class _EventsScreenState extends State<EventsScreen> {
                                   await _fetchVotes();
                                 }
                               },
-                              // icon: SvgPicture.asset('assets/icons/back.svg')
                               icon: Icon(Icons.arrow_back_ios_new),
                             )
                           : Container(

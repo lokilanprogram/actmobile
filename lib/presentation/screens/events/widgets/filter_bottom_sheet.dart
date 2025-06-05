@@ -10,7 +10,10 @@ import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:geotypes/geotypes.dart';
 import 'package:http/http.dart' as http;
 import 'package:acti_mobile/data/models/mapbox_model.dart' as mapbox;
+import 'package:acti_mobile/data/models/local_address_model.dart';
+import 'package:acti_mobile/data/models/all_events_model.dart' as events;
 import 'dart:convert';
+import 'package:acti_mobile/domain/api/events/events_api.dart';
 
 class TimeRange {
   final TimeOfDay startTime;
@@ -39,54 +42,32 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   final TextEditingController _cityController = TextEditingController();
   List<mapbox.Feature> _suggestions = [];
   bool _isLoading = false;
+  List<events.Category> _categories = [];
+  bool _isLoadingCategories = false;
 
-  // Dummy data for categories - replace with actual data from API if available
-  final List<Map<String, dynamic>> _categoryFilters = [
-    {
-      "id": "35dae046-43a5-4044-b4b9-6a9bd359bf37",
-      "name": "Спорт",
-      "icon_path":
-          "http://93.183.81.104/uploads/category_icons/30f9574b-2a6a-4c30-bb2b-398724982992.png"
-    },
-    {
-      "id": "05b6b8df-99fd-4d61-9c26-03fcdae2f8af",
-      "name": "Музыка",
-      "icon_path":
-          "http://93.183.81.104/uploads/category_icons/5321b770-2db9-4dc6-aeb5-4b2c8ed45472.png"
-    },
-    {
-      "id": "f028eca7-b1ed-47f6-b7ca-fe79fb09ff10",
-      "name": "Наука",
-      "icon_path":
-          "http://93.183.81.104/uploads/category_icons/6d17b161-b83c-4ca9-b7c6-541758e68ad5.png"
-    },
-    {
-      "id": "ceb24aec-1cf1-46d0-8042-30eb052832f6",
-      "name": "Семья",
-      "icon_path":
-          "http://93.183.81.104/uploads/category_icons/8045b3bf-8605-402f-88d4-977fc2870b35.png"
-    },
-    {
-      "id": "6e27119e-c4ab-4aa1-82c1-729d67a32467",
-      "name": "Еда",
-      "icon_path":
-          "http://93.183.81.104/uploads/category_icons/a7b16612-2080-47b0-be18-a71727b56b56.png"
-    },
-    {"id": "cat_concerts", "name": "Концерты"},
-    {"id": "cat_exhibitions", "name": "Выставки и театры"},
-    {"id": "cat_festivals", "name": "Фестивали"},
-    {"id": "cat_sports_events", "name": "Спортивные мероприятия"},
-    {"id": "cat_museums", "name": "Музеи"},
-    {"id": "cat_children", "name": "Дети"},
-    {"id": "cat_excursions", "name": "Экскурсии"},
-    {"id": "cat_online", "name": "Онлайн активности"},
-    {"id": "cat_board_games", "name": "Настолки"},
-    {"id": "cat_animals", "name": "Животные"},
-    {"id": "cat_master_classes", "name": "Мастер-классы"},
-    {"id": "cat_out_of_town", "name": "За городом"},
-    {"id": "cat_languages", "name": "Изучение языка"},
-    {"id": "cat_photo_video", "name": "Фото и видео"}
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    setState(() {
+      _isLoadingCategories = true;
+    });
+    try {
+      final categories = await EventsApi().getCategories();
+      setState(() {
+        _categories = categories;
+      });
+    } catch (e) {
+      print('Ошибка загрузки категорий: $e');
+    } finally {
+      setState(() {
+        _isLoadingCategories = false;
+      });
+    }
+  }
 
   Future<void> _searchLocation(String place) async {
     if (place.isEmpty) {
@@ -567,6 +548,18 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                         }
                                         filterProvider.updateCityFilter(
                                             _cityController.text);
+                                        // Создаем LocalAddressModel с координатами выбранного города
+                                        filterProvider.updateLocationFilter(
+                                          'city',
+                                          address: LocalAddressModel(
+                                            address: _cityController.text,
+                                            latitude: city.center!.last,
+                                            longitude: city.center!.first,
+                                            properties: null,
+                                          ),
+                                        );
+                                        filterProvider
+                                            .updateLocationType('city');
                                         setState(() {
                                           _suggestions = [];
                                         });
@@ -901,45 +894,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         ),
                       const SizedBox(height: 20),
 
-                      // Радиус поиска
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Радиус поиска',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Gilroy',
-                                color: authBlueColor,
-                              )),
-                          Slider(
-                            value: filterProvider.selectedRadius,
-                            min: 1,
-                            max: 10,
-                            divisions: 9,
-                            label:
-                                '${filterProvider.selectedRadius.round()} км',
-                            onChanged: (value) {
-                              filterProvider.updateLocationType(
-                                filterProvider.selectedLocationType ??
-                                    'current',
-                                radius: value,
-                              );
-                            },
-                          ),
-                          Text(
-                            '${filterProvider.selectedRadius.round()} км',
-                            style: TextStyle(
-                              color: mainBlueColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
                       // Локация
-                      Text('Локация',
+                      Text('Место',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -970,7 +926,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                 borderRadius: BorderRadius.circular(30.0),
                               ),
                               padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
+                                  vertical: 8.0, horizontal: 8.0),
                               child: Text(
                                 'Текущее местоположение',
                                 style: TextStyle(
@@ -1024,7 +980,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                 borderRadius: BorderRadius.circular(30.0),
                               ),
                               padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
+                                  vertical: 8.0, horizontal: 8.0),
                               child: Text(
                                 'Точка на карте',
                                 style: TextStyle(
@@ -1074,6 +1030,59 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                           ),
                         ],
                       ),
+                      // const SizedBox(height: 20),
+
+                      // Радиус поиска
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Text('Радиус поиска',
+                          //     style: TextStyle(
+                          //       fontSize: 18,
+                          //       fontWeight: FontWeight.bold,
+                          //       fontFamily: 'Gilroy',
+                          //       color: authBlueColor,
+                          //     )),
+                          // const SizedBox(height: 8),
+                          // Кастомный слайдер
+                          Builder(builder: (context) {
+                            final radiusValues = [0, 1, 3, 5, 10, 15, 20, 50];
+                            final selectedIndex = radiusValues
+                                .indexOf(filterProvider.selectedRadius.round());
+                            return Column(
+                              children: [
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Slider(
+                                    value: selectedIndex.toDouble(),
+                                    min: 0,
+                                    max: (radiusValues.length - 1).toDouble(),
+                                    divisions: radiusValues.length - 1,
+                                    activeColor: mainBlueColor,
+                                    inactiveColor: Colors.grey[300],
+                                    onChanged: (value) {
+                                      final idx = value.round();
+                                      filterProvider.updateLocationType(
+                                        filterProvider.selectedLocationType ??
+                                            'current',
+                                        radius: radiusValues[idx].toDouble(),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Text(
+                                  '+${filterProvider.selectedRadius.round()} км',
+                                  style: TextStyle(
+                                    color: mainBlueColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            );
+                          }),
+                        ],
+                      ),
+
                       if (filterProvider.selectedLocationType == 'map' &&
                           filterProvider.selectedMapAddressModel != null)
                         Padding(
@@ -1086,7 +1095,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                             ),
                           ),
                         ),
-                      const SizedBox(height: 20),
+                      // const SizedBox(height: 20),
 
                       // Тип события
 
@@ -1121,11 +1130,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                           )),
                       Row(
                         children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                filterProvider.updatePriceRange(isFree: true);
-                              },
+                          GestureDetector(
+                            onTap: () {
+                              filterProvider.updatePriceRange(isFree: true);
+                            },
+                            child: SizedBox(
+                              width: 100,
                               child: AnimatedContainer(
                                 duration: Duration(milliseconds: 100),
                                 curve: Curves.easeInBack,
@@ -1135,7 +1145,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                       : Colors.grey[200],
                                   borderRadius: BorderRadius.circular(30.0),
                                 ),
-                                padding: EdgeInsets.symmetric(vertical: 8.0),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
                                 alignment: Alignment.center,
                                 child: Text(
                                   'Бесплатно',
@@ -1151,11 +1162,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                             ),
                           ),
                           SizedBox(width: 10),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                filterProvider.updatePriceRange(isFree: false);
-                              },
+                          GestureDetector(
+                            onTap: () {
+                              filterProvider.updatePriceRange(isFree: false);
+                            },
+                            child: SizedBox(
+                              width: 100,
                               child: AnimatedContainer(
                                 duration: Duration(milliseconds: 100),
                                 curve: Curves.easeInBack,
@@ -1165,7 +1177,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                       : Colors.grey[200],
                                   borderRadius: BorderRadius.circular(30.0),
                                 ),
-                                padding: EdgeInsets.symmetric(vertical: 8.0),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
                                 alignment: Alignment.center,
                                 child: Text(
                                   'Платно',
@@ -1338,6 +1351,171 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       ),
                       const SizedBox(height: 20),
 
+                      // Количество людей
+                      Text('Количество людей',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Gilroy',
+                            color: authBlueColor,
+                          )),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            // "Без разницы"
+                            GestureDetector(
+                              onTap: () {
+                                filterProvider.updatePeopleFilter('any');
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
+                                  color: filterProvider.selectedPeopleFilter ==
+                                          'any'
+                                      ? mainBlueColor
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Без разницы',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color:
+                                        filterProvider.selectedPeopleFilter ==
+                                                'any'
+                                            ? Colors.white
+                                            : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // "до 15 человек"
+                            GestureDetector(
+                              onTap: () {
+                                filterProvider.updatePeopleFilter('upTo15');
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
+                                  color: filterProvider.selectedPeopleFilter ==
+                                          'upTo15'
+                                      ? mainBlueColor
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'до 15 человек',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color:
+                                        filterProvider.selectedPeopleFilter ==
+                                                'upTo15'
+                                            ? Colors.white
+                                            : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // "Свой вариант"
+                            GestureDetector(
+                              onTap: () {
+                                filterProvider.updatePeopleFilter('custom');
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
+                                  color: filterProvider.selectedPeopleFilter ==
+                                          'custom'
+                                      ? mainBlueColor
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Диапазон',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color:
+                                        filterProvider.selectedPeopleFilter ==
+                                                'custom'
+                                            ? Colors.white
+                                            : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (filterProvider.selectedPeopleFilter == 'custom')
+                        Padding(
+                          padding:
+                              const EdgeInsets.only(top: 12.0, bottom: 8.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    hintText: 'От',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    int? min = int.tryParse(value);
+                                    filterProvider.updatePeopleRange(
+                                      min,
+                                      filterProvider.slotsMax,
+                                    );
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: TextField(
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    hintText: 'До',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    int? max = int.tryParse(value);
+                                    filterProvider.updatePeopleRange(
+                                      filterProvider.slotsMin,
+                                      max,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 20),
+
                       // Длительность
                       Text('Длительность',
                           style: TextStyle(
@@ -1346,104 +1524,116 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                             fontFamily: 'Gilroy',
                             color: authBlueColor,
                           )),
-                      Wrap(
-                        spacing: 5.0,
-                        runSpacing: 10,
-                        children: [
-                          // "Короткие 1-2 часа" segment
-                          GestureDetector(
-                            onTap: () {
-                              filterProvider.updateDurationFilter('short');
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedDurationFilter ==
-                                        'short'
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                'Короткие 1-2 часа',
-                                style: TextStyle(
-                                  fontSize: 11,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            // "Короткие 1-2 часа"
+                            GestureDetector(
+                              onTap: () {
+                                filterProvider.updateDurationFilter('short');
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
                                   color:
                                       filterProvider.selectedDurationFilter ==
                                               'short'
-                                          ? Colors.white
-                                          : Colors.black,
-                                  fontWeight: FontWeight.w500,
+                                          ? mainBlueColor
+                                          : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Короткие 1-2 часа',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color:
+                                        filterProvider.selectedDurationFilter ==
+                                                'short'
+                                            ? Colors.white
+                                            : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          // "3-5 часов" segment
-                          GestureDetector(
-                            onTap: () {
-                              filterProvider.updateDurationFilter('medium');
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedDurationFilter ==
-                                        'medium'
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                '3-5 часов',
-                                style: TextStyle(
-                                  fontSize: 11,
+                            // "3-5 часов"
+                            GestureDetector(
+                              onTap: () {
+                                filterProvider.updateDurationFilter('medium');
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
                                   color:
                                       filterProvider.selectedDurationFilter ==
                                               'medium'
-                                          ? Colors.white
-                                          : Colors.black,
-                                  fontWeight: FontWeight.w500,
+                                          ? mainBlueColor
+                                          : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '3-5 часов',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color:
+                                        filterProvider.selectedDurationFilter ==
+                                                'medium'
+                                            ? Colors.white
+                                            : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          // "Весь день" segment
-                          GestureDetector(
-                            onTap: () {
-                              filterProvider.updateDurationFilter('long');
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedDurationFilter ==
-                                        'long'
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                'Весь день',
-                                style: TextStyle(
-                                  fontSize: 11,
+                            // "Весь день"
+                            GestureDetector(
+                              onTap: () {
+                                filterProvider.updateDurationFilter('long');
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
                                   color:
                                       filterProvider.selectedDurationFilter ==
                                               'long'
-                                          ? Colors.white
-                                          : Colors.black,
-                                  fontWeight: FontWeight.w500,
+                                          ? mainBlueColor
+                                          : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Весь день',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color:
+                                        filterProvider.selectedDurationFilter ==
+                                                'long'
+                                            ? Colors.white
+                                            : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 20),
 
@@ -1455,48 +1645,59 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                             fontFamily: 'Gilroy',
                             color: authBlueColor,
                           )),
-                      Wrap(
-                        spacing: 5.0,
-                        runSpacing: 10,
-                        children: _categoryFilters.map((category) {
-                          return GestureDetector(
-                            onTap: () {
-                              final categoryIds = List<String>.from(
-                                  filterProvider.selectedCategoryIds);
-                              if (categoryIds.contains(category['id'])) {
-                                categoryIds.remove(category['id']);
-                              } else {
-                                categoryIds.add(category['id']);
-                              }
-                              filterProvider.updateCategoryIds(categoryIds);
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedCategoryIds
-                                        .contains(category['id'])
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                category['name'],
-                                style: TextStyle(
-                                  fontSize: 11,
+                      if (_isLoadingCategories)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(
+                              color: mainBlueColor,
+                              strokeWidth: 1.2,
+                            ),
+                          ),
+                        )
+                      else
+                        Wrap(
+                          spacing: 5.0,
+                          runSpacing: 10,
+                          children: _categories.map((category) {
+                            return GestureDetector(
+                              onTap: () {
+                                final categoryIds = List<String>.from(
+                                    filterProvider.selectedCategoryIds);
+                                if (categoryIds.contains(category.id)) {
+                                  categoryIds.remove(category.id);
+                                } else {
+                                  categoryIds.add(category.id);
+                                }
+                                filterProvider.updateCategoryIds(categoryIds);
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
                                   color: filterProvider.selectedCategoryIds
-                                          .contains(category['id'])
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w500,
+                                          .contains(category.id)
+                                      ? mainBlueColor
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                child: Text(
+                                  category.name,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: filterProvider.selectedCategoryIds
+                                            .contains(category.id)
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                            );
+                          }).toList(),
+                        ),
                       const SizedBox(height: 20),
                     ],
                   ),

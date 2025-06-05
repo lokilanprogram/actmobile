@@ -21,10 +21,50 @@ class FilterProvider extends ChangeNotifier {
   LocalAddressModel? selectedMapAddressModel;
   String cityFilterText = '';
 
+  // Фильтр по количеству людей
+  String selectedPeopleFilter = 'any'; // 'any', 'upTo15', 'custom'
+  int? slotsMin;
+  int? slotsMax;
+
   void updateDateFilter(String filter, {DateTime? from, DateTime? to}) {
     selectedDateFilter = filter;
-    selectedDateFrom = from;
-    selectedDateTo = to;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (filter) {
+      case 'today':
+        selectedDateFrom = today;
+        selectedDateTo = today;
+        break;
+      case 'this_week':
+        // Получаем номер дня недели (1-7, где 1 - понедельник)
+        final weekday = now.weekday;
+        // Вычисляем дату воскресенья
+        final sunday = today.add(Duration(days: 7 - weekday));
+        selectedDateFrom = today;
+        selectedDateTo = sunday;
+        break;
+      case 'weekend':
+        // Получаем номер дня недели (1-7, где 1 - понедельник)
+        final weekday = now.weekday;
+        // Вычисляем дату ближайшей субботы
+        final daysUntilSaturday = (6 - weekday) % 7;
+        final saturday = today.add(Duration(days: daysUntilSaturday));
+        // Вычисляем дату воскресенья
+        final sunday = saturday.add(const Duration(days: 1));
+        selectedDateFrom = saturday;
+        selectedDateTo = sunday;
+        break;
+      case 'period':
+        selectedDateFrom = from;
+        selectedDateTo = to;
+        break;
+      default:
+        selectedDateFrom = null;
+        selectedDateTo = null;
+    }
+
     notifyListeners();
   }
 
@@ -45,13 +85,26 @@ class FilterProvider extends ChangeNotifier {
 
   void updateOnlineStatus(bool isOnline) {
     isOnlineSelected = isOnline;
+    if (isOnline) {
+      selectedAgeRestrictions.add('isOnline');
+    } else {
+      selectedAgeRestrictions.remove('isOnline');
+      selectedAgeRestrictions.add('offline');
+    }
     notifyListeners();
   }
 
   void updatePriceRange({String? min, String? max, bool? isFree}) {
     if (min != null) priceMinText = min;
     if (max != null) priceMaxText = max;
-    if (isFree != null) isFreeSelected = isFree;
+    if (isFree != null) {
+      isFreeSelected = isFree;
+      if (isFree) {
+        selectedAgeRestrictions.add('isUnlimited');
+      } else {
+        selectedAgeRestrictions.remove('isUnlimited');
+      }
+    }
     notifyListeners();
   }
 
@@ -62,6 +115,11 @@ class FilterProvider extends ChangeNotifier {
 
   void updateAnimalsAllowed(bool allowed) {
     isAnimalsAllowedSelected = allowed;
+    if (allowed) {
+      selectedAgeRestrictions.add('withAnimals');
+    } else {
+      selectedAgeRestrictions.remove('withAnimals');
+    }
     notifyListeners();
   }
 
@@ -88,6 +146,25 @@ class FilterProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updatePeopleFilter(String filter) {
+    selectedPeopleFilter = filter;
+    if (filter == 'any') {
+      slotsMin = null;
+      slotsMax = null;
+    } else if (filter == 'upTo15') {
+      slotsMin = null;
+      slotsMax = 15;
+    }
+    notifyListeners();
+  }
+
+  void updatePeopleRange(int? min, int? max) {
+    selectedPeopleFilter = 'custom';
+    slotsMin = min;
+    slotsMax = max;
+    notifyListeners();
+  }
+
   void resetFilters() {
     selectedDateFilter = null;
     selectedDateFrom = null;
@@ -107,7 +184,10 @@ class FilterProvider extends ChangeNotifier {
     selectedCategoryIds = [];
     selectedMapAddressModel = null;
     cityFilterText = '';
+    // Сброс фильтра по количеству людей
+    selectedPeopleFilter = 'any';
+    slotsMin = null;
+    slotsMax = null;
     notifyListeners();
   }
 }
- 
