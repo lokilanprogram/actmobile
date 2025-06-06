@@ -200,6 +200,9 @@ class _EventsScreenState extends State<EventsScreen> {
         restrictions.add('withKids');
       }
 
+      final int radius = filterProvider.selectedRadius.round() == 0
+          ? 1
+          : filterProvider.selectedRadius.round();
       final events = await EventsApi().searchEvents(
         latitude: filterProvider.selectedMapAddressModel?.latitude ??
             _currentPosition?.latitude ??
@@ -207,7 +210,7 @@ class _EventsScreenState extends State<EventsScreen> {
         longitude: filterProvider.selectedMapAddressModel?.longitude ??
             _currentPosition?.longitude ??
             37.618423,
-        radius: filterProvider.selectedRadius.round(),
+        radius: radius,
         address: filterProvider.cityFilterText.isNotEmpty
             ? filterProvider.cityFilterText
             : null,
@@ -436,6 +439,8 @@ class _EventsScreenState extends State<EventsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isSmallScreen = MediaQuery.of(context).size.width < 400 &&
+        MediaQuery.of(context).size.width > 250;
     return Consumer<FilterProvider>(
       builder: (context, filterProvider, child) {
         return Scaffold(
@@ -465,14 +470,72 @@ class _EventsScreenState extends State<EventsScreen> {
                           : Container(
                               width: 10,
                             ),
-                      Text(
-                        showVotes ? 'Голосование' : 'События',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 23,
+                      SizedBox(
+                        // width: 100,
+                        child: Text(
+                          showVotes ? 'Голосование' : 'События',
+                          // overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                            // fontSize: 16,
+                            fontSize: isSmallScreen ? 14 : 16,
+                          ),
                         ),
                       ),
+                      showVotes
+                          ? Container()
+                          : Container(
+                              height: 32,
+                              // width: 120,
+                              width: isSmallScreen ? 110 : 120,
+                              margin: EdgeInsets.symmetric(horizontal: 12.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    mainBlueColor,
+                                    Color.fromRGBO(98, 207, 102, 1),
+                                  ],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                              ),
+                              child: TextButton(
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 0),
+                                ),
+                                onPressed: () async {
+                                  setState(() {
+                                    showVotes = !showVotes;
+                                  });
+                                  if (showVotes &&
+                                      _votes.isEmpty &&
+                                      !_votesLoading) {
+                                    await _fetchVotes();
+                                  }
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Голосование',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: isSmallScreen ? 14 : 16,
+                                        // fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                     ],
                   ),
                   bottom: PreferredSize(
@@ -571,54 +634,59 @@ class _EventsScreenState extends State<EventsScreen> {
                     ),
                   ),
                   actions: [
-                    showVotes
-                        ? Container()
-                        : Container(
-                            height: 32,
-                            width: 100,
-                            margin: EdgeInsets.only(right: 16.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              gradient: LinearGradient(
-                                colors: [
-                                  mainBlueColor,
-                                  Color.fromRGBO(98, 207, 102, 1),
-                                ],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                            ),
-                            child: TextButton(
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 0),
-                              ),
-                              onPressed: () async {
-                                setState(() {
-                                  showVotes = !showVotes;
-                                });
-                                if (showVotes &&
-                                    _votes.isEmpty &&
-                                    !_votesLoading) {
-                                  await _fetchVotes();
-                                }
-                              },
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text('Голосование',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 12)),
-                                ],
-                              ),
-                            ),
-                          ),
+                    // showVotes
+                    //     ? Container()
+                    //     : Container(
+                    //         height: 32,
+                    //         width: isSmallScreen ? 90 : 100,
+                    //         margin: EdgeInsets.only(right: 16.0),
+                    //         decoration: BoxDecoration(
+                    //           borderRadius: BorderRadius.circular(30),
+                    //           gradient: LinearGradient(
+                    //             colors: [
+                    //               mainBlueColor,
+                    //               Color.fromRGBO(98, 207, 102, 1),
+                    //             ],
+                    //             begin: Alignment.centerLeft,
+                    //             end: Alignment.centerRight,
+                    //           ),
+                    //         ),
+                    //         child: TextButton(
+                    //           style: TextButton.styleFrom(
+                    //             backgroundColor: Colors.transparent,
+                    //             foregroundColor: Colors.white,
+                    //             shape: RoundedRectangleBorder(
+                    //               borderRadius: BorderRadius.circular(30),
+                    //             ),
+                    //             padding: EdgeInsets.symmetric(
+                    //                 horizontal: 12, vertical: 0),
+                    //           ),
+                    //           onPressed: () async {
+                    //             setState(() {
+                    //               showVotes = !showVotes;
+                    //             });
+                    //             if (showVotes &&
+                    //                 _votes.isEmpty &&
+                    //                 !_votesLoading) {
+                    //               await _fetchVotes();
+                    //             }
+                    //           },
+                    //           child: Row(
+                    //             mainAxisSize: MainAxisSize.min,
+                    //             children: [
+                    //               Text(
+                    //                 isSmallScreen
+                    //                     ? 'Голосование'
+                    //                     : 'Голосование',
+                    //                 style: TextStyle(
+                    //                   fontWeight: FontWeight.w600,
+                    //                   fontSize: isSmallScreen ? 11 : 16,
+                    //                 ),
+                    //               ),
+                    //             ],
+                    //           ),
+                    //         ),
+                    //       ),
                     Container(
                       height: 32,
                       width: 115,

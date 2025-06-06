@@ -197,6 +197,12 @@ class EventsApi {
       }
     }
 
+    final List<String> restrictions = [];
+    if (alterEvent.isKidsAllowed) restrictions.add('withKids');
+    if (alterEvent.withAnimals) restrictions.add('withAnimals');
+    if (alterEvent.is18plus) restrictions.add('isKidsNotAllowed');
+    if (alterEvent.isUnlimited) restrictions.add('isUnlimited');
+
     formData = FormData.fromMap({
       'title': alterEvent.title,
       'description': alterEvent.description,
@@ -209,13 +215,7 @@ class EventsApi {
       'time_end': '${alterEvent.timeEnd.substring(0, 8)}$offsetString',
       'price': alterEvent.price != null ? alterEvent.price.toString() : '0',
       'create_group_chat': alterEvent.isGroupChat.toString(),
-      'restrictions': [
-        alterEvent.is18plus ? 'isAdults' : 'noAdults',
-        alterEvent.isOnline ? 'isOnline' : 'Offline',
-        alterEvent.isKidsAllowed ? 'isKidsAllowed' : 'isKidsNotAllowed',
-        alterEvent.isUnlimited ? 'isUnlimited' : 'noUnlimited',
-        alterEvent.withAnimals ? 'withAnimals' : 'notWithAnimals',
-      ],
+      'restrictions': restrictions.isNotEmpty ? restrictions : null,
       'category_id': alterEvent.categoryId,
       'is_recurring': alterEvent.isRecurring.toString(),
       'update_recurring': alterEvent.isRecurring.toString(),
@@ -229,6 +229,12 @@ class EventsApi {
       formData.fields.add(MapEntry(
           'longitude', alterEvent.selectedAddressModel!.longitude.toString()));
     }
+
+    developer.log('Отправляем данные: ${formData.fields}',
+        name: 'CREATE_EVENT');
+    developer.log('Отправляем restrictions: $restrictions',
+        name: 'CREATE_EVENT');
+
     try {
       if (isCreated) {
         response = await dio.post(
@@ -253,14 +259,15 @@ class EventsApi {
           ),
         );
       }
+      developer.log('Ответ сервера: ${response.data}', name: 'CREATE_EVENT');
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print(response.data);
         return true;
       } else {
         throw Exception(
             'Failed to create event: ${response.statusCode} ${response.data}');
       }
     } on DioException catch (e) {
+      developer.log('Ошибка: ${e.response?.data}', name: 'CREATE_EVENT');
       throw Exception('Error: ${e.response!.data['detail']}');
     }
   }
@@ -400,28 +407,8 @@ class EventsApi {
   }) async {
     final accessToken = await storage.read(key: accessStorageToken);
     if (accessToken != null) {
-      // Преобразуем ограничения в нужный формат
-      List<String>? formattedRestrictions;
-      if (restrictions != null) {
-        formattedRestrictions = restrictions.map((restriction) {
-          switch (restriction) {
-            case 'Онлайн':
-              return 'isOnline';
-            case 'Оффлайн':
-              return 'offline';
-            case 'Можно с животными':
-              return 'withAnimals';
-            case 'Можно с детьми':
-              return 'withKids';
-            case 'Без ограничений':
-              return 'isUnlimited';
-            case 'Строго 18+, без детей':
-              return 'isKidsNotAllowed';
-            default:
-              return restriction;
-          }
-        }).toList();
-      }
+      // restrictions теперь только на английском, без кириллической интерпретации
+      List<String>? formattedRestrictions = restrictions;
 
       final queryParameters = {
         'latitude': latitude.toString(),
@@ -444,26 +431,9 @@ class EventsApi {
         'search_query': search_query,
       };
 
-      // Добавляем restrictions как один параметр с разделителем-запятой
-      if (formattedRestrictions != null && formattedRestrictions.isNotEmpty) {
-        queryParameters['restrictions'] = formattedRestrictions.join(',');
-      }
-
-      // Добавляем category_ids как отдельные параметры
-      if (category_ids != null && category_ids.isNotEmpty) {
-        for (var i = 0; i < category_ids.length; i++) {
-          queryParameters['category_ids'] = category_ids[i];
-        }
-      }
-
-      // Remove null values from queryParameters
-      queryParameters.removeWhere((key, value) => value == null);
-
-      // Добавляем подробное логирование параметров
-      developer.log('Параметры поиска:');
-      queryParameters.forEach((key, value) {
-        developer.log('$key: $value');
-      });
+      // Удаляем параметры, которые равны null или строке 'null'
+      queryParameters
+          .removeWhere((key, value) => value == null || value == 'null');
 
       // Формируем URL вручную для поддержки массивов
       final baseUrl = '$API/api/v1/events';
@@ -471,10 +441,15 @@ class EventsApi {
 
       // Преобразуем обычные параметры
       queryParameters.forEach((key, value) {
-        if (key != 'category_ids') {
+        if (key != 'category_ids' && key != 'restrictions') {
           queryParams[key] = [value.toString()];
         }
       });
+
+      // Добавляем restrictions как массив
+      if (formattedRestrictions != null && formattedRestrictions.isNotEmpty) {
+        queryParams['restrictions'] = formattedRestrictions;
+      }
 
       // Добавляем category_ids как массив
       if (category_ids != null && category_ids.isNotEmpty) {

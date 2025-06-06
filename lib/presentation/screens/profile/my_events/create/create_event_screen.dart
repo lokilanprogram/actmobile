@@ -85,11 +85,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       lastDate: DateTime(2026),
     );
 
-    setState(() {
-      selectedDate = pickedDate;
-      dateController.text = formatDate(
-          '${pickedDate!.day}.${pickedDate.month}.${pickedDate.year}');
-    });
+    if (pickedDate != null) {
+      setState(() {
+        selectedDate = pickedDate;
+        dateController.text = formatDate(
+            '${pickedDate.day}.${pickedDate.month}.${pickedDate.year}');
+      });
+    }
   }
 
   final List<String> _images = [];
@@ -167,12 +169,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         _images.add(photo);
       }
       for (var restrict in event.restrictions) {
-        if (restrict == 'isAdults') {
+        if (restrict == 'isKidsNotAllowed') {
           setState(() {
             is18plus = true;
           });
         }
-        if (restrict == 'isKidsAllowed') {
+        if (restrict == 'withKids') {
           setState(() {
             isKidsAllowed = true;
           });
