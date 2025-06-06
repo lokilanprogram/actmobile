@@ -132,7 +132,7 @@ Future<LocalCityModel?> searchCity(String city) async {
   final accessToken = await storage.read(key: accessStorageToken);
   if(accessToken != null){
     final response = await http.get(
-    Uri.parse('https://api.mapbox.com/geocoding/v5/mapbox.places/$city.json?proximity=-74.70850,40.78375&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg'),
+    Uri.parse('https://api.mapbox.com/geocoding/v5/mapbox.places/$city.json?proximity=-74.70850,40.78375&country=ru&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg'),
     headers: {
       "Content-Type": "application/json",
       'Authorization': 'Bearer $accessToken'

@@ -69,7 +69,11 @@ class PopUpProfileButtons extends StatelessWidget {
           ),
         ),
       ],
-      child: const Icon(Icons.more_vert, color: Colors.white),
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: const Icon(Icons.more_vert, color: Colors.white),
+      ),
     );
   }
 }

@@ -26,6 +26,10 @@ class ProfileLogoutState extends ProfileState {}
 
 class ProfileLogoutErrorState extends ProfileState {}
 
+class ProfileDeleteState extends ProfileState {}
+
+class ProfileDeleteErrorState extends ProfileState {}
+
 class ProfileGotListEventsState extends ProfileState {
   final ProfileEventModels? profileEventsModels;
   final ProfileEventModels? profileVisitedEventsModels;

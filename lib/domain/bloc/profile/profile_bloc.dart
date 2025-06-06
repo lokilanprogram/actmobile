@@ -19,20 +19,22 @@ part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc() : super(ProfileInitial()) {
-      on<InitializeMapEvent>((event, emit) async {
+    on<InitializeMapEvent>((event, emit) async {
       try {
-        final events = await EventsApi().searchEventsOnMap(event.latitude, event.longitude);
-        if (events!=null) {
+        final events = await EventsApi()
+            .searchEventsOnMap(event.latitude, event.longitude);
+        if (events != null) {
           emit(InitializeMapState(searchedEventsModel: events));
         }
       } catch (e) {
         emit(InitializeMapErrorState());
       }
     });
-      on<SearchEventsOnMapEvent>((event, emit) async {
+    on<SearchEventsOnMapEvent>((event, emit) async {
       try {
-        final events = await EventsApi().searchEventsOnMap(event.latitude, event.longitude);
-        if (events!=null) {
+        final events = await EventsApi()
+            .searchEventsOnMap(event.latitude, event.longitude);
+        if (events != null) {
           emit(SearchedEventsOnMapState(searchedEventsModel: events));
         }
       } catch (e) {
@@ -84,11 +86,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
     });
 
-        on<ProfileLeaveEvent>((event, emit) async {
+    on<ProfileLeaveEvent>((event, emit) async {
       try {
         final isLeft = await EventsApi().leaveEvent(event.eventId);
         if (isLeft != null) {
-        final eventModel = await EventsApi().getProfileEvent(event.eventId);
+          final eventModel = await EventsApi().getProfileEvent(event.eventId);
           emit(ProfileLeftState(eventModel: eventModel!));
         }
       } on Exception catch (e) {
@@ -105,9 +107,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
     });
 
- on<ProfileReportEvent>((event, emit) async {
+    on<ProfileReportEvent>((event, emit) async {
       try {
-        final isReported = await EventsApi().reportEvent(event.imageUrl, event.title,event.comment,event.eventId);
+        final isReported = await EventsApi().reportEvent(
+            event.imageUrl, event.title, event.comment, event.eventId);
         if (isReported != null) {
           emit(ProfileReportedEventState());
         }
@@ -126,7 +129,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     });
     on<ProfileUpdateEvent>((event, emit) async {
       try {
-        final profile = await ProfileApi().updateProfile(event.profileModel,);
+        final profile = await ProfileApi().updateProfile(
+          event.profileModel,
+        );
         if (event.profileModel.photoUrl != null) {
           await ProfileApi().updateProfilePicture(event.profileModel.photoUrl!);
         }
@@ -142,12 +147,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileGetListEventsEvent>((event, emit) async {
       try {
         final profile = await ProfileApi().getProfile();
-        if(profile != null){
-        final events = await ProfileApi().getProfileListEvents();
-        final visitedEvents = await ProfileApi().getProfileVisitedListEvents();
-        emit(ProfileGotListEventsState(
-          profileVisitedEventsModels: visitedEvents,
-          profileEventsModels: events,isVerified: profile.isEmailVerified));
+        if (profile != null) {
+          final events = await ProfileApi().getProfileListEvents();
+          final visitedEvents =
+              await ProfileApi().getProfileVisitedListEvents();
+          emit(ProfileGotListEventsState(
+              profileVisitedEventsModels: visitedEvents,
+              profileEventsModels: events,
+              isVerified: profile.isEmailVerified));
         }
       } catch (e) {
         emit(ProfileGotListEventsErrorState());
@@ -166,9 +173,22 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
     });
 
-       on<ProfileInviteUserEvent>((event, emit) async {
+    on<ProfileDeleteEvent>((event, emit) async {
       try {
-        final isInvited = await ProfileApi().inviteUser(event.userId, event.eventId);
+        final isDelete = await AuthApi().authDelete();
+        if (isDelete) {
+          await deleteAuthTokens(false);
+          emit(ProfileDeleteState());
+        }
+      } catch (e) {
+        emit(ProfileDeleteErrorState());
+      }
+    });
+
+    on<ProfileInviteUserEvent>((event, emit) async {
+      try {
+        final isInvited =
+            await ProfileApi().inviteUser(event.userId, event.eventId);
         if (isInvited != null) {
           emit(ProfileInvitedUserState());
         }
@@ -177,43 +197,47 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
     });
 
-      on<ProfileRecommendUsersEvent>((event, emit) async {
+    on<ProfileRecommendUsersEvent>((event, emit) async {
       try {
-        final recommendatedUsersModel = await EventsApi().getProfileRecommendedUsers(event.eventId);
+        final recommendatedUsersModel =
+            await EventsApi().getProfileRecommendedUsers(event.eventId);
         if (recommendatedUsersModel != null) {
-          emit(ProfileRecommentedUsersState(recommendatedUsersModel: recommendatedUsersModel));
+          emit(ProfileRecommentedUsersState(
+              recommendatedUsersModel: recommendatedUsersModel));
         }
       } catch (e) {
         emit(ProfileRecommentedUsersErrorState(errorText: 'Произошла ошибка'));
       }
     });
-     on<ProfileGetEventDetailEvent>((event, emit) async {
+    on<ProfileGetEventDetailEvent>((event, emit) async {
       try {
         final eventDetail = await EventsApi().getProfileEvent(event.eventId);
         final profile = await ProfileApi().getProfile();
         if (eventDetail != null && profile != null) {
-          emit(ProfileGotEventDetailState(eventModel: eventDetail, profileModel: profile));
+          emit(ProfileGotEventDetailState(
+              eventModel: eventDetail, profileModel: profile));
         }
       } catch (e) {
         emit(ProfileGotEventDetailErrorState());
       }
     });
 
-     on<ProfileBlockUserEvent>((event, emit) async {
+    on<ProfileBlockUserEvent>((event, emit) async {
       try {
         final isBlocked = await ProfileApi().blockUser(event.userId);
         if (isBlocked != null) {
           emit(ProfileBlockedUserState());
         }
       } catch (e) {
-          emit(ProfileBlockedUserErrorState());
+        emit(ProfileBlockedUserErrorState());
       }
     });
-  on<ProfileCancelActivityEvent>((event, emit) async {
+    on<ProfileCancelActivityEvent>((event, emit) async {
       try {
-        final isCanceled = await EventsApi().cancelActivity(event.eventId,event.isRecurring);
+        final isCanceled =
+            await EventsApi().cancelActivity(event.eventId, event.isRecurring);
         if (isCanceled != null) {
-        emit(ProfileCanceledActivityState());
+          emit(ProfileCanceledActivityState());
         }
       } catch (e) {
         final jsonStr = e.toString().replaceFirst('Error: ', '');
@@ -231,20 +255,22 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     on<ProfileAcceptUserOnActivityEvent>((event, emit) async {
       try {
-        final isConfirmed = await EventsApi().acceptUserOnActivity(event.eventId,event.userId,event.status);
+        final isConfirmed = await EventsApi()
+            .acceptUserOnActivity(event.eventId, event.userId, event.status);
         if (isConfirmed != null) {
-        final eventDetail = await EventsApi().getProfileEvent(event.eventId);
-        emit(ProfileAcceptedUserOnActivityState(userId: event.userId, participants: eventDetail!.participants));
+          final eventDetail = await EventsApi().getProfileEvent(event.eventId);
+          emit(ProfileAcceptedUserOnActivityState(
+              userId: event.userId, participants: eventDetail!.participants));
         }
       } catch (e) {
         emit(ProfileAcceptedUserOnActivityErrorState());
       }
     });
 
-
     on<ProfileReportUser>((event, emit) async {
       try {
-        final isReported = await EventsApi().reportUser(event.imageUrl, event.title,event.userId);
+        final isReported = await EventsApi()
+            .reportUser(event.imageUrl, event.title, event.userId);
         if (isReported != null) {
           emit(ProfileReportedUserState());
         }
@@ -252,6 +278,5 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         emit(ProfileReportedUserErrorState(errorText: 'Произошла ошибка'));
       }
     });
-    
   }
 }

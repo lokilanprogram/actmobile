@@ -25,50 +25,52 @@ class _InitialScreenState extends State<InitialScreen> {
   ProfileModel? profile;
   @override
   void initState() {
-   initialize();
+    initialize();
     super.initState();
   }
 
   initialize() async {
-    try{
-    final accessToken = await storage.read(key: accessStorageToken);
-    final refreshToken = await storage.read(key: refreshStorageToken);
-    if(accessToken!=null){
-     profile = await ProfileApi().getProfile(); 
-    }
-    print('access token ---- $accessToken');
-    print('refresh token ---- $refreshToken');
-    await Future.delayed(Duration(seconds: 1)).then((_) async {
-   if (profile != null) {
-        await FirebaseApi().initNotifications();
-    await NotificationService().initNotification();
-    await FirebaseApi().setupInteractedMessage();
-          await storage.write(key: userIdStorage, value: profile!.id);
-          if(profile!.categories.isNotEmpty){
-            Navigator.push(context, MaterialPageRoute(builder: (_)=>MapScreen(
-              selectedScreenIndex: 0,
-            )));
-            }else{
-              Navigator.push(context, MaterialPageRoute(builder: (_)=>EventsAroundScreen()));
-            }
-      }else{
-      await deleteAuthTokens(false);
-        Navigator.push(context, MaterialPageRoute(builder: (_)=>SelectInputScreen()));
+    try {
+      final accessToken = await storage.read(key: accessStorageToken);
+      final refreshToken = await storage.read(key: refreshStorageToken);
+      if (accessToken != null) {
+        profile = await ProfileApi().getProfile();
       }
-    });
-    }catch(e){
+      print('access token ---- $accessToken');
+      print('refresh token ---- $refreshToken');
+      await Future.delayed(Duration(seconds: 1)).then((_) async {
+        if (profile != null) {
+          await FirebaseApi().initNotifications();
+          await NotificationService().initNotification();
+          await FirebaseApi().setupInteractedMessage();
+          await storage.write(key: userIdStorage, value: profile!.id);
+          if (profile!.categories.isNotEmpty) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => MapScreen(
+                          selectedScreenIndex: 0,
+                        )));
+          } else {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => EventsAroundScreen()));
+          }
+        } else {
+          await deleteAuthTokens(false);
+          Navigator.push(
+              context, MaterialPageRoute(builder: (_) => SelectInputScreen()));
+        }
+      });
+    } catch (e) {
       print(e.toString());
       await deleteAuthTokens(true);
-      Navigator.push(context, MaterialPageRoute(builder: (_)=>SelectInputScreen()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => SelectInputScreen()));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.white,
-      body: LoaderWidget()
-    );
+    return Scaffold(backgroundColor: Colors.white, body: LoaderWidget());
   }
 }
-
-

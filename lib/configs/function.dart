@@ -52,7 +52,7 @@ Future<void> addEventIconFromUrl(MapboxMap mapboxMap,String id, Uint8List imageD
 }
 
 Future<File> getImageFileFromAssets(String path) async {
-  final byteData = await rootBundle.load('assets/$path');
+  final byteData = await rootBundle.load('$path');
 
   final file = File('${(await getTemporaryDirectory()).path}/$path');
   await file.create(recursive: true);

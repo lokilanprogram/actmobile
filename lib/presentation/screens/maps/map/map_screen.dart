@@ -1,11 +1,12 @@
-import 'dart:async';
-import 'dart:typed_data';
+import 'package:acti_mobile/configs/geolocator_utils.dart';
+import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
+import 'package:acti_mobile/domain/websocket/websocket.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/card_event_on_map.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
-import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/main.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/marker.dart';
@@ -120,7 +121,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void dispose() {
     // Dispose Mapbox resources
-    mapboxMap?.dispose();
+    //mapboxMap?.dispose();
     // pointAnnotationManager?.dispose(); // PointAnnotationManager might not have a public dispose, depending on the version/implementation detail, disposing mapboxMap usually handles managers.
     _deepLinkService?.dispose();
     sheetController.dispose();
@@ -140,6 +141,8 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       currentPermission = permission;
     });
+    final accessToken = await storage.read(key: accessStorageToken);
+    connectToOnlineStatus(accessToken!);
     if (currentPermission.name == 'denied') {
       final permission = await geolocator.Geolocator.requestPermission();
       setState(() {
@@ -147,12 +150,21 @@ class _MapScreenState extends State<MapScreen> {
       });
     }
     if (currentPermission.name != 'denied') {
-      final position = await geolocator.Geolocator.getCurrentPosition();
-      setState(() {
-        currentUserPosition = Position(position.longitude, position.latitude);
-        currentSelectedPosition =
-            Position(position.longitude, position.latitude);
-      });
+      if (await checkGeolocator()) {
+        final position = await geolocator.Geolocator.getCurrentPosition();
+        setState(() {
+          currentUserPosition = Position(position.longitude, position.latitude);
+          currentSelectedPosition =
+              Position(position.longitude, position.latitude);
+        });
+      } else {
+        const defaultLatitude = 55.7558;
+        const defaultLongitude = 37.6173;
+
+        setState(() {
+          currentSelectedPosition = Position(defaultLongitude, defaultLatitude);
+        });
+      }
     } else {
       setState(() {
         currentUserPosition = null;
@@ -231,151 +243,158 @@ class _MapScreenState extends State<MapScreen> {
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: isLoading
-            ? const LoaderWidget()
-            : Stack(
-                children: [
-                  // Use IndexedStack to keep all screens alive
-                  IndexedStack(
-                    index: selectedIndex,
-                    children: [
-                      MapWidget(
-                        // MapWidget is now the first child at index 0
-                        onStyleLoadedListener: (styleLoadedEventData) async {
-                          if (currentUserPosition != null) {
-                            await addUserIconToStyle(mapboxMap!);
-                          }
-                          // Add existing events to the map on style load
-                          if (searchedEventsModel != null &&
-                              mapboxMap != null) {
-                            for (var event in searchedEventsModel!.events) {
-                              final result =
-                                  await screenshotController.captureFromWidget(
-                                CategoryMarker(
-                                    title: event.category!.name,
-                                    iconUrl: event.category!.iconPath),
-                              );
-                              await addEventIconFromUrl(
-                                  mapboxMap!, 'pointer:${event.id}', result);
-                              final pointAnnotationOptions =
-                                  PointAnnotationOptions(
-                                geometry: Point(
-                                    coordinates: Position(
-                                        event.longitude!, event.latitude!)),
-                                iconSize: 0.75,
-                                image: result,
-                                iconImage: 'pointer:${event.id}',
-                              );
-                              await pointAnnotationManager
-                                  .create(pointAnnotationOptions);
+        body: WillPopScope(
+          onWillPop: () async {
+            SystemNavigator.pop();
+            return false;
+          },
+          child: isLoading
+              ? const LoaderWidget()
+              : Stack(
+                  children: [
+                    // Use IndexedStack to keep all screens alive
+                    IndexedStack(
+                      index: selectedIndex,
+                      children: [
+                        MapWidget(
+                          // MapWidget is now the first child at index 0
+                          onStyleLoadedListener: (styleLoadedEventData) async {
+                            if (currentUserPosition != null) {
+                              await addUserIconToStyle(mapboxMap!);
                             }
-                          }
+                            // Add existing events to the map on style load
+                            if (searchedEventsModel != null &&
+                                mapboxMap != null) {
+                              for (var event in searchedEventsModel!.events) {
+                                final result = await screenshotController
+                                    .captureFromWidget(
+                                  CategoryMarker(
+                                      title: event.category!.name,
+                                      iconUrl: event.category!.iconPath),
+                                );
+                                await addEventIconFromUrl(
+                                    mapboxMap!, 'pointer:${event.id}', result);
+                                final pointAnnotationOptions =
+                                    PointAnnotationOptions(
+                                  geometry: Point(
+                                      coordinates: Position(
+                                          event.longitude!, event.latitude!)),
+                                  iconSize: 0.75,
+                                  image: result,
+                                  iconImage: 'pointer:${event.id}',
+                                );
+                                await pointAnnotationManager
+                                    .create(pointAnnotationOptions);
+                              }
+                            }
+                          },
+                          onScrollListener: _onScroll,
+                          onTapListener: _onTap,
+                          styleUri:
+                              'mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj',
+                          cameraOptions: CameraOptions(
+                            zoom: currentZoom,
+                            center: Point(
+                              coordinates: Position(
+                                currentSelectedPosition.lng,
+                                currentSelectedPosition.lat,
+                              ),
+                            ),
+                          ),
+                          key: const ValueKey("MapWidget"),
+                          onMapCreated: _onMapCreated,
+                        ),
+                        ...screens // Other screens follow
+                      ],
+                    ),
+
+                    // Map controls should only be visible on the map screen (selectedIndex == 0)
+                    if (selectedIndex == 0)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: buildMapControls(),
+                      ),
+
+                    if (showEvents &&
+                        selectedIndex ==
+                            0) // Show events list only on map screen
+                      DraggableScrollableSheet(
+                        controller: sheetController,
+                        initialChildSize: 0.8, // стартовая высота
+                        builder: (context, scrollController) {
+                          return EventsHomeListOnMapWidget(
+                              scrollController: scrollController);
                         },
-                        onScrollListener: _onScroll,
-                        onTapListener: _onTap,
-                        styleUri:
-                            'mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj',
-                        cameraOptions: CameraOptions(
-                          zoom: currentZoom,
-                          center: Point(
-                            coordinates: Position(
-                              currentSelectedPosition.lng,
-                              currentSelectedPosition.lat,
+                      ),
+
+                    // My Events button (assuming it's part of the profile screen)
+                    // This logic might need to be moved inside ProfileMenuScreen
+                    if (selectedIndex == 3)
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: 140),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => MyEventsScreen()));
+                            },
+                            child: Material(
+                              elevation: 1.2,
+                              borderRadius: BorderRadius.circular(25),
+                              child: Container(
+                                height: 59,
+                                width: MediaQuery.of(context).size.width * 0.8,
+                                decoration: BoxDecoration(
+                                  color: mainBlueColor,
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SvgPicture.asset(
+                                        'assets/icons/icon_event_bar.svg'),
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+                                    Text(
+                                      'Мои события',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontFamily: 'Gilroy',
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold),
+                                    )
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                        key: const ValueKey("MapWidget"),
-                        onMapCreated: _onMapCreated,
                       ),
-                      ...screens // Other screens follow
-                    ],
-                  ),
 
-                  // Map controls should only be visible on the map screen (selectedIndex == 0)
-                  if (selectedIndex == 0)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: buildMapControls(),
-                    ),
-
-                  if (showEvents &&
-                      selectedIndex == 0) // Show events list only on map screen
-                    DraggableScrollableSheet(
-                      controller: sheetController,
-                      initialChildSize: 0.8, // стартовая высота
-                      builder: (context, scrollController) {
-                        return EventsHomeListOnMapWidget(
-                            scrollController: scrollController);
-                      },
-                    ),
-
-                  // My Events button (assuming it's part of the profile screen)
-                  // This logic might need to be moved inside ProfileMenuScreen
-                  if (selectedIndex == 3)
                     Align(
                       alignment: Alignment.bottomCenter,
                       child: Padding(
-                        padding: EdgeInsets.only(bottom: 140),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => MyEventsScreen()));
+                        padding: const EdgeInsets.only(bottom: 60),
+                        child: CustomNavBarWidget(
+                          selectedIndex: selectedIndex,
+                          onTabSelected: (int index) async {
+                            setState(() {
+                              selectedIndex = index;
+                            });
+                            // Handle navigation if needed, or IndexedStack manages visibility
+                            // If navigating to a new screen that should replace MapScreen, use Navigator.push
+                            // If staying within the same navigation stack, IndexedStack is sufficient for switching views
                           },
-                          child: Material(
-                            elevation: 1.2,
-                            borderRadius: BorderRadius.circular(25),
-                            child: Container(
-                              height: 59,
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              decoration: BoxDecoration(
-                                color: mainBlueColor,
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SvgPicture.asset(
-                                      'assets/icons/icon_event_bar.svg'),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Text(
-                                    'Мои события',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontFamily: 'Gilroy',
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.bold),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
                         ),
                       ),
                     ),
-
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 60),
-                      child: CustomNavBarWidget(
-                        selectedIndex: selectedIndex,
-                        onTabSelected: (int index) async {
-                          setState(() {
-                            selectedIndex = index;
-                          });
-                          // Handle navigation if needed, or IndexedStack manages visibility
-                          // If navigating to a new screen that should replace MapScreen, use Navigator.push
-                          // If staying within the same navigation stack, IndexedStack is sufficient for switching views
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+        ),
       ),
     );
   }
@@ -436,7 +455,7 @@ class _MapScreenState extends State<MapScreen> {
                       zoom: currentZoom));
                 } else {
                   // Re-initialize if location is not available
-                  initialize();
+                  if (await checkGeolocator()) initialize();
                 }
               },
               icon: SvgPicture.asset('assets/left_drawer/my_location.svg'),

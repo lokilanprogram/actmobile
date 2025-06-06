@@ -38,145 +38,171 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if(state  is ActiSavedOnbordingState){
+        if (state is ActiSavedOnbordingState) {
           setState(() {
             isLoading = false;
           });
-          Navigator.push(context, MaterialPageRoute(builder: (context)=> EventsStartScreen()));
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => EventsStartScreen()));
         }
-          if(state is ActiSavedOnbordingErrorState){
+        if (state is ActiSavedOnbordingErrorState) {
           setState(() {
             isLoading = false;
           });
-       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Ошибка')));
         }
-         if(state is ActiGotOnbordingState){
+        if (state is ActiGotOnbordingState) {
           setState(() {
-  isLoading = false;
-  listOnbordingModel = state.listOnbordingModel;
-  selected = List<bool>.filled(listOnbordingModel.categories.length, false);
-});
+            isLoading = false;
+            listOnbordingModel = state.listOnbordingModel;
+            selected =
+                List<bool>.filled(listOnbordingModel.categories.length, false);
+          });
         }
-        if(state is ActiGotOnbordingErrorState){
-        setState(() {
-        isLoading = false;
-       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка')));
-
+        if (state is ActiGotOnbordingErrorState) {
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Ошибка')));
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
-        body: isLoading
-            ? LoaderWidget()
-            : Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(
-                          "assets/images/back.png",),
-                        fit: BoxFit.cover,
+          backgroundColor: Colors.white,
+          body: isLoading
+              ? LoaderWidget()
+              : Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(
+                        "assets/images/back.png",
                       ),
+                      fit: BoxFit.cover,
                     ),
-                child: Padding(
+                  ),
+                  child: Padding(
                     padding: EdgeInsets.only(
-                      right: 40,
-                      left: 40,
+                      right: 35,
+                      left: 35,
                     ),
                     child: SingleChildScrollView(
-                      child:  Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                          SizedBox(height: 25,),
-                           GridView.count(
-  shrinkWrap: true,
-  physics: NeverScrollableScrollPhysics(),
-  crossAxisCount: 2,
-  mainAxisSpacing: 10,
-  crossAxisSpacing: 14,
-  childAspectRatio: 4,
-  children: List.generate(listOnbordingModel.categories.length, (index) {
-    final event = listOnbordingModel.categories[index];
-    final isSelected = selected[index];
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 25,
+                          ),
+                          GridView.count(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 14,
+                            childAspectRatio: 4,
+                            children: List.generate(
+                                listOnbordingModel.categories.length, (index) {
+                              final event =
+                                  listOnbordingModel.categories[index];
+                              final isSelected = selected[index];
 
-    return InkWell(
-      onTap: () {
-        setState(() {
-          selected[index] = !selected[index];
-          if (selected[index]) {
-            listOnboarding.add(event);
-          } else {
-            listOnboarding.remove(event);
-          }
-        });
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          color: isSelected ? Colors.blue : Colors.white,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Row(
-            children: [
-              Image.network(event.iconPath, width: 18, height: 23,color: isSelected ? Colors.white:null,),
-              SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  event.name,
-                  style: TextStyle(
-                    fontFamily: 'Gilroy',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
-                    color: isSelected ? Colors.white : Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }),
-),
-SizedBox(height: 45,),
-
-                            Padding(
-                              padding: const EdgeInsets.only(right: 10,),
-                              child: Center(
-                                  child: SvgPicture.asset(
-                                      'assets/texts/text_select_event.svg')),
-                            ),
-                            const SizedBox(height: 45),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                PopNavButton(
-                                  text: 'Назад',
-                                  function: () {
-                                    Navigator.pop(context);
-                                  },
+                              return InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    selected[index] = !selected[index];
+                                    if (selected[index]) {
+                                      listOnboarding.add(event);
+                                    } else {
+                                      listOnboarding.remove(event);
+                                    }
+                                  });
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30),
+                                    color:
+                                        isSelected ? Colors.blue : Colors.white,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: Row(
+                                      children: [
+                                        Image.network(
+                                          event.iconPath,
+                                          width: 18,
+                                          height: 23,
+                                          color:
+                                              isSelected ? Colors.white : null,
+                                        ),
+                                        SizedBox(width: 5),
+                                        Expanded(
+                                          child: Text(
+                                            event.name,
+                                            overflow: TextOverflow.fade,
+                                            maxLines: 1,
+                                            style: TextStyle(
+                                              fontFamily: 'Gilroy',
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w400,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                PopNavButton(
-                                  text:widget.fromUpdate? 'Сохранить': 'Далее',
-                                  function:widget.fromUpdate?(){
-                                    Navigator.pop(context, listOnboarding);
-                                  }: () {
-                                    setState(() {
-                                      isLoading = true;
-                                    });
-                                    context.read<AuthBloc>().add(ActiSaveOnbordingEvent(listOnboarding:listOnboarding));
-                                  },
-                                ),
-                              ],
+                              );
+                            }),
+                          ),
+                          SizedBox(
+                            height: 45,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              right: 10,
                             ),
-                            const SizedBox(height: 35),
-                          ],
-                        ),
+                            child: Center(
+                                child: SvgPicture.asset(
+                                    'assets/texts/text_select_event.svg', fit: BoxFit.fill,)),
+                          ),
+                          const SizedBox(height: 45),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              PopNavButton(
+                                text: 'Назад',
+                                function: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              PopNavButton(
+                                text: widget.fromUpdate ? 'Сохранить' : 'Далее',
+                                function: widget.fromUpdate
+                                    ? () {
+                                        Navigator.pop(context, listOnboarding);
+                                      }
+                                    : () {
+                                        setState(() {
+                                          isLoading = true;
+                                        });
+                                        context.read<AuthBloc>().add(
+                                            ActiSaveOnbordingEvent(
+                                                listOnboarding:
+                                                    listOnboarding));
+                                      },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 35),
+                        ],
                       ),
                     ),
-                  )
-              
-      ),
+                  ),
+                )),
     );
   }
 }

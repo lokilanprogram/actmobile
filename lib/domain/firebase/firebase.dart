@@ -15,30 +15,30 @@ class FirebaseApi {
   Future<void> initNotifications() async {
     String? token;
     NotificationSettings settings = await firebaseMessaging.requestPermission();
-    if(Platform.isIOS){
-     token =  await firebaseMessaging.getAPNSToken();
-   print('Firebase apns token ${token}');
-    await Future.delayed(Duration(seconds: 2));
-    }else{
-    token = await firebaseMessaging.getToken();
-   print('Firebase token  ${token}');
-   }
-  
-   if(token != null){
-    try{
-    await AuthApi().sendFcmToken(token);
-    }catch(e){
-      print(e.toString());
+    if (Platform.isIOS) {
+      token = await firebaseMessaging.getAPNSToken();
+      print('Firebase apns token ${token}');
+      await Future.delayed(Duration(seconds: 2));
+    } else {
+      token = await firebaseMessaging.getToken();
+      print('Firebase token  ${token}');
     }
-  }
+
+    if (token != null) {
+      try {
+        await AuthApi().sendFcmToken(token);
+      } catch (e) {
+        print(e.toString());
+      }
+    }
     await firebaseMessaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
     );
     print('User granted permission: ${settings.authorizationStatus}');
-  
   }
+
   Future<void> setupInteractedMessage() async {
     // Get any messages which caused the application to open from
     // a terminated state.
@@ -50,7 +50,6 @@ class FirebaseApi {
     if (initialMessage != null) {
       _handleMessage(initialMessage);
     }
-    
 
     // Also handle any interaction when the app is in the background via a
     // Stream listener
@@ -64,21 +63,28 @@ class FirebaseApi {
   }
 
   Future<void> _handleMessage(RemoteMessage message) async {
-  final decoded = message.data;
-  String? eventId = decoded['event_id'];
-  String? chatId = decoded["chat_id"];
-  if (eventId != null) {
-     navigatorKey.currentState?.push(
-      MaterialPageRoute(
-        builder: (context) => EventDetailScreen(eventId: decoded['event_id'],),
-      ),
-    );
+    final decoded = message.data;
+    String? eventId = decoded['event_id'];
+    String? chatId = decoded["chat_id"];
+    if (eventId != null) {
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (context) => EventDetailScreen(
+            eventId: decoded['event_id'],
+          ),
+        ),
+      );
+    }
+    if (chatId != null) {
+      navigatorKey.currentState?.push(MaterialPageRoute(
+        builder: (_) => ChatDetailScreen(
+          interlocutorAvatar: null,
+          interlocutorChatId: chatId,
+          interlocutorName: '...',
+          trailingText: null,
+          interlocutorUserId: null,
+        ),
+      ));
+    }
   }
-  if(chatId != null){
-        navigatorKey.currentState?.push(
-         MaterialPageRoute(builder: (_) => ChatDetailScreen(interlocutorAvatar: null,interlocutorChatId: chatId,
-         interlocutorName: '...',trailingText: null,interlocutorUserId: null,),
-        ));
-       }
-}
 }

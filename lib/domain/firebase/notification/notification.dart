@@ -45,21 +45,29 @@ class NotificationService {
     print('background for messaging');
   }
 
-  static Future<void> notificationTapForeground(NotificationResponse notification) async {
-    if(notification.payload!=null){
+  static Future<void> notificationTapForeground(
+      NotificationResponse notification) async {
+    if (notification.payload != null) {
       final Map<String, dynamic> data = jsonDecode(notification.payload!);
-       String? eventId = data['event_id'];
-       String? chatId = data['chat_id'];
-       if(eventId != null){
+      String? eventId = data['event_id'];
+      String? chatId = data['chat_id'];
+      if (eventId != null) {
         navigatorKey.currentState?.push(
-          MaterialPageRoute(builder: (_) => EventDetailScreen(eventId: eventId)),
+          MaterialPageRoute(
+              builder: (_) => EventDetailScreen(eventId: eventId)),
         );
-       }
-       if(chatId != null){
-         MaterialPageRoute(builder: (_) => ChatDetailScreen(interlocutorAvatar: null,interlocutorChatId: null,
-         interlocutorName: '...',trailingText: null,interlocutorUserId: null,),
+      }
+      if (chatId != null) {
+        MaterialPageRoute(
+          builder: (_) => ChatDetailScreen(
+            interlocutorAvatar: null,
+            interlocutorChatId: null,
+            interlocutorName: '...',
+            trailingText: null,
+            interlocutorUserId: null,
+          ),
         );
-       }
+      }
     }
   }
 
@@ -73,9 +81,9 @@ class NotificationService {
             channelShowBadge: true,
             styleInformation: BigTextStyleInformation(''),
             playSound: true,
-           color: Colors.white,
+            color: Colors.white,
             ongoing: true,
-              largeIcon: DrawableResourceAndroidBitmap('@mipmap/icon_acti'),
+            largeIcon: DrawableResourceAndroidBitmap('@mipmap/icon_acti'),
             importance: Importance.max,
             enableVibration: true,
             priority: Priority.high,
@@ -95,7 +103,7 @@ class NotificationService {
               channelShowBadge: true,
               subText: body,
               largeIcon: DrawableResourceAndroidBitmap('@mipmap/icon_acti'),
-           color: Colors.white,
+              color: Colors.white,
               styleInformation: BigTextStyleInformation(''),
               playSound: true,
               ongoing: true,

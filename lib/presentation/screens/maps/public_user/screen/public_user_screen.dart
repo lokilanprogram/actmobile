@@ -40,299 +40,339 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
     setState(() {
       isLoading = true;
     });
-    context.read<ProfileBloc>().add(ProfileGetPublicUserEvent(userId: widget.userId));
+    context
+        .read<ProfileBloc>()
+        .add(ProfileGetPublicUserEvent(userId: widget.userId));
   }
 
- @override
-Widget build(BuildContext context) {
-  return BlocListener<ProfileBloc, ProfileState>(
-    listener: (context, state) async {
-      if(state is ProfileBlockedUserState){
-        setState(() {
-          isLoading = false;
-        });
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Заблокировали')));
-      }
-      if (state is ProfileGotPublicUserState) {
-        setState(() {
-          isLoading = false;
-          publicUserModel = state.publicUserModel;
-          isBlocked = state.publicUserModel.isBlockedByUser ?? false;
-        });
-      }
-       if(state is ProfileUpdatedState){
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<ProfileBloc, ProfileState>(
+      listener: (context, state) async {
+        if (state is ProfileBlockedUserState) {
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Заблокировали')));
+        }
+        if (state is ProfileGotPublicUserState) {
+          setState(() {
+            isLoading = false;
+            publicUserModel = state.publicUserModel;
+            isBlocked = state.publicUserModel.isBlockedByUser ?? false;
+          });
+        }
+        if (state is ProfileUpdatedState) {
           initialize();
         }
-        
-      if(state is ProfileBlockedUserErrorState){
-        setState(() {
-          isLoading = false;
-        });
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Ошибка')));
 
-      }
-      if (state is ProfileGotPublicUserErrorState) {
-        setState(() {
-          isLoading = false;
-        });
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Ошибка')));
-      }
-    },
-    child: Scaffold(
-      backgroundColor: Colors.white,
-      extendBody: true,
-      body: isLoading
-          ? LoaderWidget()
-          : Stack(
-            children: [
-              Positioned.fill(
-                child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Stack(
-                          children: [
-                            publicUserModel.photoUrl != null
-                                  ? Image.network(
-                                      publicUserModel.photoUrl!,
+        if (state is ProfileBlockedUserErrorState) {
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Ошибка')));
+        }
+        if (state is ProfileGotPublicUserErrorState) {
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Ошибка')));
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        extendBody: true,
+        body: isLoading
+            ? LoaderWidget()
+            : Stack(
+                children: [
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Stack(
+                            children: [
+                              publicUserModel.photoUrl != null
+                                  ? Image.network(publicUserModel.photoUrl!,
                                       width: double.infinity,
                                       height: 350,
                                       fit: BoxFit.cover,
-                                      loadingBuilder: (BuildContext context, Widget child,
-                      ImageChunkEvent? loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return SizedBox(height: 350,
-                      child: Center(
-                        child: CircularProgressIndicator(color: mainBlueColor,
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      ),
-                    );}
-                                    )
+                                      loadingBuilder: (BuildContext context,
+                                          Widget child,
+                                          ImageChunkEvent? loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return SizedBox(
+                                        height: 350,
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            color: mainBlueColor,
+                                            value: loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                          ),
+                                        ),
+                                      );
+                                    })
                                   : Image.asset(
                                       'assets/images/image_profile.png',
                                       width: double.infinity,
                                       height: 350,
                                       fit: BoxFit.cover,
                                     ),
-                            
-                            Positioned(
-                              top: 66,
-                              left: 20,
-                              child: IconButton(
-                                icon: SvgPicture.asset('assets/icons/icon_back_white.svg'),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            ),
-                            Positioned(
-                              top: 77,
-                              right: 60,
-                              child: Icon(Icons.notifications_none_outlined,
-                                  color: Colors.white),
-                            ),
-                            Positioned(
-                              top: 77,
-                              right: 20,
-                              child: PopUpPublicUserButtons
-                              (userId: widget.userId,
-                                blockFunction: ()async{
-                                setState(() {
-                                  isLoading = true;
-                                });
-                                context.read<ProfileBloc>().add(ProfileBlockUserEvent(userId: widget.userId));
-                              },
-                              userName: publicUserModel.name ?? 'Неизвестный',
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 30,
-                              left: 20,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    publicUserModel.name ?? 'Неизвестный',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  Text(
-                                    capitalize(publicUserModel.status ?? 'Offline'),
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white70,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                             Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                width: MediaQuery.of(context).size.width,
-                                height: 20,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(20),
-                                    topRight: Radius.circular(20)
-                                  ),
-                                  color: Colors.white
-                                ),
-                              )
-                            ),
-                          ],
-                        ),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Профиль',
-                                style: TextStyle(
-                                  fontSize: 25,
-                                  fontFamily: 'Gilroy',
-                                  fontWeight: FontWeight.bold,
-                                  color: mainBlueColor,
+                              Positioned(
+                                top: 48,
+                                left: 10,
+                                child: IconButton(
+                                  icon: SvgPicture.asset(
+                                      'assets/icons/icon_back_white.svg'),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
                                 ),
                               ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                'О себе',
-                                style: TextStyle(
-                                  fontSize: 16.67,
-                                  fontFamily: 'Gilroy',
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black,
+                              // Positioned(
+                              //   top: 77,
+                              //   right: 60,
+                              //   child: Icon(Icons.notifications_none_outlined,
+                              //       color: Colors.white),
+                              // ),
+                              Positioned(
+                                top: 48,
+                                right: 10,
+                                child: PopUpPublicUserButtons(
+                                  userId: widget.userId,
+                                  blockFunction: () async {
+                                    setState(() {
+                                      isLoading = true;
+                                    });
+                                    context.read<ProfileBloc>().add(
+                                        ProfileBlockUserEvent(
+                                            userId: widget.userId));
+                                  },
+                                  userName:
+                                      publicUserModel.name ?? 'Неизвестный',
                                 ),
                               ),
-                              Text(
-                                publicUserModel.bio?.isNotEmpty == true ? publicUserModel.bio! : '...',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 12,
+                              Positioned(
+                                bottom: 30,
+                                left: 20,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      publicUserModel.name ?? 'Неизвестный',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      capitalize(
+                                          publicUserModel.status ?? 'Offline'),
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 15),
-                
-                              // Интересы
-                              Center(
-                                child: Wrap(
-                                  spacing: 10,
-                                  runSpacing: 10,
-                                  children: publicUserModel.categories
-                                      .map((event) => buildInterestChip(event.name))
-                                      .toList(),
-                                ),
-                              ),
-                
-                              const SizedBox(height: 25),
-                
-                              // Заголовок и рейтинг
-                              Row(
-                                children: [
-                                  Text(
-                                    'События ${publicUserModel.name}',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      fontFamily: 'Gilroy',
-                                    ),
-                                  ),
-                                  const SizedBox(width: 7),
-                                  SvgPicture.asset('assets/icons/icon_star.svg'),
-                                  const SizedBox(width: 3),
-                                  GradientText(
-                                    '4.1',
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Color.fromRGBO(23, 132, 255, 1),
-                                        Color.fromRGBO(42, 244, 72, 1),
-                                      ],
-                                    ),
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                
-                              const SizedBox(height: 15),
-                
-                              // Карточки событий
-                              Column(
-                                children:publicUserModel.organizedEvents!= null? publicUserModel.organizedEvents!
-                                    .map((event) => MyCardEventWidget(isCompletedEvent: false, organizedEvent: event,isPublicUser: true,))
-                                    .toList():[],
-                              ),
-                               SizedBox(height:publicUserModel.organizedEvents?.length == 1? 200:0),
+                              Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(20),
+                                            topRight: Radius.circular(20)),
+                                        color: Colors.white),
+                                  )),
                             ],
                           ),
-                        ),
-                      ],
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 25, vertical: 5),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(25)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Профиль',
+                                  style: TextStyle(
+                                    fontSize: 25,
+                                    fontFamily: 'Gilroy',
+                                    fontWeight: FontWeight.bold,
+                                    color: mainBlueColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'О себе',
+                                  style: TextStyle(
+                                    fontSize: 16.67,
+                                    fontFamily: 'Gilroy',
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Text(
+                                  publicUserModel.bio?.isNotEmpty == true
+                                      ? publicUserModel.bio!
+                                      : '...',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 15),
+
+                                // Интересы
+                                buildInterestsGrid(
+                                  publicUserModel.categories
+                                      .map((e) => e.name)
+                                      .toList(),
+                                ),
+
+                                const SizedBox(height: 25),
+
+                                // Заголовок и рейтинг
+                                Row(
+                                  children: [
+                                    Text(
+                                      'События ${publicUserModel.name}',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: 'Gilroy',
+                                      ),
+                                    ),
+                                    const SizedBox(width: 7),
+                                    SvgPicture.asset(
+                                        'assets/icons/icon_star.svg'),
+                                    const SizedBox(width: 3),
+                                    GradientText(
+                                      '4.1',
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color.fromRGBO(23, 132, 255, 1),
+                                          Color.fromRGBO(42, 244, 72, 1),
+                                        ],
+                                      ),
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 15),
+
+                                // Карточки событий
+                                Column(
+                                  children:
+                                      publicUserModel.organizedEvents != null
+                                          ? publicUserModel.organizedEvents!
+                                              .map((event) => MyCardEventWidget(
+                                                    isCompletedEvent: false,
+                                                    organizedEvent: event,
+                                                    isPublicUser: true,
+                                                  ))
+                                              .toList()
+                                          : [],
+                                ),
+                                //SizedBox(height:publicUserModel.organizedEvents?.length == 1? 200:0),
+                                SizedBox(height: 200),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-              ),
-               Align(alignment: Alignment.bottomCenter,
+                  Align(
+                    alignment: Alignment.bottomCenter,
                     child: Padding(
-                    padding: EdgeInsets.only(bottom: 60),
-                                child: Container(decoration: BoxDecoration(color: Colors.transparent),
-                                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SendMessageBarWidget(function: (){
-                     Navigator.push(context, MaterialPageRoute(builder: (context)=> ChatDetailScreen(
-                      trailingText: null,
-                      interlocutorAvatar: publicUserModel.photoUrl,
-                     interlocutorName: publicUserModel.name ?? 'Неизвестный',interlocutorChatId:publicUserModel.chatId, interlocutorUserId: widget.userId,)));
-
-                      }),
-                        SizedBox(height: 15,),
-                      CustomNavBarWidget(
-                        selectedIndex: 4, onTabSelected: (index){
-                        if(index == 0){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                          MapScreen(selectedScreenIndex: 0,)));
-                        }
-                        if(index == 2){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=> 
-                          MapScreen(selectedScreenIndex: 2,)));
-                        }
-                        if(index == 3){
-                          Navigator.pop(context);
-                        }
-                      }),
-                    ],
-                                    ),
-                                ),),
+                      padding: EdgeInsets.only(bottom: 60),
+                      child: Container(
+                        decoration: BoxDecoration(color: Colors.transparent),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SendMessageBarWidget(function: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ChatDetailScreen(
+                                            trailingText: null,
+                                            interlocutorAvatar:
+                                                publicUserModel.photoUrl,
+                                            interlocutorName:
+                                                publicUserModel.name ??
+                                                    'Неизвестный',
+                                            interlocutorChatId:
+                                                publicUserModel.chatId,
+                                            interlocutorUserId: widget.userId,
+                                          )));
+                            }),
+                            SizedBox(
+                              height: 15,
+                            ),
+                            CustomNavBarWidget(
+                                selectedIndex: 4,
+                                onTabSelected: (index) {
+                                  if (index == 0) {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => MapScreen(
+                                                  selectedScreenIndex: 0,
+                                                )));
+                                  }
+                                  if (index == 2) {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => MapScreen(
+                                                  selectedScreenIndex: 2,
+                                                )));
+                                  }
+                                  if (index == 3) {
+                                    Navigator.pop(context);
+                                  }
+                                }),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-            ],
-          ),
-    ),
-  );
-}
+                ],
+              ),
+      ),
+    );
+  }
 }
 
 class BlockedInfoWidget extends StatelessWidget {
@@ -343,26 +383,29 @@ class BlockedInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-            onTap: (){
-            },
-            child: Material(
-              elevation: 1.2,
-              borderRadius: BorderRadius.circular(25),
-              child: Container(  
-                width: MediaQuery.of(context).size.width* 0.8,
-      decoration: BoxDecoration(
-        color: Color.fromRGBO(235, 235, 235,1),
+      onTap: () {},
+      child: Material(
+        elevation: 1.2,
         borderRadius: BorderRadius.circular(25),
-      ),
-      child:Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 15),
-        child: Text('Данный пользователь вас заблокировал, вы не можете ему написать.',style: TextStyle(color: Color.fromRGBO(161, 161, 161,1),
-          fontFamily: 'Gilroy',fontSize: 12,fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
-      )
-                
-                
-              ),
+        child: Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            decoration: BoxDecoration(
+              color: Color.fromRGBO(235, 235, 235, 1),
+              borderRadius: BorderRadius.circular(25),
             ),
-          );
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+              child: Text(
+                'Данный пользователь вас заблокировал, вы не можете ему написать.',
+                style: TextStyle(
+                    color: Color.fromRGBO(161, 161, 161, 1),
+                    fontFamily: 'Gilroy',
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            )),
+      ),
+    );
   }
 }
