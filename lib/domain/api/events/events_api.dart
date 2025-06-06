@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:developer' as developer;
-import 'package:acti_mobile/data/models/all_events_model.dart';
+import 'package:acti_mobile/data/models/all_events_model.dart' as events;
 import 'package:acti_mobile/data/models/alter_event_model.dart';
 import 'package:acti_mobile/data/models/mapbox_reverse_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
@@ -376,7 +376,7 @@ class EventsApi {
     return false;
   }
 
-  Future<AllEventsModel?> searchEvents({
+  Future<events.AllEventsModel?> searchEvents({
     required double latitude,
     required double longitude,
     int? radius,
@@ -392,12 +392,37 @@ class EventsApi {
     List<String>? category_ids,
     int? duration_min,
     int? duration_max,
+    int? slots_min,
+    int? slots_max,
     String? search_query,
     int offset = 0,
     int limit = 20,
   }) async {
     final accessToken = await storage.read(key: accessStorageToken);
     if (accessToken != null) {
+      // Преобразуем ограничения в нужный формат
+      List<String>? formattedRestrictions;
+      if (restrictions != null) {
+        formattedRestrictions = restrictions.map((restriction) {
+          switch (restriction) {
+            case 'Онлайн':
+              return 'isOnline';
+            case 'Оффлайн':
+              return 'offline';
+            case 'Можно с животными':
+              return 'withAnimals';
+            case 'Можно с детьми':
+              return 'withKids';
+            case 'Без ограничений':
+              return 'isUnlimited';
+            case 'Строго 18+, без детей':
+              return 'isKidsNotAllowed';
+            default:
+              return restriction;
+          }
+        }).toList();
+      }
+
       final queryParameters = {
         'latitude': latitude.toString(),
         'longitude': longitude.toString(),
@@ -412,12 +437,24 @@ class EventsApi {
         'type': type,
         'price_min': price_min?.toString(),
         'price_max': price_max?.toString(),
-        'restrictions': restrictions,
-        'category_ids': category_ids,
         'duration_min': duration_min?.toString(),
         'duration_max': duration_max?.toString(),
+        'slots_min': slots_min?.toString(),
+        'slots_max': slots_max?.toString(),
         'search_query': search_query,
       };
+
+      // Добавляем restrictions как один параметр с разделителем-запятой
+      if (formattedRestrictions != null && formattedRestrictions.isNotEmpty) {
+        queryParameters['restrictions'] = formattedRestrictions.join(',');
+      }
+
+      // Добавляем category_ids как отдельные параметры
+      if (category_ids != null && category_ids.isNotEmpty) {
+        for (var i = 0; i < category_ids.length; i++) {
+          queryParameters['category_ids'] = category_ids[i];
+        }
+      }
 
       // Remove null values from queryParameters
       queryParameters.removeWhere((key, value) => value == null);
@@ -428,9 +465,29 @@ class EventsApi {
         developer.log('$key: $value');
       });
 
-      final uri = Uri.parse('$API/api/v1/events').replace(
-          queryParameters: queryParameters.map((key, value) => MapEntry(
-              key, value is List ? value.join(',') : value.toString())));
+      // Формируем URL вручную для поддержки массивов
+      final baseUrl = '$API/api/v1/events';
+      final queryParams = <String, List<String>>{};
+
+      // Преобразуем обычные параметры
+      queryParameters.forEach((key, value) {
+        if (key != 'category_ids') {
+          queryParams[key] = [value.toString()];
+        }
+      });
+
+      // Добавляем category_ids как массив
+      if (category_ids != null && category_ids.isNotEmpty) {
+        queryParams['category_ids'] = category_ids;
+      }
+
+      final uri = Uri(
+        scheme: 'http',
+        host: '93.183.81.104',
+        path: '/api/v1/events',
+        queryParameters: queryParams,
+      );
+
       developer.log('Запрос к API: ${uri.toString()}');
 
       final response = await http.get(
@@ -445,7 +502,7 @@ class EventsApi {
       developer.log('Тело ответа: ${response.body}');
 
       if (response.statusCode == 200) {
-        return AllEventsModel.fromJson(jsonDecode(response.body));
+        return events.AllEventsModel.fromJson(jsonDecode(response.body));
       } else {
         throw Exception('Error: ${response.body}');
       }
@@ -453,7 +510,7 @@ class EventsApi {
     return null;
   }
 
-  Future<List<VoteModel>> getVotesList() async {
+  Future<List<events.VoteModel>> getVotesList() async {
     final accessToken = await storage.read(key: accessStorageToken);
     final url = '$API/api/v1/votes';
     final headers = {
@@ -470,8 +527,8 @@ class EventsApi {
     developer.log('[VOTES] Response: ${response.body}');
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final List events = data['events'] ?? [];
-      return events.map((e) => VoteModel.fromJson(e)).toList();
+      final List eventsList = data['events'] ?? [];
+      return eventsList.map((e) => events.VoteModel.fromJson(e)).toList();
     } else {
       throw Exception('Error: ${response.body}');
     }
@@ -506,5 +563,25 @@ class EventsApi {
     if (response.statusCode != 200) {
       throw Exception('Ошибка голосования: ${response.body}');
     }
+  }
+
+  Future<List<events.Category>> getCategories() async {
+    final accessToken = await storage.read(key: accessStorageToken);
+    if (accessToken != null) {
+      final response = await http.get(
+        Uri.parse('$API/api/v1/admin/categories'),
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': 'Bearer $accessToken'
+        },
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => events.Category.fromJson(json)).toList();
+      } else {
+        throw Exception('Error: ${response.body}');
+      }
+    }
+    return [];
   }
 }

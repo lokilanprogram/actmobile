@@ -84,6 +84,7 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                             if(val!.isEmpty){
                               return 'Заполните номер телефона';
                             }
+                            return null;
                           },
                           onChanged: (val){
                             setState(() {

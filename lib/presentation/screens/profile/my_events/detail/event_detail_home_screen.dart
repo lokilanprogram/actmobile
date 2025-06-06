@@ -1,6 +1,7 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
+import 'package:acti_mobile/configs/date_utils.dart' as custom_date;
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
@@ -197,7 +198,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: List.generate(
-                                            organizedEvent.photos!.length,
+                                            organizedEvent.photos.length,
                                             (index) {
                                           return AnimatedContainer(
                                             duration:
@@ -240,13 +241,13 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                         Row(
                                           children: [
                                             IconButton(
-                                              constraints: const BoxConstraints(
-                                                  minWidth: 64),
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              icon: SvgPicture.asset(
-                                                  'assets/icons/icon_back_blue.svg'),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                icon: SvgPicture.asset(
+                                                    'assets/icons/icon_back_blue.svg')),
+                                            SizedBox(
+                                              width: 15,
                                             ),
                                             Row(
                                               children: [
@@ -268,7 +269,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                             ),
                                             Spacer(),
                                             organizedEvent.restrictions != null
-                                                ? (organizedEvent.restrictions!
+                                                ? (organizedEvent.restrictions
                                                         .any((rectrict) =>
                                                             rectrict ==
                                                             'isAdults')
@@ -327,48 +328,12 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                         fontSize: 17.8,
                                                         fontFamily: 'Inter',
                                                         color: mainBlueColor)),
-                                                Text(
-                                                  'Организатор',
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontFamily: 'Gilroy'),
-                                                ),
+                                                Text('Организатор',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontFamily: 'Gilroy')),
                                               ],
                                             ),
-                                            // organizedEvent.creator
-                                            //             .isOrganization !=
-                                            //         null
-                                            //     ? (organizedEvent
-                                            //             .creator.isOrganization!
-                                            //         ? Container(
-                                            //             padding:
-                                            //                 const EdgeInsets
-                                            //                     .symmetric(
-                                            //                     vertical: 6,
-                                            //                     horizontal: 14),
-                                            //             decoration:
-                                            //                 BoxDecoration(
-                                            //               border: BoxBorder.all(
-                                            //                   color:
-                                            //                       Colors.blue),
-                                            //               borderRadius:
-                                            //                   BorderRadius
-                                            //                       .circular(20),
-                                            //             ),
-                                            //             child: Text(
-                                            //               "label",
-                                            //               style:
-                                            //                   const TextStyle(
-                                            //                       color: Colors
-                                            //                           .blue,
-                                            //                       fontSize:
-                                            //                           12.46,
-                                            //                       fontFamily:
-                                            //                           'Gilroy'),
-                                            //             ),
-                                            //           )
-                                            //         : Container())
-                                            //     : Container()
                                           ],
                                         ),
                                         SizedBox(
@@ -453,26 +418,39 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                 ? infoRepeatedRow(
                                                     'assets/icons/icon_time.svg',
                                                     false,
-                                                    'Проходит ' +
-                                                        getWeeklyRepeatOnlyWeekText(
-                                                            organizedEvent
-                                                                .dateStart),
+                                                    'Проходит ${getWeeklyRepeatOnlyWeekText(organizedEvent.dateStart)}',
                                                     organizedEvent.dateStart,
                                                     '${organizedEvent.timeStart.substring(0, 5)}–${organizedEvent.timeEnd.substring(0, 5)}',
-                                                    trailing: formatDuration(
-                                                        organizedEvent
-                                                            .timeStart,
-                                                        organizedEvent.timeEnd),
+                                                    trailing:
+                                                        custom_date.DateUtils
+                                                            .formatDuration(
+                                                                organizedEvent
+                                                                    .timeStart,
+                                                                organizedEvent
+                                                                    .timeEnd),
                                                   )
                                                 : infoRow(
                                                     'assets/icons/icon_time.svg',
                                                     false,
                                                     'Дата и время',
-                                                    '${DateFormat('dd.MM.yyyy').format(organizedEvent.dateStart)} | ${organizedEvent.timeStart.substring(0, 5)}–${organizedEvent.timeEnd.substring(0, 5)}',
-                                                    trailing: formatDuration(
-                                                        organizedEvent
-                                                            .timeStart,
-                                                        organizedEvent.timeEnd),
+                                                    custom_date.DateUtils
+                                                        .formatEventTime(
+                                                            organizedEvent
+                                                                .dateStart,
+                                                            organizedEvent
+                                                                .timeStart,
+                                                            organizedEvent
+                                                                .timeEnd,
+                                                            organizedEvent
+                                                                    .type ==
+                                                                'online'),
+                                                    trailing:
+                                                        custom_date.DateUtils
+                                                            .formatDuration(
+                                                                organizedEvent
+                                                                    .timeStart,
+                                                                organizedEvent
+                                                                    .timeEnd),
                                                   ),
                                             SizedBox(
                                                 height:
@@ -497,8 +475,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                               false,
                                               organizedEvent.restrictions !=
                                                       null
-                                                  ? (organizedEvent
-                                                          .restrictions!
+                                                  ? (organizedEvent.restrictions
                                                           .any((restrict) =>
                                                               restrict ==
                                                               'isUnlimited')
@@ -629,10 +606,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                     fontSize: 17.8)),
           ],
         ),
-        if (subtitle.isNotEmpty)
-          SizedBox(
-            height: 8,
-          ),
+        if (subtitle.isNotEmpty) SizedBox(height: 8),
         GestureDetector(
           onTap: () {
             if (organizedEvent.latitude != null &&
@@ -664,6 +638,65 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                 Text(trailing, style: const TextStyle(color: Colors.grey)),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget infoRepeatedRow(String iconPath, bool isLocation, String title,
+      DateTime date, String time,
+      {String? trailing}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: SvgPicture.asset(iconPath),
+            ),
+            const SizedBox(width: 10),
+            Text(title,
+                style: const TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'Inter',
+                    fontSize: 17.8)),
+          ],
+        ),
+        SizedBox(height: 8),
+        RichText(
+          text: TextSpan(
+            style: const TextStyle(
+              fontSize: 16,
+              fontFamily: 'Gilroy',
+              color: Colors.black,
+            ),
+            children: [
+              TextSpan(
+                text: custom_date.DateUtils.formatEventDate(
+                  date,
+                  time,
+                  organizedEvent.type == 'online',
+                ),
+                style: const TextStyle(
+                  fontWeight: FontWeight.normal,
+                  color: Color.fromRGBO(7, 7, 7, 1),
+                  fontFamily: 'Gilroy',
+                ),
+              ),
+              if (trailing != null)
+                TextSpan(
+                  text: ' $trailing',
+                  style: TextStyle(
+                    fontFamily: 'Gilroy',
+                    color: Colors.grey,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+            ],
+          ),
+          overflow: TextOverflow.fade,
         ),
       ],
     );

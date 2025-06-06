@@ -10,6 +10,8 @@ class ActiRegisterEvent extends AuthEvent {
 
 
 
+
+
 class ActiVerifyEvent extends AuthEvent {
   final String phone;
   final String code;
@@ -34,4 +36,13 @@ class ActiUpdateActivityEvent extends AuthEvent{
   final AlterEventModel  alterEventModel;
 
   ActiUpdateActivityEvent({required this.alterEventModel});
+}
+
+class SocialLoginRequested extends AuthEvent {
+  final dynamic request;
+
+   SocialLoginRequested(this.request);
+
+  @override
+  List<Object?> get props => [request];
 }

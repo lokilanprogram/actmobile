@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/domain/repositories/auth_repository.dart';
+import 'package:acti_mobile/domain/services/auth_service.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/events/providers/filter_provider.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -12,6 +15,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -37,10 +41,14 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final dio = Dio();
+    final baseUrl = 'http://93.183.81.104';
+    final authRepository = AuthRepository(AuthService(dio, baseUrl));
+
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(),
+          create: (context) => AuthBloc(authRepository: authRepository),
         ),
         BlocProvider<ProfileBloc>(
           create: (context) => ProfileBloc(),
@@ -64,7 +72,19 @@ class MyApp extends StatelessWidget {
         ],
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
-        home: InitialScreen(),
+        home: BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthSuccess) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => MapScreen(selectedScreenIndex: 0)),
+                (route) => false,
+              );
+            }
+          },
+          child: InitialScreen(),
+        ),
       ),
     );
   }

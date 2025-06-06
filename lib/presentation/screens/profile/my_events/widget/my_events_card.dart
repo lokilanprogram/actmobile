@@ -1,5 +1,6 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
+import 'package:acti_mobile/configs/date_utils.dart' as custom_date;
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
@@ -155,26 +156,11 @@ class MyCardEventWidget extends StatelessWidget {
                             ? Row(
                                 children: [
                                   Text(
-                                    DateFormat('dd.MM.yyyy')
-                                        .format(organizedEvent.dateStart),
-                                    style: TextStyle(
-                                        fontFamily: 'Gilroy',
-                                        fontSize: 11.89,
-                                        color: mainBlueColor,
-                                        fontWeight: FontWeight.w700),
-                                  ),
-                                  SizedBox(
-                                    width: 5,
-                                  ),
-                                  Text(
-                                    '|',
-                                    style: TextStyle(color: mainBlueColor),
-                                  ),
-                                  SizedBox(
-                                    width: 5,
-                                  ),
-                                  Text(
-                                    '${organizedEvent.timeStart.substring(0, 5)}-${organizedEvent.timeEnd.substring(0, 5)}',
+                                    custom_date.DateUtils.formatEventDate(
+                                      organizedEvent.dateStart,
+                                      organizedEvent.timeStart,
+                                      organizedEvent.type == 'online',
+                                    ),
                                     style: TextStyle(
                                         fontFamily: 'Gilroy',
                                         fontSize: 11.89,
@@ -217,8 +203,13 @@ class MyCardEventWidget extends StatelessWidget {
                                               style: TextStyle(
                                                   color: mainBlueColor)),
                                           TextSpan(
-                                            text:
-                                                '${organizedEvent.timeStart.substring(0, 5)}-${organizedEvent.timeEnd.substring(0, 5)}',
+                                            text: custom_date.DateUtils
+                                                .formatEventTime(
+                                              organizedEvent.dateStart,
+                                              organizedEvent.timeStart,
+                                              organizedEvent.timeEnd,
+                                              organizedEvent.type == 'online',
+                                            ),
                                             style: TextStyle(
                                                 fontFamily: 'Gilroy',
                                                 fontSize: 11.89,
