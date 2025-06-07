@@ -84,7 +84,7 @@ class _TabBarWidgetState extends State<TabBarWidget> {
                               : Colors.black,
                           fontSize: widget.firshTabText == 'Личные' ||
                                   widget.firshTabText == 'Групповые'
-                              ? null
+                              ? 19
                               : 19,
                           fontFamily: 'Gilroy',
                           fontWeight: _selectedTab == "mine"

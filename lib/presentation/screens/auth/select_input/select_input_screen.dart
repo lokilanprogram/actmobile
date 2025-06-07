@@ -161,32 +161,35 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
                       fontSize: 27,
                     ),
                   ),
-                  InkWell(
-                    // onTap: () => _onSocialLogin('yandex'),
-                    onTap: () {
-                      final accessToken =
-                          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYWZkYWIwOC05ZDhkLTRlZmUtYWVhMy1hNGQwMDBlZTJhMDgiLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg0MDgzMjEzfQ.hp4g-SOZiw3t1Wg2Q-6h1sQMwpY1220v_5LC8fVQ1Dg';
-                      final refreshToken =
-                          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYWZkYWIwOC05ZDhkLTRlZmUtYWVhMy1hNGQwMDBlZTJhMDgiLCJ0eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MDY3NTIxM30.Hlec01f57x5xBCU3WLaJiECT2P2ONYnJ81Whk4Bi0Z8';
-                      writeAuthTokens(accessToken, refreshToken);
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => InitialScreen()));
-                    },
-                    // child: SvgPicture.asset(
-                    //     'assets/icons/icon_yandex_id.svg')
-                    child: Container(
-                        width: 150,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(25),
-                          color: mainBlueColor,
-                        ),
-                        child: Center(
-                            child: Text(
-                          "Временный вход",
-                          style: TextStyle(color: Colors.white),
-                        ))),
-                  ),
+
+                  ////
+                  // InkWell(
+                  //   // onTap: () => _onSocialLogin('yandex'),
+                  //   onTap: () {
+                  //     final accessToken =
+                  //         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYWZkYWIwOC05ZDhkLTRlZmUtYWVhMy1hNGQwMDBlZTJhMDgiLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg0MDgzMjEzfQ.hp4g-SOZiw3t1Wg2Q-6h1sQMwpY1220v_5LC8fVQ1Dg';
+                  //     final refreshToken =
+                  //         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYWZkYWIwOC05ZDhkLTRlZmUtYWVhMy1hNGQwMDBlZTJhMDgiLCJ0eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MDY3NTIxM30.Hlec01f57x5xBCU3WLaJiECT2P2ONYnJ81Whk4Bi0Z8';
+                  //     writeAuthTokens(accessToken, refreshToken);
+                  //     Navigator.push(context,
+                  //         MaterialPageRoute(builder: (_) => InitialScreen()));
+                  //   },
+                  //   // child: SvgPicture.asset(
+                  //   //     'assets/icons/icon_yandex_id.svg')
+                  //   child: Container(
+                  //       width: 150,
+                  //       height: 50,
+                  //       decoration: BoxDecoration(
+                  //         borderRadius: BorderRadius.circular(25),
+                  //         color: mainBlueColor,
+                  //       ),
+                  //       child: Center(
+                  //           child: Text(
+                  //         "Временный вход",
+                  //         style: TextStyle(color: Colors.white),
+                  //       ))),
+                  // ),
+                  //////
                   SizedBox(height: 45),
                   Text(
                     'Через сервис',

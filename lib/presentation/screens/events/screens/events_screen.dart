@@ -212,9 +212,9 @@ class _EventsScreenState extends State<EventsScreen> {
             _currentPosition?.longitude ??
             37.618423,
         radius: radius,
-        address: filterProvider.cityFilterText.isNotEmpty
-            ? filterProvider.cityFilterText
-            : null,
+        address: filterProvider.selectedMapAddressModel != null
+            ? null
+            : (filterProvider.cityFilterText.isNotEmpty ? null : null),
         date_from: filterProvider.selectedDateFrom != null
             ? DateFormat('yyyy-MM-dd').format(filterProvider.selectedDateFrom!)
             : null,
@@ -485,7 +485,8 @@ class _EventsScreenState extends State<EventsScreen> {
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.bold,
-                              fontSize: isSmallScreen ? 14 : 16,
+                              fontSize: isSmallScreen ? 16 : 18,
+                              // fontSize: 18,
                             ),
                           ),
                         ),
