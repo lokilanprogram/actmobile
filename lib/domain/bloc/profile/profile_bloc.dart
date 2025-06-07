@@ -32,8 +32,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     });
     on<SearchEventsOnMapEvent>((event, emit) async {
       try {
-        final events = await EventsApi()
-            .searchEventsOnMap(event.latitude, event.longitude);
+        final events = await EventsApi().searchEventsOnMap(
+            event.latitude, event.longitude,
+            filters: event.filters);
         if (events != null) {
           emit(SearchedEventsOnMapState(searchedEventsModel: events));
         }

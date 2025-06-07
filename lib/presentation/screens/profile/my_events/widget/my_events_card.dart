@@ -9,6 +9,7 @@ import 'package:acti_mobile/presentation/widgets/image_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 class MyCardEventWidget extends StatelessWidget {
   final OrganizedEventModel organizedEvent;
@@ -113,7 +114,66 @@ class MyCardEventWidget extends StatelessWidget {
                                   offset: const Offset(-20, 5),
                                   itemBuilder: (BuildContext context) =>
                                       isPublicUser
-                                          ? []
+                                          ? [
+                                              PopupMenuItem<int>(
+                                                value: 0,
+                                                onTap: () async {
+                                                  final url = organizedEvent
+                                                          .photos.isNotEmpty
+                                                      ? organizedEvent
+                                                          .photos.first
+                                                      : '';
+                                                  final text =
+                                                      '${organizedEvent.title}\n${organizedEvent.description}\n$url';
+                                                  await Future.delayed(
+                                                      Duration.zero, () {
+                                                    Share.share(text);
+                                                  });
+                                                },
+                                                child: Row(
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                        'assets/icons/icon_share.svg'),
+                                                    SizedBox(width: 10),
+                                                    Text(
+                                                      "Поделиться",
+                                                      style: TextStyle(
+                                                          fontFamily: 'Gilroy',
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          color: Colors.black),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              PopupMenuItem<int>(
+                                                value: 1,
+                                                onTap: () {},
+                                                child: Row(
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                      'assets/icons/icon_block.svg',
+                                                      colorFilter:
+                                                          ColorFilter.mode(
+                                                        Colors.red,
+                                                        BlendMode.srcIn,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 10),
+                                                    Text(
+                                                      "Пожаловаться",
+                                                      style: TextStyle(
+                                                          fontFamily: 'Gilroy',
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          color: Colors.red),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ]
                                           : [
                                               PopupMenuItem<int>(
                                                 value: 0,

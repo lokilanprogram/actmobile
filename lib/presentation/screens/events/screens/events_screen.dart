@@ -2,6 +2,7 @@ import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/data/models/all_events_model.dart' as all_events;
 import 'package:acti_mobile/data/models/event_adapter.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
+import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
@@ -22,6 +23,7 @@ import 'package:acti_mobile/presentation/screens/events/providers/filter_provide
 import 'package:acti_mobile/presentation/screens/events/screens/detail_vote_event_screen.dart';
 import 'package:acti_mobile/presentation/screens/events/widgets/filter_bottom_sheet.dart';
 import 'package:acti_mobile/presentation/screens/events/widgets/vote_event_card.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 extension StringCasingExtension on String {
   String capitalize() => '${this[0].toUpperCase()}${substring(1)}';
@@ -111,6 +113,7 @@ class _EventsScreenState extends State<EventsScreen> {
   @override
   void initState() {
     initialize();
+    context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
     super.initState();
   }
 
@@ -441,76 +444,28 @@ class _EventsScreenState extends State<EventsScreen> {
   Widget build(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 400 &&
         MediaQuery.of(context).size.width > 250;
-    return Consumer<FilterProvider>(
-      builder: (context, filterProvider, child) {
-        return Scaffold(
-          backgroundColor: Colors.white,
-          resizeToAvoidBottomInset: false,
-          appBar: isLoading
-              ? null
-              : AppBar(
-                  automaticallyImplyLeading: false,
-                  backgroundColor: Colors.white,
-                  title: Row(
-                    children: [
-                      showVotes
-                          ? IconButton(
-                              onPressed: () async {
-                                setState(() {
-                                  showVotes = !showVotes;
-                                });
-                                if (showVotes &&
-                                    _votes.isEmpty &&
-                                    !_votesLoading) {
-                                  await _fetchVotes();
-                                }
-                              },
-                              icon: Icon(Icons.arrow_back_ios_new),
-                            )
-                          : Container(
-                              width: 10,
-                            ),
-                      SizedBox(
-                        // width: 100,
-                        child: Text(
-                          showVotes ? 'Голосование' : 'События',
-                          // overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.bold,
-                            // fontSize: 16,
-                            fontSize: isSmallScreen ? 14 : 16,
-                          ),
-                        ),
-                      ),
-                      showVotes
-                          ? Container()
-                          : Container(
-                              height: 32,
-                              // width: 120,
-                              width: isSmallScreen ? 110 : 120,
-                              margin: EdgeInsets.symmetric(horizontal: 12.0),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
-                                gradient: LinearGradient(
-                                  colors: [
-                                    mainBlueColor,
-                                    Color.fromRGBO(98, 207, 102, 1),
-                                  ],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ),
-                              ),
-                              child: TextButton(
-                                style: TextButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 0),
-                                ),
+    return BlocListener<ProfileBloc, ProfileState>(
+      listener: (context, state) {
+        if (state is ProfileGotListEventsState) {
+          setState(() {
+            isVerified = state.isVerified;
+          });
+        }
+      },
+      child: Consumer<FilterProvider>(
+        builder: (context, filterProvider, child) {
+          return Scaffold(
+            backgroundColor: Colors.white,
+            resizeToAvoidBottomInset: false,
+            appBar: isLoading
+                ? null
+                : AppBar(
+                    automaticallyImplyLeading: false,
+                    backgroundColor: Colors.white,
+                    title: Row(
+                      children: [
+                        showVotes
+                            ? IconButton(
                                 onPressed: () async {
                                   setState(() {
                                     showVotes = !showVotes;
@@ -521,345 +476,444 @@ class _EventsScreenState extends State<EventsScreen> {
                                     await _fetchVotes();
                                   }
                                 },
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Голосование',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: isSmallScreen ? 14 : 16,
-                                        // fontSize: 16,
-                                      ),
+                                icon: Icon(Icons.arrow_back_ios_new),
+                              )
+                            : Container(
+                                width: 10,
+                              ),
+                        SizedBox(
+                          child: Text(
+                            showVotes ? 'Голосование' : 'События',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.bold,
+                              fontSize: isSmallScreen ? 14 : 16,
+                            ),
+                          ),
+                        ),
+                        showVotes
+                            ? Container()
+                            : Container(
+                                height: 32,
+                                width: isSmallScreen ? 110 : 120,
+                                margin: EdgeInsets.symmetric(horizontal: 12.0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      mainBlueColor,
+                                      Color.fromRGBO(98, 207, 102, 1),
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                ),
+                                child: TextButton(
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
                                     ),
-                                  ],
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 0),
+                                  ),
+                                  onPressed: () async {
+                                    setState(() {
+                                      showVotes = !showVotes;
+                                    });
+                                    if (showVotes &&
+                                        _votes.isEmpty &&
+                                        !_votesLoading) {
+                                      await _fetchVotes();
+                                    }
+                                  },
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Голосование',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: isSmallScreen ? 14 : 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                    ],
-                  ),
-                  bottom: PreferredSize(
-                    preferredSize: Size.fromHeight(60),
-                    child: Container(
-                      height: 53,
-                      key: _searchFieldKey,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 0),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        focusNode: _searchFocusNode,
-                        onChanged: (value) {
-                          _fetchSearchSuggestions(value);
-                        },
-                        onTap: () {
-                          if (_searchController.text.isNotEmpty) {
-                            _fetchSearchSuggestions(_searchController.text);
-                          }
-                        },
-                        onEditingComplete: () {
-                          _removeAutocompleteOverlay();
-                          _applyFilters();
-                        },
-                        style: TextStyle(fontSize: 16),
-                        decoration: InputDecoration(
-                          hintText: 'Поиск по событиям',
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: SizedBox(
-                                height: 20,
-                                child: SvgPicture.asset(
-                                  'assets/icons/search.svg',
+                      ],
+                    ),
+                    bottom: PreferredSize(
+                      preferredSize: Size.fromHeight(60),
+                      child: Container(
+                        height: 53,
+                        key: _searchFieldKey,
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 0),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          onChanged: (value) {
+                            _fetchSearchSuggestions(value);
+                          },
+                          onTap: () {
+                            if (_searchController.text.isNotEmpty) {
+                              _fetchSearchSuggestions(_searchController.text);
+                            }
+                          },
+                          onEditingComplete: () {
+                            _removeAutocompleteOverlay();
+                            _applyFilters();
+                          },
+                          style: TextStyle(fontSize: 16),
+                          decoration: InputDecoration(
+                            hintText: 'Поиск по событиям',
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: SizedBox(
                                   height: 20,
-                                  width: 20,
-                                  colorFilter: ColorFilter.mode(
-                                      Colors.grey[400]!, BlendMode.srcIn),
-                                )),
-                          ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon:
-                                          Icon(Icons.clear, color: Colors.grey),
-                                      onPressed: () {
-                                        setState(() {
-                                          _searchController.clear();
-                                          _searchSuggestions = [];
-                                        });
-                                        _removeAutocompleteOverlay();
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: SvgPicture.asset(
-                                        'assets/icons/sorting.svg',
-                                        height: 16,
+                                  child: SvgPicture.asset(
+                                    'assets/icons/search.svg',
+                                    height: 20,
+                                    width: 20,
+                                    colorFilter: ColorFilter.mode(
+                                        Colors.grey[400]!, BlendMode.srcIn),
+                                  )),
+                            ),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.clear,
+                                            color: Colors.grey),
+                                        onPressed: () {
+                                          setState(() {
+                                            _searchController.clear();
+                                            _searchSuggestions = [];
+                                          });
+                                          _removeAutocompleteOverlay();
+                                        },
                                       ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _searchController.clear();
-                                          _searchSuggestions = [];
-                                        });
-                                        _removeAutocompleteOverlay();
-                                      },
-                                    ),
-                                  ],
-                                )
-                              : IconButton(
-                                  icon: SvgPicture.asset(
-                                    'assets/icons/sorting.svg',
-                                    height: 16,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _searchController.clear();
-                                      _searchSuggestions = [];
-                                    });
-                                    _removeAutocompleteOverlay();
-                                  },
-                                ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                          contentPadding: EdgeInsets.symmetric(vertical: 0),
-                        ),
-                      ),
-                    ),
-                  ),
-                  actions: [
-                    // showVotes
-                    //     ? Container()
-                    //     : Container(
-                    //         height: 32,
-                    //         width: isSmallScreen ? 90 : 100,
-                    //         margin: EdgeInsets.only(right: 16.0),
-                    //         decoration: BoxDecoration(
-                    //           borderRadius: BorderRadius.circular(30),
-                    //           gradient: LinearGradient(
-                    //             colors: [
-                    //               mainBlueColor,
-                    //               Color.fromRGBO(98, 207, 102, 1),
-                    //             ],
-                    //             begin: Alignment.centerLeft,
-                    //             end: Alignment.centerRight,
-                    //           ),
-                    //         ),
-                    //         child: TextButton(
-                    //           style: TextButton.styleFrom(
-                    //             backgroundColor: Colors.transparent,
-                    //             foregroundColor: Colors.white,
-                    //             shape: RoundedRectangleBorder(
-                    //               borderRadius: BorderRadius.circular(30),
-                    //             ),
-                    //             padding: EdgeInsets.symmetric(
-                    //                 horizontal: 12, vertical: 0),
-                    //           ),
-                    //           onPressed: () async {
-                    //             setState(() {
-                    //               showVotes = !showVotes;
-                    //             });
-                    //             if (showVotes &&
-                    //                 _votes.isEmpty &&
-                    //                 !_votesLoading) {
-                    //               await _fetchVotes();
-                    //             }
-                    //           },
-                    //           child: Row(
-                    //             mainAxisSize: MainAxisSize.min,
-                    //             children: [
-                    //               Text(
-                    //                 isSmallScreen
-                    //                     ? 'Голосование'
-                    //                     : 'Голосование',
-                    //                 style: TextStyle(
-                    //                   fontWeight: FontWeight.w600,
-                    //                   fontSize: isSmallScreen ? 11 : 16,
-                    //                 ),
-                    //               ),
-                    //             ],
-                    //           ),
-                    //         ),
-                    //       ),
-                    Container(
-                      height: 32,
-                      width: 115,
-                      margin: EdgeInsets.only(right: 16.0),
-                      decoration: BoxDecoration(
-                        color: mainBlueColor,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: InkWell(
-                        onTap: () async {
-                          _showFilterBottomSheet();
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0, vertical: 8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SvgPicture.asset('assets/icons/filter.svg'),
-                              SizedBox(width: 10),
-                              Text('Фильтры',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-          extendBody: true,
-          body: isLoading
-              ? LoaderWidget()
-              : Stack(
-                  children: [
-                    Positioned.fill(
-                      child: SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 20, right: 20, top: 10, bottom: 10),
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 25),
-                              Expanded(
-                                child: showVotes
-                                    ? (_votesLoading
-                                        ? Center(
-                                            child: CircularProgressIndicator())
-                                        : RefreshIndicator(
-                                            onRefresh: _fetchVotes,
-                                            child: ListView.builder(
-                                              itemCount: _votes.length,
-                                              itemBuilder: (context, idx) {
-                                                final vote = _votes[idx];
-                                                return VoteEventCard(
-                                                  vote: vote,
-                                                  onTap: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            DetailVoteEventScreen(
-                                                          eventId: vote.id,
-                                                          userVoted:
-                                                              vote.userVoted,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                            ),
-                                          ))
-                                    : (eventsModel != null
-                                        ? RefreshIndicator(
-                                            onRefresh: () async {
-                                              setState(() {
-                                                _offset = 0;
-                                                _hasMore = true;
-                                              });
-                                              await _applyFilters();
-                                            },
-                                            child: NotificationListener<
-                                                ScrollNotification>(
-                                              onNotification: (scrollInfo) {
-                                                if (scrollInfo.metrics.pixels ==
-                                                        scrollInfo.metrics
-                                                            .maxScrollExtent &&
-                                                    _hasMore &&
-                                                    !isLoading) {
-                                                  _loadMoreEvents();
-                                                }
-                                                return false;
-                                              },
-                                              child: ListView(
+                                      if (showVotes)
+                                        PopupMenuButton<int>(
+                                          icon: SvgPicture.asset(
+                                            'assets/icons/sorting.svg',
+                                            height: 16,
+                                          ),
+                                          color: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          onSelected: (value) {
+                                            setState(() {
+                                              if (value == 0) {
+                                                _votes.sort((a, b) =>
+                                                    a.votes.compareTo(b.votes));
+                                              } else {
+                                                _votes.sort((a, b) =>
+                                                    b.votes.compareTo(a.votes));
+                                              }
+                                            });
+                                          },
+                                          itemBuilder: (context) => [
+                                            PopupMenuItem(
+                                              value: 0,
+                                              child: Row(
                                                 children: [
-                                                  ...eventsModel!.events
-                                                      .map((event) {
-                                                    return MyCardEventWidget(
-                                                      isCompletedEvent: false,
-                                                      isPublicUser: true,
-                                                      organizedEvent: event
-                                                          .toOrganizedEventModel(),
-                                                    );
-                                                  }),
-                                                  if (_hasMore)
-                                                    Padding(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          vertical: 16),
-                                                      child: Center(
-                                                          child:
-                                                              CircularProgressIndicator()),
-                                                    ),
+                                                  Icon(Icons.arrow_upward,
+                                                      color: mainBlueColor),
+                                                  SizedBox(width: 10),
+                                                  Text(
+                                                      'По возрастанию голосов'),
                                                 ],
                                               ),
                                             ),
-                                          )
-                                        : Container()),
-                              ),
-                              const SizedBox(height: 150),
-                            ],
+                                            PopupMenuItem(
+                                              value: 1,
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.arrow_downward,
+                                                      color: mainBlueColor),
+                                                  SizedBox(width: 10),
+                                                  Text('По убыванию голосов'),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      else
+                                        IconButton(
+                                          icon: SvgPicture.asset(
+                                            'assets/icons/sorting.svg',
+                                            height: 16,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              _searchController.clear();
+                                              _searchSuggestions = [];
+                                            });
+                                            _removeAutocompleteOverlay();
+                                          },
+                                        ),
+                                    ],
+                                  )
+                                : (showVotes
+                                    ? PopupMenuButton<int>(
+                                        icon: SvgPicture.asset(
+                                          'assets/icons/sorting.svg',
+                                          height: 16,
+                                        ),
+                                        color: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        onSelected: (value) {
+                                          setState(() {
+                                            if (value == 0) {
+                                              _votes.sort((a, b) =>
+                                                  a.votes.compareTo(b.votes));
+                                            } else {
+                                              _votes.sort((a, b) =>
+                                                  b.votes.compareTo(a.votes));
+                                            }
+                                          });
+                                        },
+                                        itemBuilder: (context) => [
+                                          PopupMenuItem(
+                                            value: 0,
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.arrow_upward,
+                                                    color: mainBlueColor),
+                                                SizedBox(width: 10),
+                                                Text('По возрастанию голосов'),
+                                              ],
+                                            ),
+                                          ),
+                                          PopupMenuItem(
+                                            value: 1,
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.arrow_downward,
+                                                    color: mainBlueColor),
+                                                SizedBox(width: 10),
+                                                Text('По убыванию голосов'),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : IconButton(
+                                        icon: SvgPicture.asset(
+                                          'assets/icons/sorting.svg',
+                                          height: 16,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _searchController.clear();
+                                            _searchSuggestions = [];
+                                          });
+                                          _removeAutocompleteOverlay();
+                                        },
+                                      )),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            contentPadding: EdgeInsets.symmetric(vertical: 0),
                           ),
                         ),
                       ),
                     ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 60),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ActivityBarWidget(isVerified: isVerified),
-                            const SizedBox(height: 15),
-                            CustomNavBarWidget(
-                              selectedIndex: 1,
-                              onTabSelected: (index) {
-                                if (index == 0) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          MapScreen(selectedScreenIndex: 0),
-                                    ),
-                                  );
-                                }
-                                if (index == 2) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          MapScreen(selectedScreenIndex: 2),
-                                    ),
-                                  );
-                                } else if (index == 3) {
-                                  developer.log('Navigate to Profile');
-                                } else if (index == 1) {
-                                  developer.log('Stay on Events Screen');
-                                }
-                              },
+                    actions: [
+                      if (!showVotes)
+                        Container(
+                          height: 32,
+                          width: 115,
+                          margin: EdgeInsets.only(right: 16.0),
+                          decoration: BoxDecoration(
+                            color: mainBlueColor,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: InkWell(
+                            onTap: () async {
+                              _showFilterBottomSheet();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0, vertical: 8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SvgPicture.asset('assets/icons/filter.svg'),
+                                  SizedBox(width: 10),
+                                  Text('Фильтры',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12)),
+                                ],
+                              ),
                             ),
-                          ],
+                          ),
+                        ),
+                    ],
+                  ),
+            extendBody: true,
+            body: isLoading
+                ? LoaderWidget()
+                : Stack(
+                    children: [
+                      Positioned.fill(
+                        child: SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 20, right: 20, top: 10, bottom: 10),
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 25),
+                                Expanded(
+                                  child: showVotes
+                                      ? (_votesLoading
+                                          ? Center(
+                                              child:
+                                                  CircularProgressIndicator())
+                                          : RefreshIndicator(
+                                              onRefresh: _fetchVotes,
+                                              child: ListView.builder(
+                                                itemCount: _votes.length,
+                                                itemBuilder: (context, idx) {
+                                                  final vote = _votes[idx];
+                                                  return VoteEventCard(
+                                                    vote: vote,
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              DetailVoteEventScreen(
+                                                            eventId: vote.id,
+                                                            userVoted:
+                                                                vote.userVoted,
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                            ))
+                                      : (eventsModel != null
+                                          ? RefreshIndicator(
+                                              onRefresh: () async {
+                                                setState(() {
+                                                  _offset = 0;
+                                                  _hasMore = true;
+                                                });
+                                                await _applyFilters();
+                                              },
+                                              child: NotificationListener<
+                                                  ScrollNotification>(
+                                                onNotification: (scrollInfo) {
+                                                  if (scrollInfo
+                                                              .metrics.pixels ==
+                                                          scrollInfo.metrics
+                                                              .maxScrollExtent &&
+                                                      _hasMore &&
+                                                      !isLoading) {
+                                                    _loadMoreEvents();
+                                                  }
+                                                  return false;
+                                                },
+                                                child: ListView(
+                                                  children: [
+                                                    ...eventsModel!.events
+                                                        .map((event) {
+                                                      return MyCardEventWidget(
+                                                        isCompletedEvent: false,
+                                                        isPublicUser: true,
+                                                        organizedEvent: event
+                                                            .toOrganizedEventModel(),
+                                                      );
+                                                    }),
+                                                    if (_hasMore)
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 16),
+                                                        child: Center(
+                                                            child:
+                                                                CircularProgressIndicator()),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                          : Container()),
+                                ),
+                                const SizedBox(height: 150),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-        );
-      },
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 60),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ActivityBarWidget(isVerified: isVerified),
+                              const SizedBox(height: 15),
+                              CustomNavBarWidget(
+                                selectedIndex: 1,
+                                onTabSelected: (index) {
+                                  if (index == 0) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            MapScreen(selectedScreenIndex: 0),
+                                      ),
+                                    );
+                                  }
+                                  if (index == 2) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            MapScreen(selectedScreenIndex: 2),
+                                      ),
+                                    );
+                                  } else if (index == 3) {
+                                    developer.log('Navigate to Profile');
+                                  } else if (index == 1) {
+                                    developer.log('Stay on Events Screen');
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+          );
+        },
+      ),
     );
   }
 }

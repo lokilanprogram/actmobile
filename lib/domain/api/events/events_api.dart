@@ -139,23 +139,105 @@ class EventsApi {
   }
 
   Future<SearchedEventsModel?> searchEventsOnMap(
-      double latitude, double longitude) async {
+      double latitude, double longitude,
+      {Map<String, dynamic>? filters}) async {
     final accessToken = await storage.read(key: accessStorageToken);
     if (accessToken != null) {
-      final queryParameters = {
+      // Формируем базовые параметры
+      final Map<String, dynamic> queryParameters = {
         'latitude': latitude.toString(),
         'longitude': longitude.toString(),
         'limit': 100.toString(),
-        'radius': 100.toString()
+        'radius': filters?['radius']?.toString() ?? '100',
       };
+
+      // Добавляем дополнительные параметры фильтрации
+      if (filters != null) {
+        if (filters['restrictions'] != null) {
+          queryParameters['restrictions'] = filters['restrictions'];
+        }
+        if (filters['duration_min'] != null) {
+          queryParameters['duration_min'] = filters['duration_min'].toString();
+        }
+        if (filters['duration_max'] != null) {
+          queryParameters['duration_max'] = filters['duration_max'].toString();
+        }
+        if (filters['category_ids'] != null) {
+          queryParameters['category_ids'] = filters['category_ids'];
+        }
+        if (filters['price_min'] != null) {
+          queryParameters['price_min'] = filters['price_min'].toString();
+        }
+        if (filters['price_max'] != null) {
+          queryParameters['price_max'] = filters['price_max'].toString();
+        }
+        if (filters['date_from'] != null) {
+          queryParameters['date_from'] = filters['date_from'];
+        }
+        if (filters['date_to'] != null) {
+          queryParameters['date_to'] = filters['date_to'];
+        }
+        if (filters['time_from'] != null) {
+          queryParameters['time_from'] = filters['time_from'];
+        }
+        if (filters['time_to'] != null) {
+          queryParameters['time_to'] = filters['time_to'];
+        }
+      }
+
+      // Удаляем параметры, которые равны null или строке 'null'
+      queryParameters
+          .removeWhere((key, value) => value == null || value == 'null');
+
+      // Формируем URL вручную для поддержки массивов
+      final baseUrl = '$API/api/v1/events/map';
+      final queryParams = <String, List<String>>{};
+
+      // Преобразуем обычные параметры
+      queryParameters.forEach((key, value) {
+        if (key != 'category_ids' && key != 'restrictions') {
+          queryParams[key] = [value.toString()];
+        }
+      });
+
+      // Добавляем restrictions как массив
+      if (queryParameters['restrictions'] != null) {
+        final restrictions = queryParameters['restrictions'] as List;
+        queryParams['restrictions'] =
+            restrictions.map((e) => e.toString()).toList();
+      }
+
+      // Добавляем category_ids как массив
+      if (queryParameters['category_ids'] != null) {
+        final categoryIds = queryParameters['category_ids'] as List;
+        queryParams['category_ids'] =
+            categoryIds.map((e) => e.toString()).toList();
+      }
+
+      final uri = Uri(
+        scheme: 'http',
+        host: '93.183.81.104',
+        path: '/api/v1/events/map',
+        queryParameters: queryParams,
+      );
+
+      developer.log('Отправляем запрос на поиск событий на карте:',
+          name: 'MAP_SEARCH');
+      developer.log('Параметры запроса: $queryParams', name: 'MAP_SEARCH');
+      developer.log('Полный URL: ${uri.toString()}', name: 'MAP_SEARCH');
+
       final response = await http.get(
-        Uri.parse('$API/api/v1/events/map')
-            .replace(queryParameters: queryParameters),
+        uri,
         headers: {
           "Content-Type": "application/json",
           'Authorization': 'Bearer $accessToken'
         },
       );
+
+      developer.log('Получен ответ от сервера:', name: 'MAP_SEARCH');
+      developer.log('Статус код: ${response.statusCode}', name: 'MAP_SEARCH');
+      developer.log('Тело ответа: ${response.body}', name: 'MAP_SEARCH');
+
       if (response.statusCode == 200) {
         return SearchedEventsModel.fromJson(jsonDecode(response.body));
       } else {

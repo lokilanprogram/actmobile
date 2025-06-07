@@ -5,27 +5,33 @@ abstract class ProfileEvent {}
 
 class ProfileGetEvent extends ProfileEvent {}
 
-class SearchEventsOnMapEvent extends ProfileEvent{
+class SearchEventsOnMapEvent extends ProfileEvent {
   final double latitude;
   final double longitude;
+  final Map<String, dynamic>? filters;
 
-  SearchEventsOnMapEvent({required this.latitude, required this.longitude});
+  SearchEventsOnMapEvent({
+    required this.latitude,
+    required this.longitude,
+    this.filters,
+  });
 }
 
-class ProfileInviteUserEvent extends ProfileEvent{
+class ProfileInviteUserEvent extends ProfileEvent {
   final String userId;
   final String eventId;
 
   ProfileInviteUserEvent({required this.userId, required this.eventId});
 }
-class InitializeMapEvent extends ProfileEvent{
+
+class InitializeMapEvent extends ProfileEvent {
   final double latitude;
   final double longitude;
 
   InitializeMapEvent({required this.latitude, required this.longitude});
 }
 
-class ProfileRecommendUsersEvent extends ProfileEvent{
+class ProfileRecommendUsersEvent extends ProfileEvent {
   final String eventId;
 
   ProfileRecommendUsersEvent({required this.eventId});
@@ -34,11 +40,12 @@ class ProfileRecommendUsersEvent extends ProfileEvent{
 class ProfileUpdateEvent extends ProfileEvent {
   final ProfileModel profileModel;
 
-  ProfileUpdateEvent({required this.profileModel,});
+  ProfileUpdateEvent({
+    required this.profileModel,
+  });
 }
 
-class ProfileGetListEventsEvent extends ProfileEvent {
-}
+class ProfileGetListEventsEvent extends ProfileEvent {}
 
 class ProfileGetEventDetailEvent extends ProfileEvent {
   final String eventId;
@@ -75,8 +82,8 @@ class ProfileReportUser extends ProfileEvent {
   final String userId;
   final String title;
 
-  ProfileReportUser({required this.imageUrl, required this.userId,
-  required this.title});
+  ProfileReportUser(
+      {required this.imageUrl, required this.userId, required this.title});
 }
 
 class ProfileReportEvent extends ProfileEvent {
@@ -85,23 +92,28 @@ class ProfileReportEvent extends ProfileEvent {
   final String title;
   final String? comment;
 
-  ProfileReportEvent({required this.imageUrl, required this.eventId,
-  required this.title, required this.comment});
+  ProfileReportEvent(
+      {required this.imageUrl,
+      required this.eventId,
+      required this.title,
+      required this.comment});
 }
 
 class ProfileAcceptUserOnActivityEvent extends ProfileEvent {
-  final String eventId; 
+  final String eventId;
   final String userId;
   final String status;
 
-  ProfileAcceptUserOnActivityEvent({required this.eventId,required this.status, required this.userId});
+  ProfileAcceptUserOnActivityEvent(
+      {required this.eventId, required this.status, required this.userId});
 }
 
-class ProfileCancelActivityEvent extends ProfileEvent{
+class ProfileCancelActivityEvent extends ProfileEvent {
   final String eventId;
   final bool isRecurring;
 
-  ProfileCancelActivityEvent({required this.eventId, required this.isRecurring});
+  ProfileCancelActivityEvent(
+      {required this.eventId, required this.isRecurring});
 }
 
 class ProfileLogoutEvent extends ProfileEvent {}
