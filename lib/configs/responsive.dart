@@ -5,10 +5,10 @@ class Responsive extends StatelessWidget {
   final Widget big;
 
   const Responsive({
-    Key? key,
+    super.key,
     required this.small,
     required this.big,
-  }) : super(key: key);
+  });
 
   static bool isMobile(BuildContext context) =>
       MediaQuery.of(context).size.width < 850;
@@ -22,8 +22,8 @@ class Responsive extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Size _size = MediaQuery.of(context).size;
-    if (_size.width >= 400) {
+    final Size size = MediaQuery.of(context).size;
+    if (size.width >= 400) {
       return big;
     } else {
       return small;

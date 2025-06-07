@@ -5,6 +5,7 @@ import '../models/api_error.dart';
 import '../models/auth_request.dart';
 import '../models/auth_response.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:acti_mobile/configs/storage.dart';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
@@ -12,8 +13,8 @@ import 'package:dio/dio.dart';
 class AuthRepository {
   final AuthService _authService;
   final FlutterSecureStorage _secureStorage;
-  static const _accessTokenKey = 'access_token';
-  static const _refreshTokenKey = 'refresh_token';
+  static const _accessTokenKey = accessStorageToken;
+  static const _refreshTokenKey = refreshStorageToken;
   static const _tokenTypeKey = 'token_type';
 
   AuthRepository(this._authService)

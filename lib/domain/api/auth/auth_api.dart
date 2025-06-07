@@ -70,7 +70,7 @@ class AuthApi {
     final accessToken = await storage.read(key: accessStorageToken);
     if (accessToken != null) {
       final response = await http.delete(
-        Uri.parse('$API/api/v1/users/delete'),
+        Uri.parse('$API/api/v1/users/profile/delete'),
         headers: {
           'Authorization': 'Bearer $accessToken',
           "Content-Type": "application/json",

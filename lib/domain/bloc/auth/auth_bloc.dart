@@ -52,8 +52,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (response['access_token'] != null) {
           emit(AuthSuccess(TokenResponse.fromJson(response), null,
               savedEventId: _savedEventId));
-          _savedEventId =
-              null; // Очищаем сохраненный eventId, как в _onLoginRequested
+          _savedEventId = null;
         } else {
           emit(SocialAuthSuccess(SocialLoginResponse.fromJson(response)));
         }
@@ -171,6 +170,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
       } catch (e) {
         emit(ActiUpdatedActivityErrorState());
+      }
+    });
+
+    on<AuthDeleteAccountEvent>((event, emit) async {
+      try {
+        final isDeleted = await AuthApi().authDelete();
+        if (isDeleted) {
+          await authRepository.logout(); // Очищаем локальные токены
+          emit(AuthAccountDeletedState());
+        } else {
+          emit(AuthFailure('Не удалось удалить аккаунт.'));
+        }
+      } catch (e) {
+        developer.log('Ошибка при удалении аккаунта: $e', name: 'AUTH_BLOC');
+        emit(AuthFailure('Произошла ошибка при удалении аккаунта: $e'));
       }
     });
   }

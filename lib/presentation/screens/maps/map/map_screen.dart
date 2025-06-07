@@ -148,7 +148,16 @@ class _MapScreenState extends State<MapScreen> {
       currentPermission = permission;
     });
     final accessToken = await storage.read(key: accessStorageToken);
-    connectToOnlineStatus(accessToken!);
+    if (accessToken != null) {
+      try {
+        connectToOnlineStatus(accessToken);
+      } catch (e) {
+        developer.log('Ошибка при подключении к WebSocket: $e',
+            name: 'MAP_SCREEN');
+      }
+    } else {
+      developer.log('Access token не найден', name: 'MAP_SCREEN');
+    }
     if (currentPermission.name == 'denied') {
       final permission = await geolocator.Geolocator.requestPermission();
       setState(() {

@@ -1283,10 +1283,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                               onTap: () {
                                 final restrictions = List<String>.from(
                                     filterProvider.selectedAgeRestrictions);
-                                if (restrictions.contains('isAdults')) {
-                                  restrictions.remove('isAdults');
+
+                                if (restrictions.contains('isKidsNotAllowed')) {
+                                  restrictions.remove('isKidsNotAllowed');
                                 } else {
-                                  restrictions.add('isAdults');
+                                  restrictions.add('isKidsNotAllowed');
+                                  restrictions.remove(
+                                      'withKids'); // Удаляем 'Можно с детьми', если 18+ выбрано
                                 }
                                 filterProvider
                                     .updateAgeRestrictions(restrictions);
@@ -1296,7 +1299,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                 curve: Curves.easeInBack,
                                 decoration: BoxDecoration(
                                   color: filterProvider.selectedAgeRestrictions
-                                          .contains('isAdults')
+                                          .contains('isKidsNotAllowed')
                                       ? mainBlueColor
                                       : Colors.grey[200],
                                   borderRadius: BorderRadius.circular(30.0),
@@ -1309,7 +1312,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                     fontSize: 11,
                                     color: filterProvider
                                             .selectedAgeRestrictions
-                                            .contains('isAdults')
+                                            .contains('isKidsNotAllowed')
                                         ? Colors.white
                                         : Colors.black,
                                     fontWeight: FontWeight.w500,
@@ -1322,10 +1325,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                               onTap: () {
                                 final restrictions = List<String>.from(
                                     filterProvider.selectedAgeRestrictions);
-                                if (restrictions.contains('isKidsAllowed')) {
-                                  restrictions.remove('isKidsAllowed');
+
+                                if (restrictions.contains('withKids')) {
+                                  restrictions.remove('withKids');
                                 } else {
-                                  restrictions.add('isKidsAllowed');
+                                  restrictions.add('withKids');
+                                  restrictions.remove(
+                                      'isKidsNotAllowed'); // Удаляем '18+', если Можно с детьми выбрано
                                 }
                                 filterProvider
                                     .updateAgeRestrictions(restrictions);
@@ -1335,7 +1341,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                 curve: Curves.easeInBack,
                                 decoration: BoxDecoration(
                                   color: filterProvider.selectedAgeRestrictions
-                                          .contains('isKidsAllowed')
+                                          .contains('withKids')
                                       ? mainBlueColor
                                       : Colors.grey[200],
                                   borderRadius: BorderRadius.circular(30.0),
@@ -1348,7 +1354,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                     fontSize: 11,
                                     color: filterProvider
                                             .selectedAgeRestrictions
-                                            .contains('isKidsAllowed')
+                                            .contains('withKids')
                                         ? Colors.white
                                         : Colors.black,
                                     fontWeight: FontWeight.w500,

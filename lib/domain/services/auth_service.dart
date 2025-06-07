@@ -30,7 +30,7 @@ class AuthService {
           name: 'REGISTER');
 
       final response = await _dio.post(
-        '$_baseUrl/auth/register',
+        '$_baseUrl/api/v1/auth/register',
         data: request.toJson(),
         options: Options(
           headers: {
@@ -71,7 +71,7 @@ class AuthService {
       developer.log('Данные запроса: $data', name: 'LOGIN');
 
       final response = await _dio.post(
-        '$_baseUrl/auth/login',
+        '$_baseUrl/api/v1/auth/login',
         data: data,
         options: Options(
           headers: {
@@ -135,7 +135,7 @@ class AuthService {
       while (retryCount < maxRetries) {
         try {
           final response = await _dio.post(
-            '$_baseUrl/auth/refresh',
+            '$_baseUrl/api/v1/auth/refresh',
             data: data,
             options: options,
           );
@@ -152,7 +152,8 @@ class AuthService {
                 'Получен неожиданный код ответа: ${response.statusCode}',
                 name: 'REFRESH_TOKEN_ERROR');
             throw DioException(
-              requestOptions: RequestOptions(path: '$_baseUrl/auth/refresh'),
+              requestOptions:
+                  RequestOptions(path: '$_baseUrl/api/v1/auth/refresh'),
               response: response,
               type: DioExceptionType.badResponse,
             );
@@ -213,10 +214,10 @@ class AuthService {
       Map<String, dynamic> requestData;
 
       if (request is VkLoginRequest) {
-        endpoint = '$_baseUrl/auth/vk';
+        endpoint = '$_baseUrl/api/v1/auth/vk';
         requestData = request.toJson();
       } else if (request is YandexLoginRequest) {
-        endpoint = '$_baseUrl/auth/yandex';
+        endpoint = '$_baseUrl/api/v1/auth/yandex';
         requestData = request.toJson();
       } else {
         throw Exception('Неподдерживаемый тип запроса: ${request.runtimeType}');
@@ -273,7 +274,7 @@ class AuthService {
     try {
       developer.log('Отправка запроса logout', name: 'LOGOUT');
       final response = await _dio.post(
-        '$_baseUrl/auth/logout',
+        '$_baseUrl/api/v1/auth/logout',
         options: Options(
           headers: {
             'Authorization': 'Bearer $accessToken',
@@ -303,7 +304,7 @@ class AuthService {
           name: 'RESEND_VERIFICATION');
 
       final response = await _dio.post(
-        '$_baseUrl/auth/resend-verify-email',
+        '$_baseUrl/api/v1/auth/resend-verify-email',
         data: {'email': email},
         options: Options(
           headers: {
@@ -377,7 +378,7 @@ class AuthService {
           name: 'PASSWORD_RESET');
 
       final response = await _dio.post(
-        '$_baseUrl/auth/reset-password',
+        '$_baseUrl/api/v1/auth/reset-password',
         data: {'email': email},
         options: Options(
           headers: {
@@ -403,7 +404,7 @@ class AuthService {
           name: 'CHANGE_PASSWORD');
 
       final response = await _dio.post(
-        '$_baseUrl/auth/change-password',
+        '$_baseUrl/api/v1/auth/change-password',
         data: {
           'token': token,
           'password': newPassword,

@@ -7,38 +7,85 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
 final List<Map<String, String>> complainSpam = [
-  {'title': 'Вредоносные ссылки', 'subtitle': 'Организатор размещает ссылки на вредоносные и подозрительные ресурсы'},
+  {
+    'title': 'Вредоносные ссылки',
+    'subtitle':
+        'Организатор размещает ссылки на вредоносные и подозрительные ресурсы'
+  },
   {'title': 'Реклама', 'subtitle': 'Размещено множество рекламы'},
 ];
 
 final List<Map<String, String>> complainLie = [
-  {'title': 'Введение в заблуждение', 'subtitle': 'Потенциально резонансное и опасное описание, размещённое с целью массовой дезинформации.'},
-  {'title': 'Мошенничество', 'subtitle': 'Обман с целью получения материальной выгоды. Если вы стали жертвой мошенников, обратитесь в правоохранительные органы.'},
-  {'title': 'Киберпреступность', 'subtitle': 'Предлагаются услуги взлома, накрутки или ведётся другая активность, связанная с компьютерными преступлениями.'},
+  {
+    'title': 'Введение в заблуждение',
+    'subtitle':
+        'Потенциально резонансное и опасное описание, размещённое с целью массовой дезинформации.'
+  },
+  {
+    'title': 'Мошенничество',
+    'subtitle':
+        'Обман с целью получения материальной выгоды. Если вы стали жертвой мошенников, обратитесь в правоохранительные органы.'
+  },
+  {
+    'title': 'Киберпреступность',
+    'subtitle':
+        'Предлагаются услуги взлома, накрутки или ведётся другая активность, связанная с компьютерными преступлениями.'
+  },
 ];
 
 final List<Map<String, String>> complainViolence = [
   {'title': 'Насилие над людьми и животными', 'subtitle': ''},
-  {'title': 'Оскорбления', 'subtitle': 'Унижение чести и достоинства личности.'},
-  {'title': 'Склонение к самоубийству', 'subtitle': 'Призыв к суициду или нанесению себе увечий, демонстрация самоубийства.'},
-  {'title': 'Экстремизм', 'subtitle': 'Призывы к беспорядкам и террору, насилию над людьми определённой национальности, вероисповедания, расы.'},
-  {'title': 'Призывы к травле', 'subtitle': 'Призывы применять физическую силу и унижать конкретного человека.'},
-  {'title': 'Враждебные высказывания', 'subtitle': 'Выражение нетерпимости к людям из-за расы, национальности, вероисповедания, гендера, сексуальной ориентации и других признаков.'},
+  {
+    'title': 'Оскорбления',
+    'subtitle': 'Унижение чести и достоинства личности.'
+  },
+  {
+    'title': 'Склонение к самоубийству',
+    'subtitle':
+        'Призыв к суициду или нанесению себе увечий, демонстрация самоубийства.'
+  },
+  {
+    'title': 'Экстремизм',
+    'subtitle':
+        'Призывы к беспорядкам и террору, насилию над людьми определённой национальности, вероисповедания, расы.'
+  },
+  {
+    'title': 'Призывы к травле',
+    'subtitle':
+        'Призывы применять физическую силу и унижать конкретного человека.'
+  },
+  {
+    'title': 'Враждебные высказывания',
+    'subtitle':
+        'Выражение нетерпимости к людям из-за расы, национальности, вероисповедания, гендера, сексуальной ориентации и других признаков.'
+  },
 ];
 
 final List<Map<String, String>> complainItems = [
-  {'title': 'Оружие',},
+  {
+    'title': 'Оружие',
+  },
   {'title': 'Наркотики'},
   {'title': 'Проституция'},
   {'title': 'Другое'},
 ];
 
 final List<Map<String, String>> complainSuspect = [
-  {'title': 'Смена тематики', 'subtitle': 'Изменилось название мероприятия, начали появляться материалы на другую тему'},
-  {'title': 'Организатор взломан', 'subtitle': 'Появляются странные материалы, от организатора приходят необычные сообщения'},
+  {
+    'title': 'Смена тематики',
+    'subtitle':
+        'Изменилось название мероприятия, начали появляться материалы на другую тему'
+  },
+  {
+    'title': 'Организатор взломан',
+    'subtitle':
+        'Появляются странные материалы, от организатора приходят необычные сообщения'
+  },
 ];
 final List<Map<String, String>> complainPhoto = [
-  {'title': 'Порнография',},
+  {
+    'title': 'Порнография',
+  },
   {'title': 'Детская эротика или порнография'},
   {'title': 'Другое'},
 ];
@@ -57,8 +104,10 @@ String formatDate(String inputDate) {
 
 String formatDuration(String startTime, String endTime) {
   final now = DateTime.now();
-  final start = DateTime.parse('${now.toIso8601String().substring(0, 10)}T$startTime');
-  final end = DateTime.parse('${now.toIso8601String().substring(0, 10)}T$endTime');
+  final start =
+      DateTime.parse('${now.toIso8601String().substring(0, 10)}T$startTime');
+  final end =
+      DateTime.parse('${now.toIso8601String().substring(0, 10)}T$endTime');
 
   final duration = end.difference(start);
 
@@ -69,20 +118,27 @@ String formatDuration(String startTime, String endTime) {
 
   if (hours == 0) {
     return '$minutes мин';
-  }else if(hours == 1 && minutes ==0){
+  } else if (hours == 1 && minutes == 0) {
     return '60 мин';
-  }
-   else {
+  } else {
     return '$hours ч ${minutes.toString().padLeft(2, '0')} мин';
   }
 }
+
 const API = 'http://93.183.81.104';
+const WS_API = 'ws://93.183.81.104';
 
 String normalizePhone(String input) {
   return input.replaceAll(RegExp(r'[^\d+]'), '');
 }
-const hintTextStyleEdit = TextStyle(fontFamily:'Inter',fontSize: 14,fontWeight: FontWeight.w300,color: Colors.grey);
-const titleTextStyleEdit = TextStyle(fontFamily: 'Inter',fontSize: 13,fontWeight: FontWeight.w400);
+
+const hintTextStyleEdit = TextStyle(
+    fontFamily: 'Inter',
+    fontSize: 14,
+    fontWeight: FontWeight.w300,
+    color: Colors.grey);
+const titleTextStyleEdit =
+    TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w400);
 String getWeeklyRepeatOnlyWeekText(DateTime date) {
   const weekdays = {
     DateTime.monday: 'по понедельникам.',
@@ -115,8 +171,9 @@ String capitalize(String input) {
   if (input.isEmpty) return input;
   return input[0].toUpperCase() + input.substring(1);
 }
-String utcDate(String date){
-    // Указываем формат входной строки
+
+String utcDate(String date) {
+  // Указываем формат входной строки
   DateFormat inputFormat = DateFormat('dd.MM.yyyy');
   DateTime dateTime = inputFormat.parse(date);
 
@@ -125,26 +182,26 @@ String utcDate(String date){
   String formatted = outputFormat.format(dateTime);
   return formatted;
 }
-String utcTime(String time){
 
-List<String> parts = time.split(':');
-int hour = int.parse(parts[0]);
-int minute = int.parse(parts[1]);
+String utcTime(String time) {
+  List<String> parts = time.split(':');
+  int hour = int.parse(parts[0]);
+  int minute = int.parse(parts[1]);
 
 // 2. Создадим DateTime (например, сегодняшняя дата)
-DateTime now = DateTime.now().toUtc();
-DateTime dateTimeUtc = DateTime.utc(
-  now.year,
-  now.month,
-  now.day,
-  hour,
-  minute,
-);
+  DateTime now = DateTime.now().toUtc();
+  DateTime dateTimeUtc = DateTime.utc(
+    now.year,
+    now.month,
+    now.day,
+    hour,
+    minute,
+  );
 
 // 3. Преобразуем в ISO строку
-String utcString = dateTimeUtc.toIso8601String();
-String timeOnlyUtc = utcString.substring(11); 
-return timeOnlyUtc;
+  String utcString = dateTimeUtc.toIso8601String();
+  String timeOnlyUtc = utcString.substring(11);
+  return timeOnlyUtc;
 }
 
 String? getNextDateForWeekday(String? weekdayName) {

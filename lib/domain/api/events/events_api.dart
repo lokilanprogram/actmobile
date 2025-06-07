@@ -183,6 +183,12 @@ class EventsApi {
         if (filters['time_to'] != null) {
           queryParameters['time_to'] = filters['time_to'];
         }
+        if (filters['slots_min'] != null) {
+          queryParameters['slots_min'] = filters['slots_min'].toString();
+        }
+        if (filters['slots_max'] != null) {
+          queryParameters['slots_max'] = filters['slots_max'].toString();
+        }
       }
 
       // Удаляем параметры, которые равны null или строке 'null'
@@ -201,15 +207,15 @@ class EventsApi {
       });
 
       // Добавляем restrictions как массив
-      if (queryParameters['restrictions'] != null) {
-        final restrictions = queryParameters['restrictions'] as List;
+      if (filters?['restrictions'] != null) {
+        final restrictions = filters!['restrictions'] as List;
         queryParams['restrictions'] =
             restrictions.map((e) => e.toString()).toList();
       }
 
       // Добавляем category_ids как массив
-      if (queryParameters['category_ids'] != null) {
-        final categoryIds = queryParameters['category_ids'] as List;
+      if (filters?['category_ids'] != null) {
+        final categoryIds = filters!['category_ids'] as List;
         queryParams['category_ids'] =
             categoryIds.map((e) => e.toString()).toList();
       }

@@ -184,22 +184,8 @@ class _EventsScreenState extends State<EventsScreen> {
       }
 
       // --- Формируем ограничения ---
-      List<String> restrictions = [];
-
-      if (filterProvider.isAnimalsAllowedSelected) {
-        restrictions.add('withAnimals');
-      }
-
-      if (filterProvider.isFreeSelected) {
-        restrictions.add('isUnlimited');
-      }
-
-      if (filterProvider.selectedAgeRestrictions.contains('isAdults')) {
-        restrictions.add('isKidsNotAllowed');
-      } else if (filterProvider.selectedAgeRestrictions
-          .contains('isKidsAllowed')) {
-        restrictions.add('withKids');
-      }
+      List<String> restrictions =
+          List<String>.from(filterProvider.selectedAgeRestrictions);
 
       final int radius = filterProvider.selectedRadius.round() == 0
           ? 1
@@ -223,7 +209,7 @@ class _EventsScreenState extends State<EventsScreen> {
             : null,
         time_from: filterProvider.selectedTimeFrom,
         time_to: filterProvider.selectedTimeTo,
-        type: filterProvider.isOnlineSelected ? 'online' : null,
+        type: filterProvider.isOnlineSelected ? 'online' : 'offline',
         price_min: filterProvider.priceMinText.isNotEmpty
             ? double.tryParse(filterProvider.priceMinText)
             : null,
@@ -461,6 +447,7 @@ class _EventsScreenState extends State<EventsScreen> {
                     automaticallyImplyLeading: false,
                     backgroundColor: Colors.white,
                     title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         showVotes
                             ? IconButton(

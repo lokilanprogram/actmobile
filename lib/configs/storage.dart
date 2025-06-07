@@ -1,4 +1,3 @@
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 FlutterSecureStorage storage = const FlutterSecureStorage();
@@ -15,7 +14,7 @@ Future<void> writeAuthTokens(String accessToken, String? refreshToken) async {
 }
 
 Future<void> deleteAuthTokens(bool isHere) async {
-  print(isHere.toString()); 
+  print(isHere.toString());
   await storage.delete(key: accessStorageToken);
   await storage.delete(key: refreshStorageToken);
   await storage.delete(key: userIdStorage);

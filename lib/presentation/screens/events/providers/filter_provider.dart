@@ -85,12 +85,6 @@ class FilterProvider extends ChangeNotifier {
 
   void updateOnlineStatus(bool isOnline) {
     isOnlineSelected = isOnline;
-    if (isOnline) {
-      selectedAgeRestrictions.add('isOnline');
-    } else {
-      selectedAgeRestrictions.remove('isOnline');
-      selectedAgeRestrictions.add('offline');
-    }
     notifyListeners();
   }
 

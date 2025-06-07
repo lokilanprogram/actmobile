@@ -6,13 +6,12 @@ final class ActiInitial extends AuthState {}
 
 class AuthLoading extends AuthState {}
 
-
 class AuthSuccess extends AuthState {
   final TokenResponse response;
   final VoidCallback? onTokenRefreshed;
   final String? savedEventId;
 
-   AuthSuccess(
+  AuthSuccess(
     this.response,
     this.onTokenRefreshed, {
     this.savedEventId,
@@ -25,7 +24,7 @@ class AuthSuccess extends AuthState {
 class SocialAuthSuccess extends AuthState {
   final SocialLoginResponse response;
 
-   SocialAuthSuccess(this.response);
+  SocialAuthSuccess(this.response);
 
   @override
   List<Object> get props => [response];
@@ -34,22 +33,25 @@ class SocialAuthSuccess extends AuthState {
 class AuthFailure extends AuthState {
   final String message;
 
-   AuthFailure(this.message);
+  AuthFailure(this.message);
 
   @override
   List<Object> get props => [message];
 }
 
-class ActiRegisteredState extends AuthState{
+class ActiRegisteredState extends AuthState {
   final String phone;
 
-  ActiRegisteredState({required this.phone, });
+  ActiRegisteredState({
+    required this.phone,
+  });
 }
-class ActiRegisteredErrorState extends AuthState{}
 
-class ActiVerifiedState extends AuthState{}
+class ActiRegisteredErrorState extends AuthState {}
 
-class ActiVerifiedErrorState extends AuthState{}
+class ActiVerifiedState extends AuthState {}
+
+class ActiVerifiedErrorState extends AuthState {}
 
 class ActiGotOnbordingState extends AuthState {
   final ListOnbordingModel listOnbordingModel;
@@ -70,3 +72,5 @@ class ActiCreatedActivityErrorState extends AuthState {}
 class ActiUpdatedActivityState extends AuthState {}
 
 class ActiUpdatedActivityErrorState extends AuthState {}
+
+class AuthAccountDeletedState extends AuthState {}

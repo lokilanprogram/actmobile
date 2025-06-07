@@ -84,11 +84,11 @@ class _TabBarWidgetState extends State<TabBarWidget> {
                               : Colors.black,
                           fontSize: widget.firshTabText == 'Личные' ||
                                   widget.firshTabText == 'Групповые'
-                              ? 19
-                              : 19,
+                              ? 18
+                              : 18,
                           fontFamily: 'Gilroy',
                           fontWeight: _selectedTab == "mine"
-                              ? FontWeight.bold
+                              ? FontWeight.w400
                               : FontWeight.w400,
                         ),
                       ),
@@ -150,7 +150,7 @@ class _TabBarWidgetState extends State<TabBarWidget> {
                             fontSize: 19,
                             fontFamily: 'Gilroy',
                             fontWeight: _selectedTab == "notMine"
-                                ? FontWeight.bold
+                                ? FontWeight.w400
                                 : FontWeight.w400),
                       ),
                       SizedBox(

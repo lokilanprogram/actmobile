@@ -90,24 +90,112 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                       height: 20,
                     ),
                     isPrivateChats == true
-                        ? Column(
-                            children: allPrivateChats.chats.map((chat) {
-                              return ChatListTileWidget(
-                                onDeletedFunction: () {
-                                  setState(() {
-                                    isLoading = true;
-                                  });
-                                  context
-                                      .read<ChatBloc>()
-                                      .add(GetAllChatsEvent());
-                                },
-                                chat: chat,
-                                isPrivateChats: isPrivateChats,
-                              );
-                            }).toList(),
-                          )
-                        : isPrivateChats == false
+                        ? (allPrivateChats.chats.isEmpty
                             ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const SizedBox(height: 100),
+                                  Center(
+                                    child: Text(
+                                      'У вас пока нет чатов',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Center(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        initialize();
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Color(0xFF4293EF),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 14, horizontal: 32),
+                                      ),
+                                      child: Text(
+                                        'Обновить',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                children: allPrivateChats.chats.map((chat) {
+                                  return ChatListTileWidget(
+                                    onDeletedFunction: () {
+                                      setState(() {
+                                        isLoading = true;
+                                      });
+                                      context
+                                          .read<ChatBloc>()
+                                          .add(GetAllChatsEvent());
+                                    },
+                                    chat: chat,
+                                    isPrivateChats: isPrivateChats,
+                                  );
+                                }).toList(),
+                              ))
+                        : (allGroupChats.chats.isEmpty
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const SizedBox(height: 100),
+                                  Center(
+                                    child: Text(
+                                      'У вас пока нет групповых чатов',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  // Center(
+                                  //   child: ElevatedButton(
+                                  //     onPressed: () {
+                                  //       setState(() {
+                                  //         isPrivateChats = false;
+                                  //       });
+                                  //       initialize();
+                                  //     },
+                                  //     style: ElevatedButton.styleFrom(
+                                  //       backgroundColor: Color(0xFF4293EF),
+                                  //       shape: RoundedRectangleBorder(
+                                  //         borderRadius:
+                                  //             BorderRadius.circular(30),
+                                  //       ),
+                                  //       padding: EdgeInsets.symmetric(
+                                  //           vertical: 14, horizontal: 32),
+                                  //     ),
+                                  //     child: Text(
+                                  //       'Обновить',
+                                  //       style: TextStyle(
+                                  //         fontSize: 16,
+                                  //         color: Colors.white,
+                                  //         fontWeight: FontWeight.w500,
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                ],
+                              )
+                            : Column(
                                 children: allGroupChats.chats.map((chat) {
                                   return ChatListTileWidget(
                                     onDeletedFunction: () {
@@ -119,8 +207,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                     isPrivateChats: isPrivateChats,
                                   );
                                 }).toList(),
-                              )
-                            : Container()
+                              )),
                   ],
                 ),
               ),
@@ -183,7 +270,7 @@ class ChatListTileWidget extends StatelessWidget {
             context,
             MaterialPageRoute(
                 builder: (context) => ChatDetailScreen(
-                  isPrivateChats: isPrivateChats,
+                      isPrivateChats: isPrivateChats,
                       trailingText: !isPrivateChats
                           ? '${DateFormat('dd.MM.yyyy').format(chat.event!.dateStart)} | ${chat.event!.timeStart.substring(0, 5)} – ${chat.event!.timeEnd.substring(0, 5)}'
                           : null,
@@ -196,9 +283,8 @@ class ChatListTileWidget extends StatelessWidget {
                           ? chat.event!.title
                           : (chat.users.first.name ?? 'not defined'),
                       interlocutorChatId: chat.id,
-                      interlocutorUserId: !isPrivateChats
-                          ? null
-                          : (chat.users.first.id),
+                      interlocutorUserId:
+                          !isPrivateChats ? null : (chat.users.first.id),
                     )));
         if (result == true) {
           onDeletedFunction();

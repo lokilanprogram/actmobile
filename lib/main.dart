@@ -17,6 +17,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:acti_mobile/presentation/screens/events/providers/vote_provider.dart';
+import 'package:acti_mobile/configs/constants.dart';
+
+final baseUrl = API;
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -43,7 +46,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dio = Dio();
-    final baseUrl = 'http://93.183.81.104';
     final authRepository = AuthRepository(AuthService(dio, baseUrl));
 
     return MultiBlocProvider(
