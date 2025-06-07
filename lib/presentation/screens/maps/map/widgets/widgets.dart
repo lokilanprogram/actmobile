@@ -121,7 +121,7 @@ Widget buildInfoRow(
                   SizedBox(
                     height: 5,
                   ),
-                  Container(
+                  SizedBox(
                     width: MediaQuery.of(context).size.width * 0.8,
                     child: RichText(
                       maxLines: 2,
@@ -207,7 +207,7 @@ Widget buildInfoRow(
               ),
               Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: MediaQuery.of(context).size.width * 0.8,
                     child: Text(
                       address,

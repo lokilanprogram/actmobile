@@ -42,6 +42,10 @@ class CustomNavBarWidget extends StatelessWidget {
             label: 'События',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: 'Чаты',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Профиль',
           ),

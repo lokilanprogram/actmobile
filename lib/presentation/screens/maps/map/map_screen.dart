@@ -47,7 +47,7 @@ class _MapScreenState extends State<MapScreen> {
   int selectedIndex = 0;
   MapboxMap? mapboxMap;
   late geolocator.LocationPermission currentPermission;
-  late Position currentSelectedPosition;
+  Position currentSelectedPosition = Position(37.6173, 55.7558); // Москва
   Position? currentUserPosition;
   double currentZoom = 16;
   bool isLoading = false;
@@ -191,18 +191,60 @@ class _MapScreenState extends State<MapScreen> {
         longitude: currentSelectedPosition.lng.toDouble()));
   }
 
-  final List<Widget> screens = [
-    // Screen at index 0 - Map should be here
-    // Screen at index 1 - Events
-    const EventsScreen(),
-    // Screen at index 2 - Chats
-    ChatMainScreen(),
-    // Screen at index 3 - Profile
-    const ProfileMenuScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      MapWidget(
+        onStyleLoadedListener: (styleLoadedEventData) async {
+          if (currentUserPosition != null) {
+            await addUserIconToStyle(mapboxMap!);
+          }
+          if (searchedEventsModel != null && mapboxMap != null) {
+            for (var event in searchedEventsModel!.events) {
+              final result = await screenshotController.captureFromWidget(
+                CategoryMarker(
+                    title: event.category!.name,
+                    iconUrl: event.category!.iconPath),
+              );
+              await addEventIconFromUrl(
+                  mapboxMap!, 'pointer:${event.id}', result);
+              final pointAnnotationOptions = PointAnnotationOptions(
+                geometry: Point(
+                    coordinates: Position(event.longitude!, event.latitude!)),
+                iconSize: 0.75,
+                image: result,
+                iconImage: 'pointer:${event.id}',
+              );
+              await pointAnnotationManager.create(pointAnnotationOptions);
+            }
+          }
+        },
+        onScrollListener: _onScroll,
+        onTapListener: _onTap,
+        styleUri: 'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
+        cameraOptions: CameraOptions(
+          zoom: currentZoom,
+          center: Point(
+            coordinates: Position(
+              currentSelectedPosition.lng,
+              currentSelectedPosition.lat,
+            ),
+          ),
+        ),
+        key: const ValueKey("MapWidget"),
+        onMapCreated: _onMapCreated,
+      ),
+      const EventsScreen(),
+      ChatMainScreen(),
+      ProfileMenuScreen(
+        onSettingsChanged: (value) {
+          setState(() {
+            showSettings = value;
+          });
+        },
+      ),
+    ];
+
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) async {
         if (state is InitializeMapState) {
@@ -262,65 +304,7 @@ class _MapScreenState extends State<MapScreen> {
                     // Use IndexedStack to keep all screens alive
                     IndexedStack(
                       index: selectedIndex,
-                      children: [
-                        MapWidget(
-                          // MapWidget is now the first child at index 0
-                          onStyleLoadedListener: (styleLoadedEventData) async {
-                            if (currentUserPosition != null) {
-                              await addUserIconToStyle(mapboxMap!);
-                            }
-                            // Add existing events to the map on style load
-                            if (searchedEventsModel != null &&
-                                mapboxMap != null) {
-                              for (var event in searchedEventsModel!.events) {
-                                final result = await screenshotController
-                                    .captureFromWidget(
-                                  CategoryMarker(
-                                      title: event.category!.name,
-                                      iconUrl: event.category!.iconPath),
-                                );
-                                await addEventIconFromUrl(
-                                    mapboxMap!, 'pointer:${event.id}', result);
-                                final pointAnnotationOptions =
-                                    PointAnnotationOptions(
-                                  geometry: Point(
-                                      coordinates: Position(
-                                          event.longitude!, event.latitude!)),
-                                  iconSize: 0.75,
-                                  image: result,
-                                  iconImage: 'pointer:${event.id}',
-                                );
-                                await pointAnnotationManager
-                                    .create(pointAnnotationOptions);
-                              }
-                            }
-                          },
-                          onScrollListener: _onScroll,
-                          onTapListener: _onTap,
-                          styleUri:
-                              'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
-                          cameraOptions: CameraOptions(
-                            zoom: currentZoom,
-                            center: Point(
-                              coordinates: Position(
-                                currentSelectedPosition.lng,
-                                currentSelectedPosition.lat,
-                              ),
-                            ),
-                          ),
-                          key: const ValueKey("MapWidget"),
-                          onMapCreated: _onMapCreated,
-                        ),
-                        screens[1], // Events
-                        screens[2], // Chats
-                        ProfileMenuScreen(
-                          onSettingsChanged: (value) {
-                            setState(() {
-                              showSettings = value;
-                            });
-                          },
-                        ),
-                      ],
+                      children: screens,
                     ),
 
                     // Map controls should only be visible on the map screen (selectedIndex == 0)
@@ -397,7 +381,6 @@ class _MapScreenState extends State<MapScreen> {
                         child: CustomNavBarWidget(
                           selectedIndex: selectedIndex,
                           onTabSelected: (int index) async {
-                            // Скрываем клавиатуру при переключении экранов
                             FocusScope.of(context).unfocus();
                             setState(() {
                               selectedIndex = index;
