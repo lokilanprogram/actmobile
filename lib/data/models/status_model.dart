@@ -13,7 +13,7 @@ Color getStatusColor(String status) {
       return mainBlueColor;
     case 'completed':
       return Color.fromRGBO(98, 207, 102, 1);
-    case 'canceled ':
+    case 'canceled':
       return Colors.red;
     default:
       return Colors.transparent;
@@ -32,7 +32,7 @@ String getStatusText(String status) {
       return 'Требует\nредактирования';
     case 'completed':
       return 'Завершено';
-    case 'canceled ':
+    case 'canceled':
       return 'Отменено';
     default:
       return '';

@@ -108,401 +108,432 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                     children: [
                       Expanded(
                         child: SingleChildScrollView(
-                          child: Stack(
+                          scrollDirection: Axis.vertical,
+                          child: Column(
                             children: [
-                              Container(
-                                height: MediaQuery.of(context).size.height,
-                                decoration: BoxDecoration(color: Colors.white),
-                              ),
                               Stack(
                                 children: [
-                                  SizedBox(
-                                    height: 200,
-                                    child: organizedEvent.photos.isNotEmpty
-                                        ? PageView.builder(
-                                            controller: _pageController,
-                                            itemCount:
-                                                organizedEvent.photos.length,
-                                            onPageChanged: (index) {
-                                              setState(() {
-                                                _currentPage = index;
-                                              });
-                                            },
-                                            itemBuilder: (context, index) {
-                                              return Image.network(
-                                                organizedEvent.photos[index],
+                                  Container(
+                                    height: MediaQuery.of(context).size.height,
+                                    decoration:
+                                        BoxDecoration(color: Colors.white),
+                                  ),
+                                  Stack(
+                                    children: [
+                                      SizedBox(
+                                        height: 200,
+                                        child: organizedEvent.photos.isNotEmpty
+                                            ? PageView.builder(
+                                                controller: _pageController,
+                                                itemCount: organizedEvent
+                                                    .photos.length,
+                                                onPageChanged: (index) {
+                                                  setState(() {
+                                                    _currentPage = index;
+                                                  });
+                                                },
+                                                itemBuilder: (context, index) {
+                                                  return Image.network(
+                                                    organizedEvent
+                                                        .photos[index],
+                                                    width: double.infinity,
+                                                    height: 200,
+                                                    fit: BoxFit.cover,
+                                                  );
+                                                },
+                                              )
+                                            : Image.asset(
+                                                'assets/images/image_big_default_event.png',
                                                 width: double.infinity,
                                                 height: 200,
                                                 fit: BoxFit.cover,
+                                              ),
+                                      ),
+                                      Positioned(
+                                          top: 50,
+                                          right: 20,
+                                          child: PopupMenuButton<int>(
+                                            color: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                            ),
+                                            offset: const Offset(-10, 30),
+                                            itemBuilder:
+                                                (BuildContext context) => [
+                                              PopupMenuItem<int>(
+                                                value: 0,
+                                                onTap: () async {
+                                                  final result = await Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              CreateEventScreen(
+                                                                  organizedEventModel:
+                                                                      organizedEvent)));
+                                                  if (result != null) {
+                                                    initialize();
+                                                  }
+                                                },
+                                                child: Row(
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                        'assets/icons/icon_edit.svg'),
+                                                    SizedBox(width: 10),
+                                                    Text(
+                                                      "Редактировать",
+                                                      style: TextStyle(
+                                                          fontFamily: 'Gilroy',
+                                                          fontSize: 12.93,
+                                                          color: Colors.black),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                            child: const Icon(Icons.more_vert,
+                                                color: Colors.white),
+                                          )),
+
+                                      // Индикаторы
+                                      Positioned(
+                                        bottom: 30,
+                                        left: 0,
+                                        right: 0,
+                                        child: Center(
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: List.generate(
+                                                organizedEvent.photos.length,
+                                                (index) {
+                                              return AnimatedContainer(
+                                                duration:
+                                                    Duration(milliseconds: 200),
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 3),
+                                                width: 8,
+                                                height: 8,
+                                                decoration: BoxDecoration(
+                                                  color: index == _currentPage
+                                                      ? Colors.white
+                                                      : Colors.white
+                                                          .withOpacity(0.5),
+                                                  shape: BoxShape.circle,
+                                                ),
                                               );
-                                            },
-                                          )
-                                        : Image.asset(
-                                            'assets/images/image_big_default_event.png',
-                                            width: double.infinity,
-                                            height: 200,
-                                            fit: BoxFit.cover,
+                                            }),
                                           ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   Positioned(
-                                      top: 50,
-                                      right: 20,
-                                      child: PopupMenuButton<int>(
+                                    top: 180,
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width,
+                                      height:
+                                          MediaQuery.of(context).size.height,
+                                      decoration: const BoxDecoration(
                                         color: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(15),
-                                        ),
-                                        offset: const Offset(-10, 30),
-                                        itemBuilder: (BuildContext context) => [
-                                          PopupMenuItem<int>(
-                                            value: 0,
-                                            onTap: () async {
-                                              final result = await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          CreateEventScreen(
-                                                              organizedEventModel:
-                                                                  organizedEvent)));
-                                              if (result != null) {
-                                                initialize();
-                                              }
-                                            },
-                                            child: Row(
+                                        borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(25)),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 10),
+                                      child: SingleChildScrollView(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
                                               children: [
-                                                SvgPicture.asset(
-                                                    'assets/icons/icon_edit.svg'),
-                                                SizedBox(width: 10),
+                                                IconButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                    icon: SvgPicture.asset(
+                                                        'assets/icons/icon_back_blue.svg')),
+                                                SizedBox(
+                                                  width: 15,
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    organizedEvent.price == 0
+                                                        ? buildTag('Бесплатное')
+                                                        : Container(),
+                                                    SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    organizedEvent.creator
+                                                                .isOrganization !=
+                                                            null
+                                                        ? (organizedEvent
+                                                                .creator
+                                                                .isOrganization!
+                                                            ? buildTag(
+                                                                'Компания')
+                                                            : Container())
+                                                        : Container()
+                                                  ],
+                                                ),
+                                                Spacer(),
+                                                organizedEvent.restrictions !=
+                                                        null
+                                                    ? (organizedEvent
+                                                            .restrictions
+                                                            .any((rectrict) =>
+                                                                rectrict ==
+                                                                'isAdults')
+                                                        ? Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .only(
+                                                                    right: 0),
+                                                            child: SvgPicture
+                                                                .asset(
+                                                              'assets/icons/icon_adult.svg',
+                                                              width: 34,
+                                                            ),
+                                                          )
+                                                        : Container())
+                                                    : Container()
+                                              ],
+                                            ),
+
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 20),
+                                              child: Text(
+                                                capitalize(
+                                                    organizedEvent.title),
+                                                style: TextStyle(
+                                                    fontFamily: 'Gilroy',
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 23),
+                                              ),
+                                            ),
+
+                                            const SizedBox(height: 15),
+
+                                            // Автор и участники
+                                            Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 20,
+                                                  backgroundImage: organizedEvent
+                                                              .creator
+                                                              .photoUrl !=
+                                                          null
+                                                      ? NetworkImage(
+                                                          '${organizedEvent.creator.photoUrl}')
+                                                      : AssetImage(
+                                                          'assets/images/image_profile.png'), // Заменить на нужную
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                        organizedEvent
+                                                            .creator.name,
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 17.8,
+                                                            fontFamily: 'Inter',
+                                                            color:
+                                                                mainBlueColor)),
+                                                    Text('Организатор',
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontFamily:
+                                                                'Gilroy')),
+                                                  ],
+                                                ),
+                                                Spacer(),
+                                                buildStatus(
+                                                    organizedEvent.status),
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              height: 15,
+                                            ),
+                                            Center(
+                                              child: InkWell(
+                                                onTap: () {
+                                                  Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (_) =>
+                                                              EventRequestScreen(
+                                                                eventId:
+                                                                    organizedEvent
+                                                                        .id,
+                                                                participants:
+                                                                    organizedEvent
+                                                                        .participants,
+                                                              )));
+                                                },
+                                                child: Material(
+                                                  color: Colors.white,
+                                                  elevation: 1.2,
+                                                  borderRadius:
+                                                      BorderRadius.circular(25),
+                                                  child: SizedBox(
+                                                    height: 59,
+                                                    width:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.45,
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceAround,
+                                                      children: [
+                                                        Text(
+                                                          widget.isCompletedEvent
+                                                              ? 'Участники'
+                                                              : 'Заявки',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  mainBlueColor,
+                                                              fontFamily:
+                                                                  'Inter',
+                                                              fontSize: 22,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        SizedBox(
+                                                          width: 15,
+                                                        ),
+                                                        SvgPicture.asset(
+                                                            'assets/icons/icon_next_blue.svg')
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 30,
+                                            ),
+                                            Text(
+                                              'Обзор',
+                                              style: TextStyle(
+                                                fontSize: 22,
+                                                fontFamily: 'Gilroy',
+                                                height: 1,
+                                                color: mainBlueColor,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(height: 20),
+
+                                                // Дата и время
+                                                organizedEvent.isRecurring
+                                                    ? infoRepeatedRow(
+                                                        'assets/icons/icon_time.svg',
+                                                        false,
+                                                        'Проходит ${getWeeklyRepeatOnlyWeekText(organizedEvent.dateStart)}',
+                                                        organizedEvent
+                                                            .dateStart,
+                                                        '${organizedEvent.timeStart.substring(0, 5)}–${organizedEvent.timeEnd.substring(0, 5)}',
+                                                        trailing: custom_date
+                                                                .DateUtils
+                                                            .formatDuration(
+                                                                organizedEvent
+                                                                    .timeStart,
+                                                                organizedEvent
+                                                                    .timeEnd),
+                                                      )
+                                                    : infoRow(
+                                                        'assets/icons/icon_time.svg',
+                                                        false,
+                                                        'Дата и время',
+                                                        custom_date.DateUtils
+                                                            .formatEventTime(
+                                                                organizedEvent
+                                                                    .dateStart,
+                                                                organizedEvent
+                                                                    .timeStart,
+                                                                organizedEvent
+                                                                    .timeEnd,
+                                                                organizedEvent
+                                                                        .type ==
+                                                                    'online'),
+                                                        trailing: custom_date
+                                                                .DateUtils
+                                                            .formatDuration(
+                                                                organizedEvent
+                                                                    .timeStart,
+                                                                organizedEvent
+                                                                    .timeEnd),
+                                                      ),
+                                                SizedBox(
+                                                    height: organizedEvent
+                                                                .address !=
+                                                            ''
+                                                        ? 20
+                                                        : 0),
+
+                                                organizedEvent.address != ''
+                                                    ? infoRow(
+                                                        'assets/icons/icon_location.svg',
+                                                        true,
+                                                        'Место',
+                                                        organizedEvent.address,
+                                                      )
+                                                    : Container(),
+
+                                                const SizedBox(height: 20),
+
+                                                // Места
+                                                infoRow(
+                                                  'assets/icons/icon_people.svg',
+                                                  false,
+                                                  organizedEvent.restrictions !=
+                                                          null
+                                                      ? (organizedEvent
+                                                              .restrictions
+                                                              .any((restrict) =>
+                                                                  restrict ==
+                                                                  'isUnlimited')
+                                                          ? 'Неограниченно'
+                                                          : 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест')
+                                                      : 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
+                                                  '',
+                                                ),
+
+                                                const SizedBox(height: 20),
+                                                // Описание
                                                 Text(
-                                                  "Редактировать",
+                                                  organizedEvent.description,
                                                   style: TextStyle(
+                                                      fontSize: 16,
                                                       fontFamily: 'Gilroy',
-                                                      fontSize: 12.93,
-                                                      color: Colors.black),
+                                                      height: 1),
                                                 ),
                                               ],
                                             ),
-                                          ),
-                                        ],
-                                        child: const Icon(Icons.more_vert,
-                                            color: Colors.white),
-                                      )),
-
-                                  // Индикаторы
-                                  Positioned(
-                                    bottom: 30,
-                                    left: 0,
-                                    right: 0,
-                                    child: Center(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: List.generate(
-                                            organizedEvent.photos.length,
-                                            (index) {
-                                          return AnimatedContainer(
-                                            duration:
-                                                Duration(milliseconds: 200),
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 3),
-                                            width: 8,
-                                            height: 8,
-                                            decoration: BoxDecoration(
-                                              color: index == _currentPage
-                                                  ? Colors.white
-                                                  : Colors.white
-                                                      .withOpacity(0.5),
-                                              shape: BoxShape.circle,
-                                            ),
-                                          );
-                                        }),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                              Positioned(
-                                top: 180,
-                                child: Container(
-                                  width: MediaQuery.of(context).size.width,
-                                  height: MediaQuery.of(context).size.height,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(25)),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 10),
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            IconButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                },
-                                                icon: SvgPicture.asset(
-                                                    'assets/icons/icon_back_blue.svg')),
-                                            SizedBox(
-                                              width: 15,
-                                            ),
-                                            Row(
-                                              children: [
-                                                organizedEvent.price == 0
-                                                    ? buildTag('Бесплатное')
-                                                    : Container(),
-                                                SizedBox(
-                                                  width: 5,
-                                                ),
-                                                organizedEvent.creator
-                                                            .isOrganization !=
-                                                        null
-                                                    ? (organizedEvent.creator
-                                                            .isOrganization!
-                                                        ? buildTag('Компания')
-                                                        : Container())
-                                                    : Container()
-                                              ],
-                                            ),
-                                            Spacer(),
-                                            organizedEvent.restrictions != null
-                                                ? (organizedEvent.restrictions
-                                                        .any((rectrict) =>
-                                                            rectrict ==
-                                                            'isAdults')
-                                                    ? Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .only(
-                                                                right: 0),
-                                                        child: SvgPicture.asset(
-                                                          'assets/icons/icon_adult.svg',
-                                                          width: 34,
-                                                        ),
-                                                      )
-                                                    : Container())
-                                                : Container()
-                                          ],
-                                        ),
-
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 20),
-                                          child: Text(
-                                            capitalize(organizedEvent.title),
-                                            style: TextStyle(
-                                                fontFamily: 'Gilroy',
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 23),
-                                          ),
-                                        ),
-
-                                        const SizedBox(height: 15),
-
-                                        // Автор и участники
-                                        Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 20,
-                                              backgroundImage: organizedEvent
-                                                          .creator.photoUrl !=
-                                                      null
-                                                  ? NetworkImage(
-                                                      '${organizedEvent.creator.photoUrl}')
-                                                  : AssetImage(
-                                                      'assets/images/image_profile.png'), // Заменить на нужную
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                    organizedEvent.creator.name,
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 17.8,
-                                                        fontFamily: 'Inter',
-                                                        color: mainBlueColor)),
-                                                Text('Организатор',
-                                                    style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontFamily: 'Gilroy')),
-                                              ],
-                                            ),
-                                            Spacer(),
-                                            buildStatus(organizedEvent.status),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          height: 15,
-                                        ),
-                                        Center(
-                                          child: InkWell(
-                                            onTap: () {
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (_) =>
-                                                          EventRequestScreen(
-                                                            eventId:
-                                                                organizedEvent
-                                                                    .id,
-                                                            participants:
-                                                                organizedEvent
-                                                                    .participants,
-                                                          )));
-                                            },
-                                            child: Material(
-                                              color: Colors.white,
-                                              elevation: 1.2,
-                                              borderRadius:
-                                                  BorderRadius.circular(25),
-                                              child: SizedBox(
-                                                height: 59,
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.45,
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceAround,
-                                                  children: [
-                                                    Text(
-                                                      widget.isCompletedEvent
-                                                          ? 'Участники'
-                                                          : 'Заявки',
-                                                      style: TextStyle(
-                                                          color: mainBlueColor,
-                                                          fontFamily: 'Inter',
-                                                          fontSize: 22,
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                    ),
-                                                    SizedBox(
-                                                      width: 15,
-                                                    ),
-                                                    SvgPicture.asset(
-                                                        'assets/icons/icon_next_blue.svg')
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 30,
-                                        ),
-                                        Text(
-                                          'Обзор',
-                                          style: TextStyle(
-                                            fontSize: 22,
-                                            fontFamily: 'Gilroy',
-                                            height: 1,
-                                            color: mainBlueColor,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const SizedBox(height: 20),
-
-                                            // Дата и время
-                                            organizedEvent.isRecurring
-                                                ? infoRepeatedRow(
-                                                    'assets/icons/icon_time.svg',
-                                                    false,
-                                                    'Проходит ${getWeeklyRepeatOnlyWeekText(organizedEvent.dateStart)}',
-                                                    organizedEvent.dateStart,
-                                                    '${organizedEvent.timeStart.substring(0, 5)}–${organizedEvent.timeEnd.substring(0, 5)}',
-                                                    trailing:
-                                                        custom_date.DateUtils
-                                                            .formatDuration(
-                                                                organizedEvent
-                                                                    .timeStart,
-                                                                organizedEvent
-                                                                    .timeEnd),
-                                                  )
-                                                : infoRow(
-                                                    'assets/icons/icon_time.svg',
-                                                    false,
-                                                    'Дата и время',
-                                                    custom_date.DateUtils
-                                                        .formatEventTime(
-                                                            organizedEvent
-                                                                .dateStart,
-                                                            organizedEvent
-                                                                .timeStart,
-                                                            organizedEvent
-                                                                .timeEnd,
-                                                            organizedEvent
-                                                                    .type ==
-                                                                'online'),
-                                                    trailing:
-                                                        custom_date.DateUtils
-                                                            .formatDuration(
-                                                                organizedEvent
-                                                                    .timeStart,
-                                                                organizedEvent
-                                                                    .timeEnd),
-                                                  ),
-                                            SizedBox(
-                                                height:
-                                                    organizedEvent.address != ''
-                                                        ? 20
-                                                        : 0),
-
-                                            organizedEvent.address != ''
-                                                ? infoRow(
-                                                    'assets/icons/icon_location.svg',
-                                                    true,
-                                                    'Место',
-                                                    organizedEvent.address,
-                                                  )
-                                                : Container(),
-
-                                            const SizedBox(height: 20),
-
-                                            // Места
-                                            infoRow(
-                                              'assets/icons/icon_people.svg',
-                                              false,
-                                              organizedEvent.restrictions !=
-                                                      null
-                                                  ? (organizedEvent.restrictions
-                                                          .any((restrict) =>
-                                                              restrict ==
-                                                              'isUnlimited')
-                                                      ? 'Неограниченно'
-                                                      : 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест')
-                                                  : 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
-                                              '',
-                                            ),
-
-                                            const SizedBox(height: 20),
-                                            // Описание
-                                            Text(
-                                              organizedEvent.description,
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontFamily: 'Gilroy',
-                                                  height: 1),
-                                            ),
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                              SizedBox(
+                                height: 20,
                               ),
                             ],
                           ),
@@ -531,7 +562,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
               ? showCancelActivityDialog(
                   context,
                   'Вы хотите отменить одно мероприятие или всю серию?',
-                  'Ближайшее',
+                  'Одно',
                   'Все',
                   () {
                     setState(() {
@@ -592,14 +623,14 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
       decoration: BoxDecoration(
-        border: BoxBorder.all(color: getStatusColor(status)),
+        border: Border.all(color: getStatusColor(status)),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         getStatusText(status),
         textAlign: TextAlign.center,
         style: TextStyle(
-          height: 1,
+            height: 1,
             color: getStatusColor(status),
             fontSize: 12.46,
             fontFamily: 'Gilroy'),
@@ -644,21 +675,12 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                           )));
             }
           },
-          child: Row(
-            children: [
-              Text(
-                subtitle,
-                style: TextStyle(
-                    fontFamily: 'Gilroy',
-                    fontSize: 16,
-                    color: isLocation ? Colors.blue : Colors.black),
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              if (trailing != null)
-                Text(trailing, style: const TextStyle(color: Colors.grey)),
-            ],
+          child: Text(
+            subtitle,
+            style: TextStyle(
+                fontFamily: 'Gilroy',
+                fontSize: 16,
+                color: isLocation ? Colors.blue : Colors.black),
           ),
         ),
       ],
