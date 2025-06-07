@@ -52,6 +52,7 @@ class _MapScreenState extends State<MapScreen> {
   double currentZoom = 16;
   bool isLoading = false;
   bool showEvents = false;
+  bool showSettings = false;
   DeepLinkService? _deepLinkService;
   DraggableScrollableController sheetController =
       DraggableScrollableController();
@@ -197,7 +198,7 @@ class _MapScreenState extends State<MapScreen> {
     // Screen at index 2 - Chats
     ChatMainScreen(),
     // Screen at index 3 - Profile
-    ProfileMenuScreen()
+    const ProfileMenuScreen(),
   ];
 
   @override
@@ -248,6 +249,7 @@ class _MapScreenState extends State<MapScreen> {
       },
       child: Scaffold(
         backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: false,
         body: WillPopScope(
           onWillPop: () async {
             SystemNavigator.pop();
@@ -309,7 +311,15 @@ class _MapScreenState extends State<MapScreen> {
                           key: const ValueKey("MapWidget"),
                           onMapCreated: _onMapCreated,
                         ),
-                        ...screens // Other screens follow
+                        screens[1], // Events
+                        screens[2], // Chats
+                        ProfileMenuScreen(
+                          onSettingsChanged: (value) {
+                            setState(() {
+                              showSettings = value;
+                            });
+                          },
+                        ),
                       ],
                     ),
 
@@ -334,7 +344,7 @@ class _MapScreenState extends State<MapScreen> {
 
                     // My Events button (assuming it's part of the profile screen)
                     // This logic might need to be moved inside ProfileMenuScreen
-                    if (selectedIndex == 3)
+                    if (selectedIndex == 3 && !showSettings)
                       Align(
                         alignment: Alignment.bottomCenter,
                         child: Padding(
@@ -387,12 +397,11 @@ class _MapScreenState extends State<MapScreen> {
                         child: CustomNavBarWidget(
                           selectedIndex: selectedIndex,
                           onTabSelected: (int index) async {
+                            // Скрываем клавиатуру при переключении экранов
+                            FocusScope.of(context).unfocus();
                             setState(() {
                               selectedIndex = index;
                             });
-                            // Handle navigation if needed, or IndexedStack manages visibility
-                            // If navigating to a new screen that should replace MapScreen, use Navigator.push
-                            // If staying within the same navigation stack, IndexedStack is sufficient for switching views
                           },
                         ),
                       ),

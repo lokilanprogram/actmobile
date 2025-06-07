@@ -239,45 +239,67 @@ class VoteModel {
   final String title;
   final String description;
   final String imageUrl;
-  final DateTime date;
-  final String time;
   final int votes;
-  final bool is18plus;
   final bool userVoted;
+  final String date;
+  final String time;
+  final bool is18plus;
 
   VoteModel({
     required this.id,
     required this.title,
     required this.description,
     required this.imageUrl,
+    required this.votes,
+    required this.userVoted,
     required this.date,
     required this.time,
-    required this.votes,
     required this.is18plus,
-    required this.userVoted,
   });
 
   factory VoteModel.fromJson(Map<String, dynamic> json) {
-    print('VoteModel.fromJson входные данные: $json');
+    final photos = json['photos'] as List<dynamic>?;
     final timeStart =
-        json['time_start']?.toString().split('+')[0].substring(0, 5) ?? '';
+        json['time_start']?.toString().split('.')[0].substring(0, 5) ?? '';
     final timeEnd =
-        json['time_end']?.toString().split('+')[0].substring(0, 5) ?? '';
+        json['time_end']?.toString().split('.')[0].substring(0, 5) ?? '';
     final formattedTime = '$timeStart-$timeEnd';
 
-    final model = VoteModel(
-      id: json['id'],
-      title: json['title'],
+    return VoteModel(
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
       description: json['description'] ?? '',
-      imageUrl: json['photos'] ?? '',
-      date: DateTime.parse(json['date_start']),
-      time: formattedTime,
+      imageUrl: photos != null && photos.isNotEmpty ? photos[0] : '',
       votes: json['vote_count'] ?? 0,
-      is18plus: json['is18plus'] ?? false,
       userVoted: json['user_voted'] ?? false,
+      date: json['date_start'] ?? '',
+      time: formattedTime,
+      is18plus: json['is18plus'] ?? false,
     );
-    print('VoteModel.fromJson созданная модель: imageUrl=${model.imageUrl}');
-    return model;
+  }
+
+  VoteModel copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? imageUrl,
+    int? votes,
+    bool? userVoted,
+    String? date,
+    String? time,
+    bool? is18plus,
+  }) {
+    return VoteModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
+      votes: votes ?? this.votes,
+      userVoted: userVoted ?? this.userVoted,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      is18plus: is18plus ?? this.is18plus,
+    );
   }
 }
 

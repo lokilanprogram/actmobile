@@ -24,6 +24,7 @@ import 'package:acti_mobile/presentation/screens/events/screens/detail_vote_even
 import 'package:acti_mobile/presentation/screens/events/widgets/filter_bottom_sheet.dart';
 import 'package:acti_mobile/presentation/screens/events/widgets/vote_event_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:acti_mobile/presentation/screens/events/providers/vote_provider.dart';
 
 extension StringCasingExtension on String {
   String capitalize() => '${this[0].toUpperCase()}${substring(1)}';
@@ -55,9 +56,6 @@ class _EventsScreenState extends State<EventsScreen> {
   int _offset = 0;
   final int _limit = 20;
   bool _hasMore = true;
-
-  List<all_events.VoteModel> _votes = [];
-  bool _votesLoading = false;
 
   // --- Для автокомплита поиска ---
   final FocusNode _searchFocusNode = FocusNode();
@@ -295,17 +293,17 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Future<void> _fetchVotes() async {
-    setState(() {
-      _votesLoading = true;
-    });
+    final voteProvider = Provider.of<VoteProvider>(context, listen: false);
+    voteProvider.setLoading(true);
     try {
-      _votes = await EventsApi().getVotesList();
+      final votes = await EventsApi().getVotesList();
+      voteProvider.setVotes(votes);
     } catch (e) {
-      _votes = [];
+      voteProvider.setVotes([]);
+      developer.log('Ошибка при загрузке голосований: $e');
+    } finally {
+      voteProvider.setLoading(false);
     }
-    setState(() {
-      _votesLoading = false;
-    });
   }
 
   Future<void> _fetchSearchSuggestions(String query) async {
@@ -452,8 +450,8 @@ class _EventsScreenState extends State<EventsScreen> {
           });
         }
       },
-      child: Consumer<FilterProvider>(
-        builder: (context, filterProvider, child) {
+      child: Consumer2<FilterProvider, VoteProvider>(
+        builder: (context, filterProvider, voteProvider, child) {
           return Scaffold(
             backgroundColor: Colors.white,
             resizeToAvoidBottomInset: false,
@@ -471,8 +469,8 @@ class _EventsScreenState extends State<EventsScreen> {
                                     showVotes = !showVotes;
                                   });
                                   if (showVotes &&
-                                      _votes.isEmpty &&
-                                      !_votesLoading) {
+                                      voteProvider.votes.isEmpty &&
+                                      !voteProvider.isLoading) {
                                     await _fetchVotes();
                                   }
                                 },
@@ -523,8 +521,8 @@ class _EventsScreenState extends State<EventsScreen> {
                                       showVotes = !showVotes;
                                     });
                                     if (showVotes &&
-                                        _votes.isEmpty &&
-                                        !_votesLoading) {
+                                        voteProvider.votes.isEmpty &&
+                                        !voteProvider.isLoading) {
                                       await _fetchVotes();
                                     }
                                   },
@@ -614,10 +612,12 @@ class _EventsScreenState extends State<EventsScreen> {
                                           onSelected: (value) {
                                             setState(() {
                                               if (value == 0) {
-                                                _votes.sort((a, b) =>
+                                                voteProvider.votes.sort((a,
+                                                        b) =>
                                                     a.votes.compareTo(b.votes));
                                               } else {
-                                                _votes.sort((a, b) =>
+                                                voteProvider.votes.sort((a,
+                                                        b) =>
                                                     b.votes.compareTo(a.votes));
                                               }
                                             });
@@ -678,10 +678,10 @@ class _EventsScreenState extends State<EventsScreen> {
                                         onSelected: (value) {
                                           setState(() {
                                             if (value == 0) {
-                                              _votes.sort((a, b) =>
+                                              voteProvider.votes.sort((a, b) =>
                                                   a.votes.compareTo(b.votes));
                                             } else {
-                                              _votes.sort((a, b) =>
+                                              voteProvider.votes.sort((a, b) =>
                                                   b.votes.compareTo(a.votes));
                                             }
                                           });
@@ -785,34 +785,53 @@ class _EventsScreenState extends State<EventsScreen> {
                                 const SizedBox(height: 25),
                                 Expanded(
                                   child: showVotes
-                                      ? (_votesLoading
+                                      ? (voteProvider.isLoading
                                           ? Center(
                                               child:
                                                   CircularProgressIndicator())
                                           : RefreshIndicator(
                                               onRefresh: _fetchVotes,
-                                              child: ListView.builder(
-                                                itemCount: _votes.length,
-                                                itemBuilder: (context, idx) {
-                                                  final vote = _votes[idx];
-                                                  return VoteEventCard(
-                                                    vote: vote,
-                                                    onTap: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              DetailVoteEventScreen(
-                                                            eventId: vote.id,
-                                                            userVoted:
-                                                                vote.userVoted,
-                                                          ),
+                                              child: voteProvider.votes.isEmpty
+                                                  ? Center(
+                                                      child: Text(
+                                                        'Ничего не нашлось',
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          color:
+                                                              Colors.grey[600],
+                                                          fontWeight:
+                                                              FontWeight.w500,
                                                         ),
-                                                      );
-                                                    },
-                                                  );
-                                                },
-                                              ),
+                                                      ),
+                                                    )
+                                                  : ListView.builder(
+                                                      itemCount: voteProvider
+                                                          .votes.length,
+                                                      itemBuilder:
+                                                          (context, idx) {
+                                                        final vote =
+                                                            voteProvider
+                                                                .votes[idx];
+                                                        return VoteEventCard(
+                                                          vote: vote,
+                                                          onTap: () {
+                                                            Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                builder:
+                                                                    (context) =>
+                                                                        DetailVoteEventScreen(
+                                                                  eventId:
+                                                                      vote.id,
+                                                                  userVoted: vote
+                                                                      .userVoted,
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    ),
                                             ))
                                       : (eventsModel != null
                                           ? RefreshIndicator(
@@ -836,29 +855,46 @@ class _EventsScreenState extends State<EventsScreen> {
                                                   }
                                                   return false;
                                                 },
-                                                child: ListView(
-                                                  children: [
-                                                    ...eventsModel!.events
-                                                        .map((event) {
-                                                      return MyCardEventWidget(
-                                                        isCompletedEvent: false,
-                                                        isPublicUser: true,
-                                                        organizedEvent: event
-                                                            .toOrganizedEventModel(),
-                                                      );
-                                                    }),
-                                                    if (_hasMore)
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                                vertical: 16),
-                                                        child: Center(
-                                                            child:
-                                                                CircularProgressIndicator()),
+                                                child: eventsModel!
+                                                        .events.isEmpty
+                                                    ? Center(
+                                                        child: Text(
+                                                          'Ничего не нашлось',
+                                                          style: TextStyle(
+                                                            fontSize: 16,
+                                                            color: Colors
+                                                                .grey[600],
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : ListView(
+                                                        children: [
+                                                          ...eventsModel!.events
+                                                              .map((event) {
+                                                            return MyCardEventWidget(
+                                                              isCompletedEvent:
+                                                                  false,
+                                                              isPublicUser:
+                                                                  true,
+                                                              organizedEvent: event
+                                                                  .toOrganizedEventModel(),
+                                                            );
+                                                          }),
+                                                          if (_hasMore)
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .symmetric(
+                                                                      vertical:
+                                                                          16),
+                                                              child: Center(
+                                                                  child:
+                                                                      CircularProgressIndicator()),
+                                                            ),
+                                                        ],
                                                       ),
-                                                  ],
-                                                ),
                                               ),
                                             )
                                           : Container()),

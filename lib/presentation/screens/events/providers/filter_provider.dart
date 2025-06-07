@@ -9,7 +9,7 @@ class FilterProvider extends ChangeNotifier {
   String? selectedTimeFrom;
   String? selectedTimeTo;
   String? selectedLocationType;
-  double selectedRadius = 1.0;
+  double selectedRadius = 50.0;
   bool isOnlineSelected = false;
   String priceMinText = '';
   String priceMaxText = '';
@@ -173,7 +173,7 @@ class FilterProvider extends ChangeNotifier {
     selectedTimeFrom = null;
     selectedTimeTo = null;
     selectedLocationType = null;
-    selectedRadius = 1.0;
+    selectedRadius = 50.0;
     isOnlineSelected = false;
     priceMinText = '';
     priceMaxText = '';

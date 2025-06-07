@@ -34,6 +34,12 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
     });
   }
 
+  void _handleTap(int index) {
+    // Скрываем клавиатуру при нажатии на любую кнопку
+    FocusScope.of(context).unfocus();
+    widget.onTabSelected(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final icons = [
@@ -42,47 +48,47 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
       'assets/drawer/chats.svg',
     ];
 
-    return  Material(
-        elevation: 8,
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(50),
-        child: Container(
-          height: 65,
-          width: MediaQuery.of(context).size.width * 0.8,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(50),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              for (int i = 0; i < icons.length; i++)
-                GestureDetector(
-                  onTap: () => widget.onTabSelected(i),
-                  child: SvgPicture.asset(
-                    icons[i],
-                    height: 28,
-                    colorFilter: ColorFilter.mode(
-                      widget.selectedIndex == i
-                          ? mainBlueColor
-                          : Colors.lightBlue.withOpacity(0.5),
-                      BlendMode.srcIn,
-                    ),
+    return Material(
+      elevation: 8,
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(50),
+      child: Container(
+        height: 65,
+        width: MediaQuery.of(context).size.width * 0.8,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            for (int i = 0; i < icons.length; i++)
+              GestureDetector(
+                onTap: () => _handleTap(i),
+                child: SvgPicture.asset(
+                  icons[i],
+                  height: 28,
+                  colorFilter: ColorFilter.mode(
+                    widget.selectedIndex == i
+                        ? mainBlueColor
+                        : Colors.lightBlue.withOpacity(0.5),
+                    BlendMode.srcIn,
                   ),
                 ),
-              GestureDetector(
-                onTap: () => widget.onTabSelected(3),
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundImage: profileIcon != null
-                      ? NetworkImage(profileIcon!)
-                      : AssetImage('assets/images/image_profile.png'),
-                  backgroundColor: Colors.transparent,
-                ),
               ),
-            ],
-          ),
+            GestureDetector(
+              onTap: () => _handleTap(3),
+              child: CircleAvatar(
+                radius: 20,
+                backgroundImage: profileIcon != null
+                    ? NetworkImage(profileIcon!)
+                    : AssetImage('assets/images/image_profile.png'),
+                backgroundColor: Colors.transparent,
+              ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
 }

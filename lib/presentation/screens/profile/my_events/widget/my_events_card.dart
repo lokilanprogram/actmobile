@@ -53,7 +53,7 @@ class MyCardEventWidget extends StatelessWidget {
             color: Colors.white,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            child: Container(
+            child: SizedBox(
               height: 215,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
