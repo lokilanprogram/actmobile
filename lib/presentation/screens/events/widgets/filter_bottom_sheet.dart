@@ -36,7 +36,8 @@ class FilterBottomSheet extends StatefulWidget {
   State<FilterBottomSheet> createState() => _FilterBottomSheetState();
 }
 
-class _FilterBottomSheetState extends State<FilterBottomSheet> {
+class _FilterBottomSheetState extends State<FilterBottomSheet>
+    with WidgetsBindingObserver {
   final TextEditingController _priceMinController = TextEditingController();
   final TextEditingController _priceMaxController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
@@ -49,6 +50,27 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   void initState() {
     super.initState();
     _loadCategories();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _priceMinController.dispose();
+    _priceMaxController.dispose();
+    _cityController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      FocusScope.of(context).unfocus();
+    }
+  }
+
+  void _hideKeyboard() {
+    FocusScope.of(context).unfocus();
   }
 
   Future<void> _loadCategories() async {
@@ -97,14 +119,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     } finally {
       setState(() => _isLoading = false);
     }
-  }
-
-  @override
-  void dispose() {
-    _priceMinController.dispose();
-    _priceMaxController.dispose();
-    _cityController.dispose();
-    super.dispose();
   }
 
   Future<TimeRange?> _showTimeRangeDialog(BuildContext context,
@@ -396,763 +410,406 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   Widget build(BuildContext context) {
     return Consumer<FilterProvider>(
       builder: (context, filterProvider, child) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 20.0,
-            right: 20.0,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 16),
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Фильтры',
-                    style: TextStyle(
-                      fontFamily: 'Gilroy',
-                      color: authBlueColor,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+        return GestureDetector(
+          onTap: _hideKeyboard,
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.9,
+            padding: EdgeInsets.only(
+              left: 20.0,
+              right: 20.0,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  Row(
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          filterProvider.resetFilters();
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: authBlueColor,
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                        ),
-                        child: Text(
-                          'Сбросить',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Фильтры',
+                      style: TextStyle(
+                        fontFamily: 'Gilroy',
+                        color: authBlueColor,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            filterProvider.resetFilters();
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: authBlueColor,
+                            padding: EdgeInsets.symmetric(horizontal: 12),
                           ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Город
-                      Text('Город (населённый пункт)',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                            color: authBlueColor,
-                          )),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              height: 45,
-                              child: TextFormField(
-                                onChanged: (value) {
-                                  if (value.isNotEmpty &&
-                                      filterProvider.selectedLocationType ==
-                                          'current') {
-                                    filterProvider.updateLocationType('');
-                                  }
-                                  _searchLocation(value);
-                                },
-                                maxLines: 1,
-                                controller: _cityController,
-                                decoration: InputDecoration(
-                                    fillColor: Colors.grey[200],
-                                    filled: true,
-                                    border: OutlineInputBorder(
-                                        gapPadding: 0,
-                                        borderRadius: BorderRadius.circular(15),
-                                        borderSide: BorderSide.none),
-                                    hintText: 'Введите город',
-                                    hintStyle: TextStyle(
-                                        fontFamily: 'Gilroy',
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w400)),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            if (_isLoading)
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Center(
-                                    child: CircularProgressIndicator(
-                                  color: mainBlueColor,
-                                  strokeWidth: 1.2,
-                                )),
-                              )
-                            else if (_suggestions.isNotEmpty)
-                              Container(
-                                constraints: BoxConstraints(maxHeight: 160),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.grey[300]!),
-                                ),
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: _suggestions.length,
-                                  itemBuilder: (context, index) {
-                                    final city = _suggestions[index];
-                                    return ListTile(
-                                      dense: true,
-                                      title: Text(city.placeNameRu!,
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              fontFamily: 'Gilroy')),
-                                      onTap: () {
-                                        final parts =
-                                            city.placeNameRu?.split(', ');
-                                        if (parts!.length == 6) {
-                                          _cityController.text =
-                                              'г. ${parts[2]}';
-                                        } else {
-                                          _cityController.text =
-                                              city.placeNameRu!;
-                                        }
-                                        filterProvider.updateCityFilter(
-                                            _cityController.text);
-                                        // Создаем LocalAddressModel с координатами выбранного города
-                                        filterProvider.updateLocationFilter(
-                                          'city',
-                                          address: LocalAddressModel(
-                                            address: _cityController.text,
-                                            latitude: city.center!.last,
-                                            longitude: city.center!.first,
-                                            properties: null,
-                                          ),
-                                        );
-                                        filterProvider
-                                            .updateLocationType('city');
-                                        setState(() {
-                                          _suggestions = [];
-                                        });
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Дата
-                      Text('Дата',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                            color: authBlueColor,
-                          )),
-                      Wrap(
-                        spacing: 5.0,
-                        runSpacing: 10,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          // Animated Date Segment Bar
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(30.0),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                // "Сегодня" segment
-                                GestureDetector(
-                                  onTap: () {
-                                    filterProvider.updateDateFilter('today');
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: Duration(milliseconds: 100),
-                                    curve: Curves.easeInBack,
-                                    decoration: BoxDecoration(
-                                      color:
-                                          filterProvider.selectedDateFilter ==
-                                                  'today'
-                                              ? mainBlueColor
-                                              : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(30.0),
-                                    ),
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: 8.0, horizontal: 8.0),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      'Сегодня',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color:
-                                            filterProvider.selectedDateFilter ==
-                                                    'today'
-                                                ? Colors.white
-                                                : Colors.black,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                // "На этой неделе" segment
-                                GestureDetector(
-                                  onTap: () {
-                                    filterProvider
-                                        .updateDateFilter('this_week');
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: Duration(milliseconds: 100),
-                                    curve: Curves.easeInBack,
-                                    decoration: BoxDecoration(
-                                      color:
-                                          filterProvider.selectedDateFilter ==
-                                                  'this_week'
-                                              ? mainBlueColor
-                                              : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(30.0),
-                                    ),
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: 8.0, horizontal: 8.0),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      'На этой неделе',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color:
-                                            filterProvider.selectedDateFilter ==
-                                                    'this_week'
-                                                ? Colors.white
-                                                : Colors.black,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                // "На выходных" segment
-                                GestureDetector(
-                                  onTap: () {
-                                    filterProvider.updateDateFilter('weekend');
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: Duration(milliseconds: 100),
-                                    curve: Curves.easeInBack,
-                                    decoration: BoxDecoration(
-                                      color:
-                                          filterProvider.selectedDateFilter ==
-                                                  'weekend'
-                                              ? mainBlueColor
-                                              : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(30.0),
-                                    ),
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: 8.0, horizontal: 8.0),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      'На выходных',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color:
-                                            filterProvider.selectedDateFilter ==
-                                                    'weekend'
-                                                ? Colors.white
-                                                : Colors.black,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // "Период" Chip
-                          GestureDetector(
-                            onTap: () async {
-                              await _showPeriodPickerDialog(
-                                  context, filterProvider);
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              width: 100,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedDateFilter ==
-                                        'period'
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(vertical: 8.0),
-                              alignment: Alignment.center,
-                              child: Text(
-                                'Период',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: filterProvider.selectedDateFilter ==
-                                          'period'
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (filterProvider.selectedDateFilter == 'period' &&
-                          (filterProvider.selectedDateFrom != null ||
-                              filterProvider.selectedDateTo != null))
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
                           child: Text(
-                            'Выбран период: ${filterProvider.selectedDateFrom != null ? DateFormat('dd.MM.yyyy').format(filterProvider.selectedDateFrom!) : ''} - ${filterProvider.selectedDateTo != null ? DateFormat('dd.MM.yyyy').format(filterProvider.selectedDateTo!) : ''}',
+                            'Сбросить',
                             style: TextStyle(
-                              color: mainBlueColor,
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
-                      const SizedBox(height: 20),
-
-                      // Время
-                      Text('Время',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                            color: authBlueColor,
-                          )),
-                      Wrap(
-                        spacing: 5.0,
-                        runSpacing: 10,
-                        children: [
-                          // "День" segment
-                          GestureDetector(
-                            onTap: () {
-                              filterProvider.updateTimeFilter('day');
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color:
-                                    filterProvider.selectedTimeFilter == 'day'
-                                        ? mainBlueColor
-                                        : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                'День',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color:
-                                      filterProvider.selectedTimeFilter == 'day'
-                                          ? Colors.white
-                                          : Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // "Вечер" segment
-                          GestureDetector(
-                            onTap: () {
-                              filterProvider.updateTimeFilter('evening');
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedTimeFilter ==
-                                        'evening'
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                'Вечер',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: filterProvider.selectedTimeFilter ==
-                                          'evening'
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // "Период" segment
-                          GestureDetector(
-                            onTap: () async {
-                              final TimeRange? picked =
-                                  await _showTimeRangeDialog(
-                                context,
-                                initialStart:
-                                    filterProvider.selectedTimeFrom != null
-                                        ? TimeOfDay(
-                                            hour: int.parse(filterProvider
-                                                .selectedTimeFrom!
-                                                .split(':')[0]),
-                                            minute: 0)
-                                        : null,
-                                initialEnd:
-                                    filterProvider.selectedTimeTo != null
-                                        ? TimeOfDay(
-                                            hour: int.parse(filterProvider
-                                                .selectedTimeTo!
-                                                .split(':')[0]),
-                                            minute: 0)
-                                        : null,
-                              );
-                              if (picked != null) {
-                                filterProvider.updateTimeFilter(
-                                  'period',
-                                  from:
-                                      '${picked.startTime.format(context)}:00',
-                                  to: '${picked.endTime.format(context)}:00',
-                                );
-                              }
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedTimeFilter ==
-                                        'period'
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                'Период',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: filterProvider.selectedTimeFilter ==
-                                          'period'
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (filterProvider.selectedTimeFilter == 'period' &&
-                          (filterProvider.selectedTimeFrom != null ||
-                              filterProvider.selectedTimeTo != null))
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            'Выбран период: ${filterProvider.selectedTimeFrom ?? ''} - ${filterProvider.selectedTimeTo ?? ''}',
-                            style: TextStyle(
-                              color: mainBlueColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                        IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
                         ),
-                      const SizedBox(height: 20),
-
-                      // Локация
-                      Text('Место',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                            color: authBlueColor,
-                          )),
-                      Wrap(
-                        spacing: 5.0,
-                        runSpacing: 10,
-                        children: [
-                          // "Текущее местоположение" segment
-                          GestureDetector(
-                            onTap: () {
-                              if (_cityController.text.isNotEmpty) {
-                                _cityController.clear();
-                                filterProvider.updateCityFilter('');
-                              }
-                              filterProvider.updateLocationType('current');
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedLocationType ==
-                                        'current'
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 8.0),
-                              child: Text(
-                                'Текущее местоположение',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: filterProvider.selectedLocationType ==
-                                          'current'
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w500,
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Город
+                        Text('Город (населённый пункт)',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Gilroy',
+                              color: authBlueColor,
+                            )),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 45,
+                                child: TextFormField(
+                                  onChanged: (value) {
+                                    if (value.isNotEmpty &&
+                                        filterProvider.selectedLocationType ==
+                                            'current') {
+                                      filterProvider.updateLocationType('');
+                                    }
+                                    _searchLocation(value);
+                                  },
+                                  maxLines: 1,
+                                  controller: _cityController,
+                                  decoration: InputDecoration(
+                                      contentPadding:
+                                          EdgeInsets.symmetric(horizontal: 16),
+                                      fillColor: Colors.grey[200],
+                                      filled: true,
+                                      border: OutlineInputBorder(
+                                          gapPadding: 0,
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                          borderSide: BorderSide.none),
+                                      hintText: 'Введите город',
+                                      hintStyle: TextStyle(
+                                          fontFamily: 'Gilroy',
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w400)),
                                 ),
                               ),
-                            ),
-                          ),
-                          // "Точка на карте" segment
-                          GestureDetector(
-                            onTap: () async {
-                              if (_cityController.text.isNotEmpty) {
-                                _cityController.clear();
-                                filterProvider.updateCityFilter('');
-                              }
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MapPickerScreen(
-                                    position: widget.currentPosition != null
-                                        ? Position(
-                                            widget.currentPosition!.longitude,
-                                            widget.currentPosition!.latitude,
-                                          )
-                                        : null,
-                                    address: '',
-                                    isCreated: false,
+                              const SizedBox(height: 4),
+                              if (_isLoading)
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Center(
+                                      child: CircularProgressIndicator(
+                                    color: mainBlueColor,
+                                    strokeWidth: 1.2,
+                                  )),
+                                )
+                              else if (_suggestions.isNotEmpty)
+                                Container(
+                                  constraints: BoxConstraints(maxHeight: 160),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[100],
+                                    borderRadius: BorderRadius.circular(10),
+                                    border:
+                                        Border.all(color: Colors.grey[300]!),
                                   ),
-                                ),
-                              );
-                              if (result != null) {
-                                filterProvider.updateLocationFilter(
-                                  'map',
-                                  address: result,
-                                );
-                              }
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color:
-                                    filterProvider.selectedLocationType == 'map'
-                                        ? mainBlueColor
-                                        : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 8.0),
-                              child: Text(
-                                'Точка на карте',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: filterProvider.selectedLocationType ==
-                                          'map'
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // "Метро" segment
-                          GestureDetector(
-                            onTap: () {
-                              if (_cityController.text.isNotEmpty) {
-                                _cityController.clear();
-                                filterProvider.updateCityFilter('');
-                              }
-                              filterProvider.updateLocationType('metro');
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedLocationType ==
-                                        'metro'
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                'Метро',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: filterProvider.selectedLocationType ==
-                                          'metro'
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      // const SizedBox(height: 20),
-
-                      // Радиус поиска
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Text('Радиус поиска',
-                          //     style: TextStyle(
-                          //       fontSize: 18,
-                          //       fontWeight: FontWeight.bold,
-                          //       fontFamily: 'Gilroy',
-                          //       color: authBlueColor,
-                          //     )),
-                          // const SizedBox(height: 8),
-                          // Кастомный слайдер
-                          Builder(builder: (context) {
-                            final radiusValues = [0, 1, 3, 5, 10, 15, 20, 50];
-                            final selectedIndex = radiusValues
-                                .indexOf(filterProvider.selectedRadius.round());
-                            return Column(
-                              children: [
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: Slider(
-                                    value: selectedIndex.toDouble(),
-                                    min: 0,
-                                    max: (radiusValues.length - 1).toDouble(),
-                                    divisions: radiusValues.length - 1,
-                                    activeColor: mainBlueColor,
-                                    inactiveColor: Colors.grey[300],
-                                    onChanged: (value) {
-                                      final idx = value.round();
-                                      filterProvider.updateLocationType(
-                                        filterProvider.selectedLocationType ??
-                                            'current',
-                                        radius: radiusValues[idx].toDouble(),
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: _suggestions.length,
+                                    itemBuilder: (context, index) {
+                                      final city = _suggestions[index];
+                                      return ListTile(
+                                        dense: true,
+                                        title: Text(city.placeNameRu!,
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily: 'Gilroy')),
+                                        onTap: () {
+                                          final parts =
+                                              city.placeNameRu?.split(', ');
+                                          if (parts!.length == 6) {
+                                            _cityController.text =
+                                                'г. ${parts[2]}';
+                                          } else {
+                                            _cityController.text =
+                                                city.placeNameRu!;
+                                          }
+                                          filterProvider.updateCityFilter(
+                                              _cityController.text);
+                                          // Создаем LocalAddressModel с координатами выбранного города
+                                          filterProvider.updateLocationFilter(
+                                            'city',
+                                            address: LocalAddressModel(
+                                              address: _cityController.text,
+                                              latitude: city.center!.last,
+                                              longitude: city.center!.first,
+                                              properties: null,
+                                            ),
+                                          );
+                                          filterProvider
+                                              .updateLocationType('city');
+                                          setState(() {
+                                            _suggestions = [];
+                                          });
+                                        },
                                       );
                                     },
                                   ),
                                 ),
-                                Text(
-                                  '+${filterProvider.selectedRadius.round()} км',
-                                  style: TextStyle(
-                                    color: mainBlueColor,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            );
-                          }),
-                        ],
-                      ),
-
-                      if (filterProvider.selectedLocationType == 'map' &&
-                          filterProvider.selectedMapAddressModel != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            'Выбрана точка: ${filterProvider.selectedMapAddressModel!.address}',
-                            style: TextStyle(
-                              color: mainBlueColor,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            ],
                           ),
                         ),
-                      // const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                      // Тип события
-
-                      Row(
-                        children: [
-                          Text('Онлайн',
+                        // Дата
+                        Text('Дата',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Gilroy',
+                              color: authBlueColor,
+                            )),
+                        Wrap(
+                          spacing: 5.0,
+                          runSpacing: 10,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            // Animated Date Segment Bar
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  // "Сегодня" segment
+                                  GestureDetector(
+                                    onTap: () {
+                                      filterProvider.updateDateFilter('today');
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: Duration(milliseconds: 100),
+                                      curve: Curves.easeInBack,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            filterProvider.selectedDateFilter ==
+                                                    'today'
+                                                ? mainBlueColor
+                                                : Colors.transparent,
+                                        borderRadius:
+                                            BorderRadius.circular(30.0),
+                                      ),
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 8.0, horizontal: 8.0),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        'Сегодня',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: filterProvider
+                                                      .selectedDateFilter ==
+                                                  'today'
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // "На этой неделе" segment
+                                  GestureDetector(
+                                    onTap: () {
+                                      filterProvider
+                                          .updateDateFilter('this_week');
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: Duration(milliseconds: 100),
+                                      curve: Curves.easeInBack,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            filterProvider.selectedDateFilter ==
+                                                    'this_week'
+                                                ? mainBlueColor
+                                                : Colors.transparent,
+                                        borderRadius:
+                                            BorderRadius.circular(30.0),
+                                      ),
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 8.0, horizontal: 8.0),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        'На этой неделе',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: filterProvider
+                                                      .selectedDateFilter ==
+                                                  'this_week'
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // "На выходных" segment
+                                  GestureDetector(
+                                    onTap: () {
+                                      filterProvider
+                                          .updateDateFilter('weekend');
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: Duration(milliseconds: 100),
+                                      curve: Curves.easeInBack,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            filterProvider.selectedDateFilter ==
+                                                    'weekend'
+                                                ? mainBlueColor
+                                                : Colors.transparent,
+                                        borderRadius:
+                                            BorderRadius.circular(30.0),
+                                      ),
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 8.0, horizontal: 8.0),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        'На выходных',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: filterProvider
+                                                      .selectedDateFilter ==
+                                                  'weekend'
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // "Период" Chip
+                            GestureDetector(
+                              onTap: () async {
+                                await _showPeriodPickerDialog(
+                                    context, filterProvider);
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  color: filterProvider.selectedDateFilter ==
+                                          'period'
+                                      ? mainBlueColor
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(vertical: 8.0),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Период',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: filterProvider.selectedDateFilter ==
+                                            'period'
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (filterProvider.selectedDateFilter == 'period' &&
+                            (filterProvider.selectedDateFrom != null ||
+                                filterProvider.selectedDateTo != null))
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'Выбран период: ${filterProvider.selectedDateFrom != null ? DateFormat('dd.MM.yyyy').format(filterProvider.selectedDateFrom!) : ''} - ${filterProvider.selectedDateTo != null ? DateFormat('dd.MM.yyyy').format(filterProvider.selectedDateTo!) : ''}',
                               style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Gilroy',
-                                color: authBlueColor,
-                              )),
-                          Checkbox(
-                            value: filterProvider.isOnlineSelected,
-                            onChanged: (value) {
-                              filterProvider.updateOnlineStatus(value ?? false);
-                            },
-                            side: BorderSide(color: mainBlueColor, width: 2),
-                            activeColor: mainBlueColor,
+                                color: mainBlueColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                      // Цена
-                      Text('Цена',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                            color: authBlueColor,
-                          )),
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              filterProvider.updatePriceRange(isFree: true);
-                            },
-                            child: SizedBox(
-                              width: 100,
+                        // Время
+                        Text('Время',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Gilroy',
+                              color: authBlueColor,
+                            )),
+                        Wrap(
+                          spacing: 5.0,
+                          runSpacing: 10,
+                          children: [
+                            // "День" segment
+                            GestureDetector(
+                              onTap: () {
+                                filterProvider.updateTimeFilter('day');
+                              },
                               child: AnimatedContainer(
                                 duration: Duration(milliseconds: 100),
                                 curve: Curves.easeInBack,
                                 decoration: BoxDecoration(
-                                  color: filterProvider.isFreeSelected
-                                      ? mainBlueColor
-                                      : Colors.grey[200],
+                                  color:
+                                      filterProvider.selectedTimeFilter == 'day'
+                                          ? mainBlueColor
+                                          : Colors.grey[200],
                                   borderRadius: BorderRadius.circular(30.0),
                                 ),
                                 padding: EdgeInsets.symmetric(
                                     vertical: 8.0, horizontal: 16.0),
-                                alignment: Alignment.center,
                                 child: Text(
-                                  'Бесплатно',
+                                  'День',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: filterProvider.isFreeSelected
+                                    color: filterProvider.selectedTimeFilter ==
+                                            'day'
                                         ? Colors.white
                                         : Colors.black,
                                     fontWeight: FontWeight.w500,
@@ -1160,31 +817,29 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                 ),
                               ),
                             ),
-                          ),
-                          SizedBox(width: 10),
-                          GestureDetector(
-                            onTap: () {
-                              filterProvider.updatePriceRange(isFree: false);
-                            },
-                            child: SizedBox(
-                              width: 100,
+                            // "Вечер" segment
+                            GestureDetector(
+                              onTap: () {
+                                filterProvider.updateTimeFilter('evening');
+                              },
                               child: AnimatedContainer(
                                 duration: Duration(milliseconds: 100),
                                 curve: Curves.easeInBack,
                                 decoration: BoxDecoration(
-                                  color: !filterProvider.isFreeSelected
+                                  color: filterProvider.selectedTimeFilter ==
+                                          'evening'
                                       ? mainBlueColor
                                       : Colors.grey[200],
                                   borderRadius: BorderRadius.circular(30.0),
                                 ),
                                 padding: EdgeInsets.symmetric(
                                     vertical: 8.0, horizontal: 16.0),
-                                alignment: Alignment.center,
                                 child: Text(
-                                  'Платно',
+                                  'Вечер',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: !filterProvider.isFreeSelected
+                                    color: filterProvider.selectedTimeFilter ==
+                                            'evening'
                                         ? Colors.white
                                         : Colors.black,
                                     fontWeight: FontWeight.w500,
@@ -1192,290 +847,392 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                 ),
                               ),
                             ),
+                            // "Период" segment
+                            GestureDetector(
+                              onTap: () async {
+                                final TimeRange? picked =
+                                    await _showTimeRangeDialog(
+                                  context,
+                                  initialStart:
+                                      filterProvider.selectedTimeFrom != null
+                                          ? TimeOfDay(
+                                              hour: int.parse(filterProvider
+                                                  .selectedTimeFrom!
+                                                  .split(':')[0]),
+                                              minute: 0)
+                                          : null,
+                                  initialEnd:
+                                      filterProvider.selectedTimeTo != null
+                                          ? TimeOfDay(
+                                              hour: int.parse(filterProvider
+                                                  .selectedTimeTo!
+                                                  .split(':')[0]),
+                                              minute: 0)
+                                          : null,
+                                );
+                                if (picked != null) {
+                                  filterProvider.updateTimeFilter(
+                                    'period',
+                                    from:
+                                        '${picked.startTime.format(context)}:00',
+                                    to: '${picked.endTime.format(context)}:00',
+                                  );
+                                }
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
+                                  color: filterProvider.selectedTimeFilter ==
+                                          'period'
+                                      ? mainBlueColor
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                child: Text(
+                                  'Период',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: filterProvider.selectedTimeFilter ==
+                                            'period'
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (filterProvider.selectedTimeFilter == 'period' &&
+                            (filterProvider.selectedTimeFrom != null ||
+                                filterProvider.selectedTimeTo != null))
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'Выбран период: ${filterProvider.selectedTimeFrom ?? ''} - ${filterProvider.selectedTimeTo ?? ''}',
+                              style: TextStyle(
+                                color: mainBlueColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
-                      if (!filterProvider.isFreeSelected) ...[
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 20),
+
+                        // Локация
+                        Text('Место',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Gilroy',
+                              color: authBlueColor,
+                            )),
+                        Wrap(
+                          spacing: 5.0,
+                          runSpacing: 10,
+                          children: [
+                            // "Текущее местоположение" segment
+                            GestureDetector(
+                              onTap: () {
+                                if (_cityController.text.isNotEmpty) {
+                                  _cityController.clear();
+                                  filterProvider.updateCityFilter('');
+                                }
+                                filterProvider.updateLocationType('current');
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
+                                  color: filterProvider.selectedLocationType ==
+                                          'current'
+                                      ? mainBlueColor
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 8.0),
+                                child: Text(
+                                  'Текущее местоположение',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color:
+                                        filterProvider.selectedLocationType ==
+                                                'current'
+                                            ? Colors.white
+                                            : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // "Точка на карте" segment
+                            GestureDetector(
+                              onTap: () async {
+                                if (_cityController.text.isNotEmpty) {
+                                  _cityController.clear();
+                                  filterProvider.updateCityFilter('');
+                                }
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MapPickerScreen(
+                                      position: widget.currentPosition != null
+                                          ? Position(
+                                              widget.currentPosition!.longitude,
+                                              widget.currentPosition!.latitude,
+                                            )
+                                          : null,
+                                      address: '',
+                                      isCreated: false,
+                                    ),
+                                  ),
+                                );
+                                if (result != null) {
+                                  filterProvider.updateLocationFilter(
+                                    'map',
+                                    address: result,
+                                  );
+                                }
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
+                                  color: filterProvider.selectedLocationType ==
+                                          'map'
+                                      ? mainBlueColor
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 8.0),
+                                child: Text(
+                                  'Точка на карте',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color:
+                                        filterProvider.selectedLocationType ==
+                                                'map'
+                                            ? Colors.white
+                                            : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // "Метро" segment
+                            GestureDetector(
+                              onTap: () {
+                                if (_cityController.text.isNotEmpty) {
+                                  _cityController.clear();
+                                  filterProvider.updateCityFilter('');
+                                }
+                                filterProvider.updateLocationType('metro');
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
+                                  color: filterProvider.selectedLocationType ==
+                                          'metro'
+                                      ? mainBlueColor
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                child: Text(
+                                  'Метро',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color:
+                                        filterProvider.selectedLocationType ==
+                                                'metro'
+                                            ? Colors.white
+                                            : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        // const SizedBox(height: 20),
+
+                        // Радиус поиска
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Text('Радиус поиска',
+                            //     style: TextStyle(
+                            //       fontSize: 18,
+                            //       fontWeight: FontWeight.bold,
+                            //       fontFamily: 'Gilroy',
+                            //       color: authBlueColor,
+                            //     )),
+                            // const SizedBox(height: 8),
+                            // Кастомный слайдер
+                            Builder(builder: (context) {
+                              final radiusValues = [0, 1, 3, 5, 10, 15, 20, 50];
+                              final selectedIndex = radiusValues.indexOf(
+                                  filterProvider.selectedRadius.round());
+                              return Column(
+                                children: [
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: Slider(
+                                      value: selectedIndex.toDouble(),
+                                      min: 0,
+                                      max: (radiusValues.length - 1).toDouble(),
+                                      divisions: radiusValues.length - 1,
+                                      activeColor: mainBlueColor,
+                                      inactiveColor: Colors.grey[300],
+                                      onChanged: (value) {
+                                        final idx = value.round();
+                                        filterProvider.updateLocationType(
+                                          filterProvider.selectedLocationType ??
+                                              'current',
+                                          radius: radiusValues[idx].toDouble(),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  Text(
+                                    '+${filterProvider.selectedRadius.round()} км',
+                                    style: TextStyle(
+                                      color: mainBlueColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }),
+                          ],
+                        ),
+
+                        if (filterProvider.selectedLocationType == 'map' &&
+                            filterProvider.selectedMapAddressModel != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'Выбрана точка: ${filterProvider.selectedMapAddressModel!.address}',
+                              style: TextStyle(
+                                color: mainBlueColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        // const SizedBox(height: 20),
+
+                        // Тип события
+
                         Row(
                           children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _priceMinController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  hintText: 'От',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                            Text('Онлайн',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Gilroy',
+                                  color: authBlueColor,
+                                )),
+                            Checkbox(
+                              value: filterProvider.isOnlineSelected,
+                              onChanged: (value) {
+                                filterProvider
+                                    .updateOnlineStatus(value ?? false);
+                              },
+                              side: BorderSide(color: mainBlueColor, width: 2),
+                              activeColor: mainBlueColor,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Цена
+                        Text('Цена',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Gilroy',
+                              color: authBlueColor,
+                            )),
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                filterProvider.updatePriceRange(isFree: true);
+                              },
+                              child: SizedBox(
+                                width: 100,
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 100),
+                                  curve: Curves.easeInBack,
+                                  decoration: BoxDecoration(
+                                    color: filterProvider.isFreeSelected
+                                        ? mainBlueColor
+                                        : Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 16.0),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'Бесплатно',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: filterProvider.isFreeSelected
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
-                                onChanged: (value) {
-                                  filterProvider.updatePriceRange(min: value);
-                                },
                               ),
                             ),
                             SizedBox(width: 10),
-                            Expanded(
-                              child: TextField(
-                                controller: _priceMaxController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  hintText: 'До',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  filterProvider.updatePriceRange(max: value);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      const SizedBox(height: 20),
-
-                      // Возрастные ограничения
-                      Text('Возрастные ограничения',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                            color: authBlueColor,
-                          )),
-                      Wrap(
-                        spacing: 5.0,
-                        runSpacing: 10,
-                        children: [
-                          // "18+" segment
-                          GestureDetector(
-                            onTap: () {
-                              final restrictions = List<String>.from(
-                                  filterProvider.selectedAgeRestrictions);
-                              if (restrictions.contains('isAdults')) {
-                                restrictions.remove('isAdults');
-                              } else {
-                                restrictions.add('isAdults');
-                              }
-                              filterProvider
-                                  .updateAgeRestrictions(restrictions);
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedAgeRestrictions
-                                        .contains('isAdults')
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                '18+',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: filterProvider.selectedAgeRestrictions
-                                          .contains('isAdults')
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // "Можно с детьми" segment
-                          GestureDetector(
-                            onTap: () {
-                              final restrictions = List<String>.from(
-                                  filterProvider.selectedAgeRestrictions);
-                              if (restrictions.contains('isKidsAllowed')) {
-                                restrictions.remove('isKidsAllowed');
-                              } else {
-                                restrictions.add('isKidsAllowed');
-                              }
-                              filterProvider
-                                  .updateAgeRestrictions(restrictions);
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.easeInBack,
-                              decoration: BoxDecoration(
-                                color: filterProvider.selectedAgeRestrictions
-                                        .contains('isKidsAllowed')
-                                    ? mainBlueColor
-                                    : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                'Можно с детьми',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: filterProvider.selectedAgeRestrictions
-                                          .contains('isKidsAllowed')
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Можно с животными
-
-                      Row(
-                        children: [
-                          Text('Можно с животными',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Gilroy',
-                                color: authBlueColor,
-                              )),
-                          Checkbox(
-                            value: filterProvider.isAnimalsAllowedSelected,
-                            onChanged: (value) {
-                              filterProvider
-                                  .updateAnimalsAllowed(value ?? false);
-                            },
-                            side: BorderSide(color: mainBlueColor, width: 2),
-                            activeColor: mainBlueColor,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Количество людей
-                      Text('Количество людей',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                            color: authBlueColor,
-                          )),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(30.0),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            // "Без разницы"
                             GestureDetector(
                               onTap: () {
-                                filterProvider.updatePeopleFilter('any');
+                                filterProvider.updatePriceRange(isFree: false);
                               },
-                              child: AnimatedContainer(
-                                duration: Duration(milliseconds: 100),
-                                curve: Curves.easeInBack,
-                                decoration: BoxDecoration(
-                                  color: filterProvider.selectedPeopleFilter ==
-                                          'any'
-                                      ? mainBlueColor
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'Без разницы',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color:
-                                        filterProvider.selectedPeopleFilter ==
-                                                'any'
-                                            ? Colors.white
-                                            : Colors.black,
-                                    fontWeight: FontWeight.w500,
+                              child: SizedBox(
+                                width: 100,
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 100),
+                                  curve: Curves.easeInBack,
+                                  decoration: BoxDecoration(
+                                    color: !filterProvider.isFreeSelected
+                                        ? mainBlueColor
+                                        : Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(30.0),
                                   ),
-                                ),
-                              ),
-                            ),
-                            // "до 15 человек"
-                            GestureDetector(
-                              onTap: () {
-                                filterProvider.updatePeopleFilter('upTo15');
-                              },
-                              child: AnimatedContainer(
-                                duration: Duration(milliseconds: 100),
-                                curve: Curves.easeInBack,
-                                decoration: BoxDecoration(
-                                  color: filterProvider.selectedPeopleFilter ==
-                                          'upTo15'
-                                      ? mainBlueColor
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'до 15 человек',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color:
-                                        filterProvider.selectedPeopleFilter ==
-                                                'upTo15'
-                                            ? Colors.white
-                                            : Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // "Свой вариант"
-                            GestureDetector(
-                              onTap: () {
-                                filterProvider.updatePeopleFilter('custom');
-                              },
-                              child: AnimatedContainer(
-                                duration: Duration(milliseconds: 100),
-                                curve: Curves.easeInBack,
-                                decoration: BoxDecoration(
-                                  color: filterProvider.selectedPeopleFilter ==
-                                          'custom'
-                                      ? mainBlueColor
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'Диапазон',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color:
-                                        filterProvider.selectedPeopleFilter ==
-                                                'custom'
-                                            ? Colors.white
-                                            : Colors.black,
-                                    fontWeight: FontWeight.w500,
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 16.0),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'Платно',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: !filterProvider.isFreeSelected
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      if (filterProvider.selectedPeopleFilter == 'custom')
-                        Padding(
-                          padding:
-                              const EdgeInsets.only(top: 12.0, bottom: 8.0),
-                          child: Row(
+                        if (!filterProvider.isFreeSelected) ...[
+                          const SizedBox(height: 10),
+                          Row(
                             children: [
                               Expanded(
                                 child: TextField(
+                                  controller: _priceMinController,
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
                                     hintText: 'От',
@@ -1484,17 +1241,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                     ),
                                   ),
                                   onChanged: (value) {
-                                    int? min = int.tryParse(value);
-                                    filterProvider.updatePeopleRange(
-                                      min,
-                                      filterProvider.slotsMax,
-                                    );
+                                    filterProvider.updatePriceRange(min: value);
                                   },
                                 ),
                               ),
                               SizedBox(width: 10),
                               Expanded(
                                 child: TextField(
+                                  controller: _priceMaxController,
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
                                     hintText: 'До',
@@ -1503,180 +1257,46 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                     ),
                                   ),
                                   onChanged: (value) {
-                                    int? max = int.tryParse(value);
-                                    filterProvider.updatePeopleRange(
-                                      filterProvider.slotsMin,
-                                      max,
-                                    );
+                                    filterProvider.updatePriceRange(max: value);
                                   },
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      const SizedBox(height: 20),
+                        ],
+                        const SizedBox(height: 20),
 
-                      // Длительность
-                      Text('Длительность',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                            color: authBlueColor,
-                          )),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(30.0),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            // "Короткие 1-2 часа"
-                            GestureDetector(
-                              onTap: () {
-                                filterProvider.updateDurationFilter('short');
-                              },
-                              child: AnimatedContainer(
-                                duration: Duration(milliseconds: 100),
-                                curve: Curves.easeInBack,
-                                decoration: BoxDecoration(
-                                  color:
-                                      filterProvider.selectedDurationFilter ==
-                                              'short'
-                                          ? mainBlueColor
-                                          : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'Короткие 1-2 часа',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color:
-                                        filterProvider.selectedDurationFilter ==
-                                                'short'
-                                            ? Colors.white
-                                            : Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // "3-5 часов"
-                            GestureDetector(
-                              onTap: () {
-                                filterProvider.updateDurationFilter('medium');
-                              },
-                              child: AnimatedContainer(
-                                duration: Duration(milliseconds: 100),
-                                curve: Curves.easeInBack,
-                                decoration: BoxDecoration(
-                                  color:
-                                      filterProvider.selectedDurationFilter ==
-                                              'medium'
-                                          ? mainBlueColor
-                                          : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '3-5 часов',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color:
-                                        filterProvider.selectedDurationFilter ==
-                                                'medium'
-                                            ? Colors.white
-                                            : Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // "Весь день"
-                            GestureDetector(
-                              onTap: () {
-                                filterProvider.updateDurationFilter('long');
-                              },
-                              child: AnimatedContainer(
-                                duration: Duration(milliseconds: 100),
-                                curve: Curves.easeInBack,
-                                decoration: BoxDecoration(
-                                  color:
-                                      filterProvider.selectedDurationFilter ==
-                                              'long'
-                                          ? mainBlueColor
-                                          : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'Весь день',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color:
-                                        filterProvider.selectedDurationFilter ==
-                                                'long'
-                                            ? Colors.white
-                                            : Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Категории
-                      Text('Категории',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                            color: authBlueColor,
-                          )),
-                      if (_isLoadingCategories)
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(
-                              color: mainBlueColor,
-                              strokeWidth: 1.2,
-                            ),
-                          ),
-                        )
-                      else
+                        // Возрастные ограничения
+                        Text('Возрастные ограничения',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Gilroy',
+                              color: authBlueColor,
+                            )),
                         Wrap(
                           spacing: 5.0,
                           runSpacing: 10,
-                          children: _categories.map((category) {
-                            return GestureDetector(
+                          children: [
+                            // "18+" segment
+                            GestureDetector(
                               onTap: () {
-                                final categoryIds = List<String>.from(
-                                    filterProvider.selectedCategoryIds);
-                                if (categoryIds.contains(category.id)) {
-                                  categoryIds.remove(category.id);
+                                final restrictions = List<String>.from(
+                                    filterProvider.selectedAgeRestrictions);
+                                if (restrictions.contains('isAdults')) {
+                                  restrictions.remove('isAdults');
                                 } else {
-                                  categoryIds.add(category.id);
+                                  restrictions.add('isAdults');
                                 }
-                                filterProvider.updateCategoryIds(categoryIds);
+                                filterProvider
+                                    .updateAgeRestrictions(restrictions);
                               },
                               child: AnimatedContainer(
                                 duration: Duration(milliseconds: 100),
                                 curve: Curves.easeInBack,
                                 decoration: BoxDecoration(
-                                  color: filterProvider.selectedCategoryIds
-                                          .contains(category.id)
+                                  color: filterProvider.selectedAgeRestrictions
+                                          .contains('isAdults')
                                       ? mainBlueColor
                                       : Colors.grey[200],
                                   borderRadius: BorderRadius.circular(30.0),
@@ -1684,47 +1304,464 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                 padding: EdgeInsets.symmetric(
                                     vertical: 8.0, horizontal: 16.0),
                                 child: Text(
-                                  category.name,
+                                  '18+',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: filterProvider.selectedCategoryIds
-                                            .contains(category.id)
+                                    color: filterProvider
+                                            .selectedAgeRestrictions
+                                            .contains('isAdults')
                                         ? Colors.white
                                         : Colors.black,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ),
-                            );
-                          }).toList(),
+                            ),
+                            // "Можно с детьми" segment
+                            GestureDetector(
+                              onTap: () {
+                                final restrictions = List<String>.from(
+                                    filterProvider.selectedAgeRestrictions);
+                                if (restrictions.contains('isKidsAllowed')) {
+                                  restrictions.remove('isKidsAllowed');
+                                } else {
+                                  restrictions.add('isKidsAllowed');
+                                }
+                                filterProvider
+                                    .updateAgeRestrictions(restrictions);
+                              },
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.easeInBack,
+                                decoration: BoxDecoration(
+                                  color: filterProvider.selectedAgeRestrictions
+                                          .contains('isKidsAllowed')
+                                      ? mainBlueColor
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                child: Text(
+                                  'Можно с детьми',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: filterProvider
+                                            .selectedAgeRestrictions
+                                            .contains('isKidsAllowed')
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    widget.onApplyFilters();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 15.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.0),
+                        const SizedBox(height: 20),
+
+                        // Можно с животными
+
+                        Row(
+                          children: [
+                            Text('Можно с животными',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Gilroy',
+                                  color: authBlueColor,
+                                )),
+                            Checkbox(
+                              value: filterProvider.isAnimalsAllowedSelected,
+                              onChanged: (value) {
+                                filterProvider
+                                    .updateAnimalsAllowed(value ?? false);
+                              },
+                              side: BorderSide(color: mainBlueColor, width: 2),
+                              activeColor: mainBlueColor,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Количество людей
+                        Text('Количество людей',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Gilroy',
+                              color: authBlueColor,
+                            )),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(30.0),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              // "Без разницы"
+                              GestureDetector(
+                                onTap: () {
+                                  filterProvider.updatePeopleFilter('any');
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 100),
+                                  curve: Curves.easeInBack,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        filterProvider.selectedPeopleFilter ==
+                                                'any'
+                                            ? mainBlueColor
+                                            : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 16.0),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'Без разницы',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color:
+                                          filterProvider.selectedPeopleFilter ==
+                                                  'any'
+                                              ? Colors.white
+                                              : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // "до 15 человек"
+                              GestureDetector(
+                                onTap: () {
+                                  filterProvider.updatePeopleFilter('upTo15');
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 100),
+                                  curve: Curves.easeInBack,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        filterProvider.selectedPeopleFilter ==
+                                                'upTo15'
+                                            ? mainBlueColor
+                                            : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 16.0),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'до 15 человек',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color:
+                                          filterProvider.selectedPeopleFilter ==
+                                                  'upTo15'
+                                              ? Colors.white
+                                              : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // "Свой вариант"
+                              GestureDetector(
+                                onTap: () {
+                                  filterProvider.updatePeopleFilter('custom');
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 100),
+                                  curve: Curves.easeInBack,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        filterProvider.selectedPeopleFilter ==
+                                                'custom'
+                                            ? mainBlueColor
+                                            : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 16.0),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'Диапазон',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color:
+                                          filterProvider.selectedPeopleFilter ==
+                                                  'custom'
+                                              ? Colors.white
+                                              : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (filterProvider.selectedPeopleFilter == 'custom')
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(top: 12.0, bottom: 8.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      hintText: 'От',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    onChanged: (value) {
+                                      int? min = int.tryParse(value);
+                                      filterProvider.updatePeopleRange(
+                                        min,
+                                        filterProvider.slotsMax,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: TextField(
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      hintText: 'До',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    onChanged: (value) {
+                                      int? max = int.tryParse(value);
+                                      filterProvider.updatePeopleRange(
+                                        filterProvider.slotsMin,
+                                        max,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        const SizedBox(height: 20),
+
+                        // Длительность
+                        Text('Длительность',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Gilroy',
+                              color: authBlueColor,
+                            )),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(30.0),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              // "Короткие 1-2 часа"
+                              GestureDetector(
+                                onTap: () {
+                                  filterProvider.updateDurationFilter('short');
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 100),
+                                  curve: Curves.easeInBack,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        filterProvider.selectedDurationFilter ==
+                                                'short'
+                                            ? mainBlueColor
+                                            : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 16.0),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'Короткие 1-2 часа',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: filterProvider
+                                                  .selectedDurationFilter ==
+                                              'short'
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // "3-5 часов"
+                              GestureDetector(
+                                onTap: () {
+                                  filterProvider.updateDurationFilter('medium');
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 100),
+                                  curve: Curves.easeInBack,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        filterProvider.selectedDurationFilter ==
+                                                'medium'
+                                            ? mainBlueColor
+                                            : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 16.0),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '3-5 часов',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: filterProvider
+                                                  .selectedDurationFilter ==
+                                              'medium'
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // "Весь день"
+                              GestureDetector(
+                                onTap: () {
+                                  filterProvider.updateDurationFilter('long');
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 100),
+                                  curve: Curves.easeInBack,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        filterProvider.selectedDurationFilter ==
+                                                'long'
+                                            ? mainBlueColor
+                                            : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 16.0),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'Весь день',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: filterProvider
+                                                  .selectedDurationFilter ==
+                                              'long'
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Категории
+                        Text('Категории',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Gilroy',
+                              color: authBlueColor,
+                            )),
+                        if (_isLoadingCategories)
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(
+                                color: mainBlueColor,
+                                strokeWidth: 1.2,
+                              ),
+                            ),
+                          )
+                        else
+                          Wrap(
+                            spacing: 5.0,
+                            runSpacing: 10,
+                            children: _categories.map((category) {
+                              return GestureDetector(
+                                onTap: () {
+                                  final categoryIds = List<String>.from(
+                                      filterProvider.selectedCategoryIds);
+                                  if (categoryIds.contains(category.id)) {
+                                    categoryIds.remove(category.id);
+                                  } else {
+                                    categoryIds.add(category.id);
+                                  }
+                                  filterProvider.updateCategoryIds(categoryIds);
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 100),
+                                  curve: Curves.easeInBack,
+                                  decoration: BoxDecoration(
+                                    color: filterProvider.selectedCategoryIds
+                                            .contains(category.id)
+                                        ? mainBlueColor
+                                        : Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 16.0),
+                                  child: Text(
+                                    category.name,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: filterProvider.selectedCategoryIds
+                                              .contains(category.id)
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        const SizedBox(height: 20),
+                      ],
                     ),
-                    backgroundColor: authBlueColor,
-                    foregroundColor: Colors.white,
                   ),
-                  child:
-                      Text('Применить фильтры', style: TextStyle(fontSize: 18)),
                 ),
-              ),
-              const SizedBox(height: 20),
-            ],
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      widget.onApplyFilters();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 15.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: authBlueColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text('Применить фильтры',
+                        style: TextStyle(fontSize: 18)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         );
       },

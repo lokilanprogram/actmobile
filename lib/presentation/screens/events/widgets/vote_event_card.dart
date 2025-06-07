@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/data/models/all_events_model.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 
 class VoteEventCard extends StatelessWidget {
   final VoteModel vote;
@@ -34,36 +36,27 @@ class VoteEventCard extends StatelessWidget {
                 bottomLeft: Radius.circular(20),
               ),
               child: vote.imageUrl.isNotEmpty
-                  ? Image.network(
-                      vote.imageUrl,
+                  ? CachedNetworkImage(
+                      imageUrl: vote.imageUrl,
                       width: 110,
                       height: 90,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
+                      placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Container(
                           width: 110,
                           height: 90,
-                          color: Colors.grey[200],
-                          child: Icon(Icons.error_outline,
-                              color: Colors.grey[400]),
-                        );
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          width: 110,
-                          height: 90,
-                          color: Colors.grey[200],
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          ),
-                        );
-                      },
+                          color: Colors.white,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        width: 110,
+                        height: 90,
+                        color: Colors.grey[200],
+                        child:
+                            Icon(Icons.error_outline, color: Colors.grey[400]),
+                      ),
                     )
                   : Container(
                       width: 110,
@@ -106,7 +99,7 @@ class VoteEventCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${vote.date != null ? DateFormat('dd.MM.yyyy').format(vote.date) : ''} | ${vote.time}',
+                    '${vote.date} | ${vote.time}',
                     style: TextStyle(
                         color: mainBlueColor,
                         fontWeight: FontWeight.w500,

@@ -592,7 +592,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
       decoration: BoxDecoration(
-        border: BoxBorder.all(color: getStatusColor(status)),
+        border: Border.all(color: getStatusColor(status)),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

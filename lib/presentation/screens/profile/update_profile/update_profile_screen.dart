@@ -377,6 +377,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     if (val!.isEmpty) {
                                       return 'Заполните e-mail';
                                     }
+                                    return null;
                                   },
                                 ),
                                 Padding(
