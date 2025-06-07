@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/data/models/public_user_model.dart';
@@ -163,31 +165,53 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                 ),
                               ),
                               Positioned(
-                                bottom: 30,
-                                left: 20,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      publicUserModel.name ?? 'Неизвестный',
-                                      style: TextStyle(
-                                        fontFamily: 'Inter',
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: ClipRRect(
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                        sigmaX: 20, sigmaY: 20),
+                                    child: Container(
+                                      height: 120,
+                                      padding: const EdgeInsets.only(
+                                          left: 20, right: 20, top: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.withOpacity(
+                                            0.3), // Тёмный полупрозрачный фон
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            publicUserModel.surname != null &&
+                                                    publicUserModel.surname != ""
+                                                ? '${capitalize(publicUserModel.surname!)} ${capitalize(publicUserModel.name!)}'
+                                                : capitalize(
+                                                    publicUserModel.name!),
+                                            style: TextStyle(
+                                              fontFamily: 'Inter',
+                                              fontSize: 32,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            capitalize(publicUserModel.status ??
+                                                'Offline'),
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontFamily: 'Inter',
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    Text(
-                                      capitalize(
-                                          publicUserModel.status ?? 'Offline'),
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontFamily: 'Inter',
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white70,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
                               Positioned(
@@ -326,6 +350,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => ChatDetailScreen(
+                                            isPrivateChats: true,
                                             trailingText: null,
                                             interlocutorAvatar:
                                                 publicUserModel.photoUrl,

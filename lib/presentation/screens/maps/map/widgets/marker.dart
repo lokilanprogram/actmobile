@@ -69,7 +69,7 @@ class SpeechBubblePainter extends CustomPainter {
       ..color = Colors.white
       ..style = PaintingStyle.fill;
 
-    canvas.drawShadow(path, Colors.black.withOpacity(0.25), 4, true);
+    canvas.drawShadow(path, const Color.fromARGB(255, 153, 152, 152).withOpacity(0.15), 2, true);
     canvas.drawPath(path, paint);
   }
 

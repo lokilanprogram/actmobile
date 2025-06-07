@@ -7,7 +7,9 @@ import 'package:acti_mobile/data/models/chat_info_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
+import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
+import 'package:acti_mobile/presentation/widgets/message_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -16,12 +18,14 @@ import 'package:intl/intl.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String interlocutorName;
+  final bool isPrivateChats;
   final String? trailingText;
   final String? interlocutorAvatar;
   final String? interlocutorChatId;
   final String? interlocutorUserId;
   const ChatDetailScreen(
       {super.key,
+      required this.isPrivateChats,
       required this.interlocutorAvatar,
       required this.interlocutorName,
       required this.interlocutorChatId,
@@ -185,6 +189,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           backgroundColor: Colors.white,
           appBar: isSearched
               ? AppBar(
+                  scrolledUnderElevation: 0,
                   backgroundColor: Colors.white,
                   leading: Padding(
                     padding: const EdgeInsets.only(left: 15),
@@ -197,7 +202,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   title: Padding(
                       padding: const EdgeInsets.only(right: 20),
                       child: TextFormField(
-                        controller: messageController,
+                        controller: seacrhController,
                         decoration: InputDecoration(
                           hintText: 'Поиск',
                           isDense: true,
@@ -218,6 +223,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 )
               : AppBar(
                   backgroundColor: Colors.white,
+                  scrolledUnderElevation: 0,
+                  shadowColor: Colors.transparent,
                   titleSpacing: 1.3,
                   leading: Padding(
                     padding: const EdgeInsets.only(left: 15),
@@ -305,24 +312,36 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       alignment: Alignment.centerLeft,
                       child: Row(
                         children: [
-                          interlocutorAvatar == null &&
-                                  widget.trailingText == null
-                              ? CircleAvatar(
-                                  maxRadius: 26,
-                                  backgroundImage: AssetImage(
-                                    'assets/images/image_profile.png',
-                                  ))
-                              : interlocutorAvatar == null &&
-                                      widget.trailingText != null
-                                  ? CircleAvatar(
-                                      maxRadius: 26,
-                                      backgroundImage: AssetImage(
-                                        'assets/images/image_default_event.png',
-                                      ))
-                                  : CircleAvatar(
-                                      maxRadius: 26,
-                                      backgroundImage:
-                                          NetworkImage(interlocutorAvatar!)),
+                          InkWell(
+                            onTap: () {
+                              if (widget.interlocutorUserId != null) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => PublicUserScreen(
+                                            userId:
+                                                widget.interlocutorUserId!)));
+                              }
+                            },
+                            child: interlocutorAvatar == null &&
+                                    widget.trailingText == null
+                                ? CircleAvatar(
+                                    maxRadius: 26,
+                                    backgroundImage: AssetImage(
+                                      'assets/images/image_profile.png',
+                                    ))
+                                : interlocutorAvatar == null &&
+                                        widget.trailingText != null
+                                    ? CircleAvatar(
+                                        maxRadius: 26,
+                                        backgroundImage: AssetImage(
+                                          'assets/images/image_default_event.png',
+                                        ))
+                                    : CircleAvatar(
+                                        maxRadius: 26,
+                                        backgroundImage:
+                                            NetworkImage(interlocutorAvatar!)),
+                          ),
                           SizedBox(
                             width: 10,
                           ),
@@ -425,6 +444,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                         final isLongText =
                                             message.content.length > 40;
 
+                                        final isFirstMsg =
+                                            index == messages.length - 1;
+                                        final isSpecial = isFirstMsg ||
+                                            messages[index].userId !=
+                                                messages[index + 1].userId;
+
                                         return Padding(
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 15, vertical: 5),
@@ -450,173 +475,168 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                                                 .width *
                                                             0.47,
                                                   ),
-                                                  child: Card(
-                                                    elevation: 1.4,
-                                                    color: isMe
-                                                        ? mainBlueColor
-                                                        : Colors.white,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.only(
-                                                        topLeft:
-                                                            Radius.circular(20),
-                                                        topRight:
-                                                            Radius.circular(20),
-                                                        bottomLeft:
-                                                            Radius.circular(
-                                                                isMe ? 20 : 0),
-                                                        bottomRight:
-                                                            Radius.circular(
-                                                                isMe ? 0 : 20),
-                                                      ),
-                                                    ),
-                                                    child: Container(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 25,
-                                                          vertical: 20),
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          // Верхняя строка: имя и время
-                                                          Row(
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Expanded(
-                                                                child: Text(
-                                                                  isMe
-                                                                      ? 'Вы'
-                                                                      : message
-                                                                          .user
-                                                                          .name,
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontFamily:
-                                                                        'Inter',
-                                                                    color: isMe
-                                                                        ? Colors
-                                                                            .white
-                                                                        : mainBlueColor,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              Padding(
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .only(
-                                                                        right:
-                                                                            10),
-                                                                child: Row(
-                                                                  children: [
-                                                                    Text(
-                                                                      DateFormat(
-                                                                              'HH:mm')
-                                                                          .format(
-                                                                              message.createdAt),
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontFamily:
-                                                                            'Gilroy',
-                                                                        color: isMe
-                                                                            ? Colors.white
-                                                                            : Colors.black,
-                                                                        fontSize:
-                                                                            14,
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(
-                                                                      width: 5,
-                                                                    ),
-                                                                    isMe == true &&
-                                                                            isReaded ==
-                                                                                true
-                                                                        ? SvgPicture
-                                                                            .asset(
-                                                                            'assets/icons/icon_readed.svg',
-                                                                          )
-                                                                        : const SizedBox
-                                                                            .shrink(),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-
-                                                          if (hasAttachment) ...[
-                                                            const SizedBox(
-                                                                height: 10),
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          12),
-                                                              child: Image.network(
-                                                                  message
-                                                                      .attachmentUrl!,
-                                                                  fit: BoxFit
-                                                                      .cover,
-                                                                  width: double
-                                                                      .infinity,
-                                                                  height: 300,
-                                                                  loadingBuilder: (BuildContext
-                                                                          context,
-                                                                      Widget
-                                                                          child,
-                                                                      ImageChunkEvent?
-                                                                          loadingProgress) {
-                                                                if (loadingProgress ==
-                                                                    null)
-                                                                  return child;
-                                                                return SizedBox(
-                                                                  height: 300,
-                                                                  child: Center(
-                                                                    child:
-                                                                        CircularProgressIndicator(
-                                                                      color: Colors
-                                                                          .white,
-                                                                      value: loadingProgress.expectedTotalBytes !=
-                                                                              null
-                                                                          ? loadingProgress.cumulativeBytesLoaded /
-                                                                              loadingProgress.expectedTotalBytes!
-                                                                          : null,
-                                                                    ),
-                                                                  ),
-                                                                );
-                                                              }),
-                                                            ),
-                                                          ],
-
-                                                          if (message.content
-                                                              .isNotEmpty) ...[
-                                                            const SizedBox(
-                                                                height: 10),
-                                                            Text(
-                                                              message.content,
-                                                              style: TextStyle(
-                                                                height: 1.3,
-                                                                fontSize: 16,
-                                                                fontFamily:
-                                                                    'Jakarta',
-                                                                color: isMe
-                                                                    ? Colors
-                                                                        .white
-                                                                    : Colors
-                                                                        .black,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ],
-                                                      ),
-                                                    ),
+                                                  child: MessageCard(
+                                                    isPrivateChats:
+                                                        widget.isPrivateChats,
+                                                    message: message,
+                                                    currentUserId:
+                                                        profileUserId!,
+                                                    special: isSpecial,
                                                   ),
+                                                  // child: Card(
+                                                  //   elevation: 1.4,
+                                                  //   color: isMe
+                                                  //       ? mainBlueColor
+                                                  //       : Colors.white,
+                                                  //   shape:
+                                                  //       RoundedRectangleBorder(
+                                                  //     side: isMe
+                                                  //         ? BorderSide.none
+                                                  //         : BorderSide(
+                                                  //             color:
+                                                  //                 Colors.grey,
+                                                  //           ),
+                                                  //     borderRadius:
+                                                  //         BorderRadius.only(
+                                                  //       topLeft:
+                                                  //           Radius.circular(
+                                                  //               isMe ? 20 : 15),
+                                                  //       topRight:
+                                                  //           Radius.circular(
+                                                  //               isMe ? 15 : 20),
+                                                  //       bottomLeft:
+                                                  //           Radius.circular(
+                                                  //               isMe ? 20 : 15),
+                                                  //       bottomRight:
+                                                  //           Radius.circular(
+                                                  //               isMe ? 15 : 20),
+                                                  //     ),
+                                                  //   ),
+                                                  //   child: Container(
+                                                  //     padding: const EdgeInsets
+                                                  //         .symmetric(
+                                                  //         horizontal: 10,
+                                                  //         vertical: 5),
+                                                  //     child: Column(
+                                                  //       crossAxisAlignment:
+                                                  //           CrossAxisAlignment
+                                                  //               .start,
+                                                  //       children: [
+                                                  //         if (hasAttachment) ...[
+                                                  //           ClipRRect(
+                                                  //             borderRadius:
+                                                  //                 BorderRadius
+                                                  //                     .circular(
+                                                  //                         12),
+                                                  //             child: Image.network(
+                                                  //                 message
+                                                  //                     .attachmentUrl!,
+                                                  //                 fit: BoxFit
+                                                  //                     .cover,
+                                                  //                 width: double
+                                                  //                     .infinity,
+                                                  //                 height: 300,
+                                                  //                 loadingBuilder: (BuildContext
+                                                  //                         context,
+                                                  //                     Widget
+                                                  //                         child,
+                                                  //                     ImageChunkEvent?
+                                                  //                         loadingProgress) {
+                                                  //               if (loadingProgress ==
+                                                  //                   null)
+                                                  //                 return child;
+                                                  //               return SizedBox(
+                                                  //                 height: 300,
+                                                  //                 child: Center(
+                                                  //                   child:
+                                                  //                       CircularProgressIndicator(
+                                                  //                     color: Colors
+                                                  //                         .white,
+                                                  //                     value: loadingProgress.expectedTotalBytes !=
+                                                  //                             null
+                                                  //                         ? loadingProgress.cumulativeBytesLoaded /
+                                                  //                             loadingProgress.expectedTotalBytes!
+                                                  //                         : null,
+                                                  //                   ),
+                                                  //                 ),
+                                                  //               );
+                                                  //             }),
+                                                  //           ),
+                                                  //         ],
+                                                  //         if (message.content
+                                                  //             .isNotEmpty) ...[
+                                                  //           Text(
+                                                  //             message.content,
+                                                  //             style: TextStyle(
+                                                  //               height: 1.3,
+                                                  //               fontSize: 16,
+                                                  //               fontFamily:
+                                                  //                   'Jakarta',
+                                                  //               color: isMe
+                                                  //                   ? Colors
+                                                  //                       .white
+                                                  //                   : Colors
+                                                  //                       .black,
+                                                  //             ),
+                                                  //           ),
+                                                  //         ],
+                                                  //         SizedBox(
+                                                  //           height: 5,
+                                                  //         ),
+                                                  //         Row(
+                                                  //           mainAxisAlignment:
+                                                  //               MainAxisAlignment
+                                                  //                   .end,
+                                                  //           children: [
+                                                  //             Row(
+                                                  //               children: [
+                                                  //                 Text(
+                                                  //                   DateFormat(
+                                                  //                           'HH:mm')
+                                                  //                       .format(
+                                                  //                           message.createdAt),
+                                                  //                   style:
+                                                  //                       TextStyle(
+                                                  //                     fontFamily:
+                                                  //                         'Gilroy',
+                                                  //                     fontWeight:
+                                                  //                         FontWeight
+                                                  //                             .w600,
+                                                  //                     color: isMe
+                                                  //                         ? Color.fromARGB(
+                                                  //                             255,
+                                                  //                             233,
+                                                  //                             237,
+                                                  //                             239)
+                                                  //                         : Color.fromARGB(
+                                                  //                             255,
+                                                  //                             158,
+                                                  //                             157,
+                                                  //                             159),
+                                                  //                     fontSize:
+                                                  //                         14,
+                                                  //                   ),
+                                                  //                 ),
+                                                  //                 SizedBox(
+                                                  //                   width: 5,
+                                                  //                 ),
+                                                  //                 isMe == true &&
+                                                  //                         isReaded ==
+                                                  //                             true
+                                                  //                     ? SvgPicture
+                                                  //                         .asset(
+                                                  //                         'assets/icons/icon_readed.svg',
+                                                  //                       )
+                                                  //                     : const SizedBox
+                                                  //                         .shrink(),
+                                                  //               ],
+                                                  //             ),
+                                                  //           ],
+                                                  //         ),
+                                                  //       ],
+                                                  //     ),
+                                                  //   ),
+                                                  // ),
                                                 ),
                                               ),
                                             ],
@@ -644,7 +664,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             const EdgeInsets.only(right: 15, left: 15, top: 30, bottom: 50),
         child: Container(
           decoration: BoxDecoration(
-              color: Colors.grey[200], borderRadius: BorderRadius.circular(15)),
+              color: Color(0xFFF2F2F2),
+              borderRadius: BorderRadius.circular(15)),
           child: Padding(
               padding: const EdgeInsets.all(2.0),
               child: Padding(

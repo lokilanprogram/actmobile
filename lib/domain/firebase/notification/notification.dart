@@ -60,6 +60,7 @@ class NotificationService {
       if (chatId != null) {
         MaterialPageRoute(
           builder: (_) => ChatDetailScreen(
+            isPrivateChats: true,
             interlocutorAvatar: null,
             interlocutorChatId: null,
             interlocutorName: '...',

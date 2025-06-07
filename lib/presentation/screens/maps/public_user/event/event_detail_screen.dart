@@ -604,23 +604,27 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ),
                         overflow: TextOverflow.fade,
                       ),
+                      if (trailing != null)
+                        Text(trailing,
+                            style: const TextStyle(color: Colors.grey)),
                     ],
                   )
                 : Row(
                     children: [
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                            fontFamily: 'Gilroy',
-                            fontSize: 16,
-                            color: isLocation ? Colors.blue : Colors.black),
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        child: Text(
+                          subtitle,
+                          maxLines: 2,
+                          style: TextStyle(
+                              fontFamily: 'Gilroy',
+                              fontSize: 16,
+                              color: isLocation ? Colors.blue : Colors.black),
+                        ),
                       ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      if (trailing != null)
-                        Text(trailing,
-                            style: const TextStyle(color: Colors.grey)),
+                      // if (trailing != null)
+                      //   Text(trailing,
+                      //       style: const TextStyle(color: Colors.grey)),
                     ],
                   ),
           ),

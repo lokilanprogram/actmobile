@@ -25,17 +25,19 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
     initialize();
     super.initState();
   }
-  initialize(){
+
+  initialize() {
     setState(() {
       isLoading = true;
     });
     context.read<ChatBloc>().add(GetAllChatsEvent());
   }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<ChatBloc, ChatState>(
       listener: (context, state) {
-        if(state is GotAllChatsState){
+        if (state is GotAllChatsState) {
           setState(() {
             allGroupChats = state.allGroupChats;
             allPrivateChats = state.allPrivateChats;
@@ -62,53 +64,66 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
             ),
           ),
         ),
-        body:isLoading? LoaderWidget(): Padding(
-          padding: const EdgeInsets.only(right: 20, left: 20),
-          child: ListView(
-            children: [
-              TabBarWidget(
-                  selectedTab: selectedTab,
-                  onTapMine: () {
-                    setState(() {
-                      isPrivateChats = true;
-                    });
-                  },
-                  onTapVisited: () {
-                     setState(() {
-                      isPrivateChats = false;
-                    });
-                  },
-                  firshTabText: 'Индивидуальные',
-                  secondTabText: 'Групповые',
-                  requestLentgh: null,
-                  recommendedLentgh: null),
-              SizedBox(
-                height: 20,
+        body: isLoading
+            ? LoaderWidget()
+            : Padding(
+                padding: const EdgeInsets.only(right: 20, left: 20),
+                child: ListView(
+                  children: [
+                    TabBarWidget(
+                        selectedTab: selectedTab,
+                        onTapMine: () {
+                          setState(() {
+                            isPrivateChats = true;
+                          });
+                        },
+                        onTapVisited: () {
+                          setState(() {
+                            isPrivateChats = false;
+                          });
+                        },
+                        firshTabText: 'Личные',
+                        secondTabText: 'Групповые',
+                        requestLentgh: null,
+                        recommendedLentgh: null),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    isPrivateChats == true
+                        ? Column(
+                            children: allPrivateChats.chats.map((chat) {
+                              return ChatListTileWidget(
+                                onDeletedFunction: () {
+                                  setState(() {
+                                    isLoading = true;
+                                  });
+                                  context
+                                      .read<ChatBloc>()
+                                      .add(GetAllChatsEvent());
+                                },
+                                chat: chat,
+                                isPrivateChats: isPrivateChats,
+                              );
+                            }).toList(),
+                          )
+                        : isPrivateChats == false
+                            ? Column(
+                                children: allGroupChats.chats.map((chat) {
+                                  return ChatListTileWidget(
+                                    onDeletedFunction: () {
+                                      context
+                                          .read<ChatBloc>()
+                                          .add(GetAllChatsEvent());
+                                    },
+                                    chat: chat,
+                                    isPrivateChats: isPrivateChats,
+                                  );
+                                }).toList(),
+                              )
+                            : Container()
+                  ],
+                ),
               ),
-             isPrivateChats == true?  Column(
-                children: allPrivateChats.chats.map((chat){
-                  return ChatListTileWidget(
-                    onDeletedFunction: (){
-                      setState(() {
-                        isLoading = true;
-                      });
-          context.read<ChatBloc>().add(GetAllChatsEvent());
-                    },
-                    chat: chat,isPrivateChats: isPrivateChats,);
-                }).toList(),
-              ): isPrivateChats == false?
-              Column(
-                children: allGroupChats.chats.map((chat){
-                  return ChatListTileWidget(onDeletedFunction: (){
-          context.read<ChatBloc>().add(GetAllChatsEvent());
-
-                  },
-                    chat: chat,isPrivateChats: isPrivateChats,);
-                }).toList(),
-              ):Container()
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -118,59 +133,79 @@ class ChatListTileWidget extends StatelessWidget {
   final Chat chat;
   final Function onDeletedFunction;
   final bool isPrivateChats;
-  const ChatListTileWidget({required this.onDeletedFunction,
-    super.key, required this.chat,required this.isPrivateChats
-  });
+  const ChatListTileWidget(
+      {required this.onDeletedFunction,
+      super.key,
+      required this.chat,
+      required this.isPrivateChats});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-                    leading: CircleAvatar(
-    radius: 30,
-    backgroundImage:!isPrivateChats ?(chat.event!.photos.isNotEmpty?NetworkImage(chat.event!.photos.first):AssetImage('assets/images/image_default_event.png')): 
-    (chat.users.first.photoUrl==null?
-    AssetImage('assets/images/image_profile.png'):
-    NetworkImage(chat.users.first.photoUrl!,)),
-    backgroundColor: Colors.transparent,
-                    ),
-                    title: Text(
-   !isPrivateChats? "${chat.event!.title} ${DateFormat('dd.MM.yy').format(chat.event!.dateStart)}": chat.users.first.name ?? 'not defined',
-    style: TextStyle(
-      fontFamily: 'Inter',fontWeight: FontWeight.bold,
-      fontSize: 17
-    ),
-                    ),
-                    trailing: Column(
-    children: [
-      Text(DateFormat('hh:mm').format(chat.createdAt),style: 
-      TextStyle(fontFamily: 'Inter',fontSize: 13),),
-    ],
-                    ),
-                    subtitle: Text(chat.lastMessage?.content ??'...',
-                    style: TextStyle(
-      fontFamily: 'Inter',fontWeight: FontWeight.w500,
-      fontSize: 15,color: Color.fromRGBO(102, 102, 102,1)
-    ),),
-                    onTap: ()async {
-  final result = await  Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => ChatDetailScreen(
-              trailingText: !isPrivateChats ?  '${DateFormat('dd.MM.yyyy').format(chat.event!.dateStart)} | ${chat.event!.timeStart.substring(0,5)} – ${chat.event!.timeEnd.substring(0,5)}':null,
-              interlocutorAvatar:!isPrivateChats ? chat.event!.photos.isNotEmpty?chat.event!.photos.first:null:
-              chat.users.first.photoUrl,
-              interlocutorName:!isPrivateChats? chat.event!.title :  (chat.users.first.name ?? 'not defined'),
-                  interlocutorChatId: chat.id,
-                  interlocutorUserId: null,
-                )));
-                if(result==true){
-                  onDeletedFunction();
-                }else{
-                  onDeletedFunction();
-
-                }
-                    },
-                  );
-
+      leading: CircleAvatar(
+        radius: 30,
+        backgroundImage: !isPrivateChats
+            ? (chat.event!.photos.isNotEmpty
+                ? NetworkImage(chat.event!.photos.first)
+                : AssetImage('assets/images/image_default_event.png'))
+            : (chat.users.first.photoUrl == null
+                ? AssetImage('assets/images/image_profile.png')
+                : NetworkImage(
+                    chat.users.first.photoUrl!,
+                  )),
+        backgroundColor: Colors.transparent,
+      ),
+      title: Text(
+        !isPrivateChats
+            ? "${chat.event!.title} ${DateFormat('dd.MM.yy').format(chat.event!.dateStart)}"
+            : chat.users.first.name ?? 'not defined',
+        style: TextStyle(
+            fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 17),
+      ),
+      trailing: Column(
+        children: [
+          Text(
+            DateFormat('hh:mm').format(chat.createdAt),
+            style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+          ),
+        ],
+      ),
+      subtitle: Text(
+        chat.lastMessage?.content ?? '...',
+        style: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w500,
+            fontSize: 15,
+            color: Color.fromRGBO(102, 102, 102, 1)),
+      ),
+      onTap: () async {
+        final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ChatDetailScreen(
+                  isPrivateChats: isPrivateChats,
+                      trailingText: !isPrivateChats
+                          ? '${DateFormat('dd.MM.yyyy').format(chat.event!.dateStart)} | ${chat.event!.timeStart.substring(0, 5)} – ${chat.event!.timeEnd.substring(0, 5)}'
+                          : null,
+                      interlocutorAvatar: !isPrivateChats
+                          ? chat.event!.photos.isNotEmpty
+                              ? chat.event!.photos.first
+                              : null
+                          : chat.users.first.photoUrl,
+                      interlocutorName: !isPrivateChats
+                          ? chat.event!.title
+                          : (chat.users.first.name ?? 'not defined'),
+                      interlocutorChatId: chat.id,
+                      interlocutorUserId: !isPrivateChats
+                          ? null
+                          : (chat.users.first.id),
+                    )));
+        if (result == true) {
+          onDeletedFunction();
+        } else {
+          onDeletedFunction();
+        }
+      },
+    );
   }
 }

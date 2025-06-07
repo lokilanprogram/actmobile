@@ -291,7 +291,7 @@ class _MapScreenState extends State<MapScreen> {
                           onScrollListener: _onScroll,
                           onTapListener: _onTap,
                           styleUri:
-                              'mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj',
+                              'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
                           cameraOptions: CameraOptions(
                             zoom: currentZoom,
                             center: Point(

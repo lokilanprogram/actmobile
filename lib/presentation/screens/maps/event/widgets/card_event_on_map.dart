@@ -88,7 +88,12 @@ class CardEventOnMap extends StatelessWidget {
                 organizedEvent.timeStart,
                 organizedEvent.timeEnd,
                 organizedEvent.address),
-            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.only(top: 10, bottom: 15),
+              child: Divider(
+                thickness: 1,
+              ),
+            ),
             buildSpotsIndicator(
                 organizedEvent.restrictions
                     .any((restict) => restict == 'isUnlimited'),
@@ -115,10 +120,10 @@ class CardEventOnMap extends StatelessWidget {
                     color: mainBlueColor),
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 7),
                   child: Center(
                       child: Text(
-                    'Открыть события',
+                    'Открыть событие',
                     style: TextStyle(color: Colors.white, fontFamily: 'Inter'),
                   )),
                 ),

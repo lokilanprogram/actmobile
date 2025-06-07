@@ -142,7 +142,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                 children: [
                   MapWidget(
                     onTapListener: widget.isCreated == true ? _onTap : null,
-                    styleUri: 'mapbox://styles/acti/cma9wrmfh00i701sdhqrjg5mj',
+                    styleUri: 'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
                     cameraOptions: CameraOptions(
                       zoom: currentZoom,
                       center: Point(

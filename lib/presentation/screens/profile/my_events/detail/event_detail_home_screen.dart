@@ -4,6 +4,7 @@ import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/configs/date_utils.dart' as custom_date;
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
+import 'package:acti_mobile/data/models/status_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/widgets.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
@@ -277,7 +278,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                         padding:
                                                             const EdgeInsets
                                                                 .only(
-                                                                right: 30),
+                                                                right: 0),
                                                         child: SvgPicture.asset(
                                                           'assets/icons/icon_adult.svg',
                                                           width: 34,
@@ -334,6 +335,8 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                         fontFamily: 'Gilroy')),
                                               ],
                                             ),
+                                            Spacer(),
+                                            buildStatus(organizedEvent.status),
                                           ],
                                         ),
                                         SizedBox(
@@ -581,6 +584,25 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
         label,
         style: const TextStyle(
             color: Colors.white, fontSize: 12.46, fontFamily: 'Gilroy'),
+      ),
+    );
+  }
+
+  Widget buildStatus(String status) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
+      decoration: BoxDecoration(
+        border: BoxBorder.all(color: getStatusColor(status)),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        getStatusText(status),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          height: 1,
+            color: getStatusColor(status),
+            fontSize: 12.46,
+            fontFamily: 'Gilroy'),
       ),
     );
   }

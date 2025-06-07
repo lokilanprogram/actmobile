@@ -198,6 +198,7 @@ class LastMessage {
 }
 
 class User {
+  String id;
     String? name;
     String? surname;
     String? email;
@@ -208,6 +209,7 @@ class User {
     bool? isEmailVerified;
 
     User({
+      required this.id,
         required this.name,
         required this.surname,
         required this.email,
@@ -219,6 +221,7 @@ class User {
     });
 
     factory User.fromJson(Map<String, dynamic> json) => User(
+      id: json["id"],
         name: json["name"],
         surname: json["surname"],
         email: json["email"],
@@ -230,6 +233,7 @@ class User {
     );
 
     Map<String, dynamic> toJson() => {
+      "id": name,
         "name": name,
         "surname": surname,
         "email": email,

@@ -35,6 +35,8 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Приложению нужен доступ к фотогалерее для выбора изображений.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Разрешите сохранить изображение в галерею</string>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>

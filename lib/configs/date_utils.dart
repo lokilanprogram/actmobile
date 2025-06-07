@@ -27,8 +27,11 @@ class DateUtils {
     final timeFormat = DateFormat('HH:mm');
     final dateFormat = DateFormat('dd.MM.yyyy');
 
+    final timeRange = timeStart.split('–'); // или '-', если такой дефис
+    final startTimeStr = timeRange.first.trim(); // '17:43'
     final startTime =
-        DateTime.parse('${date.toIso8601String().split('T')[0]}T$timeStart');
+        DateTime.parse('${date.toIso8601String().split('T')[0]}T$startTimeStr');
+
     final localTime = isOnline ? startTime.toLocal() : startTime;
 
     return '${dateFormat.format(date)} | ${timeFormat.format(localTime)}';

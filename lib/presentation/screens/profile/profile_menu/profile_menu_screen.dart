@@ -239,43 +239,49 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                 left: 0,
                                 right: 0,
                                 child: ClipRRect(
-                                  child: Container(
-                                    height: 120,
-                                    padding: const EdgeInsets.only(
-                                        left: 20, right: 20, top: 10),
-                                    // decoration: BoxDecoration(
-                                    //   color: Colors.grey.withOpacity(
-                                    //       0.3), // Тёмный полупрозрачный фон
-                                    // ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          profileModel.surname != null &&
-                                                  profileModel.surname != ""
-                                              ? '${capitalize(profileModel.surname!)} ${capitalize(profileModel.name!)}'
-                                              : capitalize(
-                                                      profileModel.name!) ??
-                                                  'Неизвестное имя',
-                                          style: TextStyle(
-                                            fontFamily: 'Inter',
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.white,
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                      sigmaX: 20,
+                                      sigmaY: 20,
+                                    ),
+                                    child: Container(
+                                      height: 120,
+                                      padding: const EdgeInsets.only(
+                                          left: 20, right: 20, top: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.withOpacity(
+                                            0.3), // Тёмный полупрозрачный фон
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            profileModel.surname != null &&
+                                                    profileModel.surname != ""
+                                                ? '${capitalize(profileModel.surname!)} ${capitalize(profileModel.name!)}'
+                                                : capitalize(
+                                                        profileModel.name!) ??
+                                                    'Неизвестное имя',
+                                            style: TextStyle(
+                                              fontFamily: 'Inter',
+                                              fontSize: 32,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                            ),
                                           ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          capitalize(profileModel.status),
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontFamily: 'Inter',
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.white70,
+                                          SizedBox(height: 4),
+                                          Text(
+                                            capitalize(profileModel.status),
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontFamily: 'Inter',
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white70,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -601,15 +607,11 @@ class SettingsPage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: GestureDetector(
             onTap: () {
-                showBlockDialog(
-                    context,
-                    'Удалить профиль',
-                    'Вы точно хотите удалить профиль без\nвозможности восстановления?',
-                    () {
-                  context
-                      .read<ProfileBloc>()
-                      .add(ProfileDeleteEvent());
-                });
+              showBlockDialog(context, 'Удалить профиль',
+                  'Вы точно хотите удалить профиль без\nвозможности восстановления?',
+                  () {
+                context.read<ProfileBloc>().add(ProfileDeleteEvent());
+              });
             },
             child: Row(
               children: [
