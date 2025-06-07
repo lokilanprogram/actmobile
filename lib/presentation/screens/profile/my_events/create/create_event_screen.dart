@@ -89,9 +89,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     setState(() {
       selectedDate = pickedDate;
       if (pickedDate == null) {
-        final _date = DateTime.now();
+        final date = DateTime.now();
         dateController.text =
-            formatDate('${_date.day}.${_date.month}.${_date.year}');
+            formatDate('${date.day}.${date.month}.${date.year}');
       }
       dateController.text = formatDate(
           '${pickedDate!.day}.${pickedDate.month}.${pickedDate.year}');
@@ -173,12 +173,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         _images.add(photo);
       }
       for (var restrict in event.restrictions) {
-        if (restrict == 'isAdults') {
+        if (restrict == 'isKidsNotAllowed') {
           setState(() {
             is18plus = true;
           });
         }
-        if (restrict == 'isKidsAllowed') {
+        if (restrict == 'withKids') {
           setState(() {
             isKidsAllowed = true;
           });
@@ -606,14 +606,21 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                             suffixText: "₽",
                             controller: priceController),
                         const SizedBox(height: 24),
-                        _buildSwitchTile("Ограничение 18+", is18plus,
-                            (v) => setState(() => is18plus = v)),
+                        _buildSwitchTile("Ограничение 18+", is18plus, (v) {
+                          setState(() {
+                            is18plus = v;
+                            if (v) isKidsAllowed = false;
+                          });
+                        }),
                         const SizedBox(height: 10),
                         _buildSwitchTile("Можно с детьми", isKidsAllowed, (v) {
-                          setState(() => isKidsAllowed = v);
-                          if (isKidsAllowed) {
-                            showKidsAlertDialog(context, '');
-                          }
+                          setState(() {
+                            isKidsAllowed = v;
+                            if (v) is18plus = false;
+                            if (isKidsAllowed) {
+                              showKidsAlertDialog(context, '');
+                            }
+                          });
                         }),
                         const SizedBox(height: 10),
                         _buildSwitchTile("Можно с животными", isPetFriendly,

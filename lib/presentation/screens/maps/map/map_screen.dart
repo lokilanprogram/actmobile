@@ -7,6 +7,7 @@ import 'package:acti_mobile/presentation/screens/maps/event/widgets/card_event_o
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
+import 'dart:developer' as developer;
 import 'package:acti_mobile/main.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/marker.dart';
@@ -27,6 +28,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geolocator;
+import 'package:acti_mobile/presentation/screens/events/widgets/filter_bottom_sheet.dart';
+import 'package:acti_mobile/presentation/screens/events/providers/filter_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class MapScreen extends StatefulWidget {
   final int selectedScreenIndex;
@@ -422,7 +427,148 @@ class _MapScreenState extends State<MapScreen> {
             IconButton(
               icon: SvgPicture.asset('assets/left_drawer/filter.svg'),
               onPressed: () {
-                // TODO: Open filter bottom sheet from Map screen if needed
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => FilterBottomSheet(
+                    currentPosition: currentUserPosition != null
+                        ? geolocator.Position(
+                            latitude: currentUserPosition!.lat.toDouble(),
+                            longitude: currentUserPosition!.lng.toDouble(),
+                            timestamp: DateTime.now(),
+                            accuracy: 0,
+                            altitude: 0,
+                            heading: 0,
+                            speed: 0,
+                            speedAccuracy: 0,
+                            altitudeAccuracy: 0,
+                            headingAccuracy: 0)
+                        : null,
+                    onApplyFilters: () {
+                      final filterProvider =
+                          Provider.of<FilterProvider>(context, listen: false);
+
+                      // Очищаем текущие маркеры
+                      pointAnnotationManager.deleteAll();
+
+                      // Определяем координаты для поиска
+                      double searchLat = currentSelectedPosition.lat.toDouble();
+                      double searchLng = currentSelectedPosition.lng.toDouble();
+
+                      // Если выбрана точка на карте в фильтре, используем её
+                      if (filterProvider.selectedMapAddressModel != null) {
+                        searchLat =
+                            filterProvider.selectedMapAddressModel!.latitude ??
+                                searchLat;
+                        searchLng =
+                            filterProvider.selectedMapAddressModel!.longitude ??
+                                searchLng;
+                      }
+
+                      // Определяем радиус поиска
+                      int radius = filterProvider.selectedRadius
+                          .round(); // используем значение в километрах
+                      // Ограничиваем радиус до 100 км
+                      if (radius > 100) {
+                        radius = 100;
+                      }
+
+                      // Формируем список ограничений
+                      List<String> restrictions = [];
+                      if (filterProvider.isAnimalsAllowedSelected) {
+                        restrictions.add('withAnimals');
+                      }
+
+                      if (filterProvider.isFreeSelected) {
+                        restrictions.add('isUnlimited');
+                      }
+
+                      if (filterProvider.selectedAgeRestrictions
+                          .contains('isAdults')) {
+                        restrictions.add('isKidsNotAllowed');
+                      } else if (filterProvider.selectedAgeRestrictions
+                          .contains('isKidsAllowed')) {
+                        restrictions.add('withKids');
+                      }
+
+                      // Определяем длительность
+                      int? durationMin;
+                      int? durationMax;
+                      if (filterProvider.selectedDurationFilter == 'short') {
+                        durationMin = 1;
+                        durationMax = 2;
+                      } else if (filterProvider.selectedDurationFilter ==
+                          'medium') {
+                        durationMin = 3;
+                        durationMax = 5;
+                      } else if (filterProvider.selectedDurationFilter ==
+                          'long') {
+                        durationMin = 6;
+                        durationMax = 24;
+                      }
+
+                      // Логируем выбранные фильтры
+                      developer.log('Выбранные фильтры:', name: 'MAP_SEARCH');
+                      developer.log('Радиус: $radius км', name: 'MAP_SEARCH');
+                      developer.log('Ограничения: $restrictions',
+                          name: 'MAP_SEARCH');
+                      developer.log(
+                          'Длительность: $durationMin - $durationMax часов',
+                          name: 'MAP_SEARCH');
+                      developer.log(
+                          'Категории (${filterProvider.selectedCategoryIds.length}): ${filterProvider.selectedCategoryIds.join(", ")}',
+                          name: 'MAP_SEARCH');
+                      developer.log(
+                          'Цена: ${filterProvider.isFreeSelected ? "Бесплатно" : "${filterProvider.priceMinText} - ${filterProvider.priceMaxText}"}',
+                          name: 'MAP_SEARCH');
+                      developer.log(
+                          'Дата: ${filterProvider.selectedDateFrom} - ${filterProvider.selectedDateTo}',
+                          name: 'MAP_SEARCH');
+                      developer.log(
+                          'Время: ${filterProvider.selectedTimeFrom} - ${filterProvider.selectedTimeTo}',
+                          name: 'MAP_SEARCH');
+
+                      // Форматируем даты в формат YYYY-MM-DD
+                      String? formattedDateFrom;
+                      String? formattedDateTo;
+                      if (filterProvider.selectedDateFrom != null) {
+                        formattedDateFrom = DateFormat('yyyy-MM-dd')
+                            .format(filterProvider.selectedDateFrom!);
+                      }
+                      if (filterProvider.selectedDateTo != null) {
+                        formattedDateTo = DateFormat('yyyy-MM-dd')
+                            .format(filterProvider.selectedDateTo!);
+                      }
+
+                      // Выполняем поиск с фильтрами
+                      context.read<ProfileBloc>().add(SearchEventsOnMapEvent(
+                            latitude: searchLat,
+                            longitude: searchLng,
+                            filters: {
+                              'radius': radius,
+                              'restrictions': restrictions,
+                              'duration_min': durationMin,
+                              'duration_max': durationMax,
+                              'category_ids':
+                                  filterProvider.selectedCategoryIds,
+                              'price_min': filterProvider.isFreeSelected
+                                  ? 0
+                                  : double.tryParse(
+                                      filterProvider.priceMinText),
+                              'price_max': filterProvider.isFreeSelected
+                                  ? 0
+                                  : double.tryParse(
+                                      filterProvider.priceMaxText),
+                              'date_from': formattedDateFrom,
+                              'date_to': formattedDateTo,
+                              'time_from': filterProvider.selectedTimeFrom,
+                              'time_to': filterProvider.selectedTimeTo,
+                            },
+                          ));
+                    },
+                  ),
+                );
               },
             ),
             IconButton(

@@ -1,6 +1,6 @@
-import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:ui';
+import 'dart:developer' as developer;
 
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
@@ -8,16 +8,15 @@ import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
-import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/widgets/blurred.dart';
-import 'package:acti_mobile/presentation/widgets/category_list.dart';
 import 'package:acti_mobile/presentation/widgets/popup_profile_buttons.dart';
 import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -57,6 +56,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
   bool isLoading = false;
   late ProfileModel profileModel;
   late List<SimiliarUsersModel> similiarUsersModel;
+  bool showSettings = false;
 
   @override
   void initState() {
@@ -71,20 +71,10 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
     context.read<ProfileBloc>().add(ProfileGetEvent());
   }
 
-  void _openSettingsModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: false,
-      enableDrag: false,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return ChangeNotifierProvider(
-          create: (_) => SettingsPageProvider(),
-          child: const SettingsPage(),
-        );
-      },
-    );
+  void _openSettingsPage() {
+    setState(() {
+      showSettings = true;
+    });
   }
 
   @override
@@ -92,13 +82,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) async {
         if (state is ProfileLogoutState) {
-          setState(() {
-            isLoading = false;
-          });
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => InitialScreen()));
-        }
-        if (state is ProfileDeleteState) {
           setState(() {
             isLoading = false;
           });
@@ -131,14 +114,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text('Ошибка')));
         }
-        if (state is ProfileDeleteErrorState) {
-          setState(() {
-            isLoading = false;
-          });
-
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Ошибка удаления профиля')));
-        }
         if (state is ProfileGotErrorState) {
           setState(() {
             isLoading = false;
@@ -151,245 +126,255 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
           ? LoaderWidget()
           : Scaffold(
               backgroundColor: Colors.white,
-              body: Stack(
-                children: [
-                  Positioned.fill(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          Stack(
-                            children: [
-                              profileModel.photoUrl != null
-                                  ? Image.network(profileModel.photoUrl!,
-                                      width: double.infinity,
-                                      height: 350,
-                                      fit: BoxFit.cover,
-                                      loadingBuilder: (BuildContext context,
-                                          Widget child,
-                                          ImageChunkEvent? loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return SizedBox(
-                                        height: 350,
-                                        child: Center(
-                                          child: CircularProgressIndicator(
-                                            color: mainBlueColor,
-                                            value: loadingProgress
-                                                        .expectedTotalBytes !=
-                                                    null
-                                                ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    loadingProgress
-                                                        .expectedTotalBytes!
-                                                : null,
+              body: showSettings
+                  ? ChangeNotifierProvider(
+                      create: (_) => SettingsPageProvider(),
+                      child: SettingsPage(
+                        onBack: () {
+                          setState(() {
+                            showSettings = false;
+                          });
+                        },
+                      ),
+                    )
+                  : Stack(
+                      children: [
+                        Positioned.fill(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                Stack(
+                                  children: [
+                                    profileModel.photoUrl != null
+                                        ? Image.network(profileModel.photoUrl!,
+                                            width: double.infinity,
+                                            height: 350,
+                                            fit: BoxFit.cover, loadingBuilder:
+                                                (BuildContext context,
+                                                    Widget child,
+                                                    ImageChunkEvent?
+                                                        loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return SizedBox(
+                                              height: 350,
+                                              child: Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  color: mainBlueColor,
+                                                  value: loadingProgress
+                                                              .expectedTotalBytes !=
+                                                          null
+                                                      ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                          loadingProgress
+                                                              .expectedTotalBytes!
+                                                      : null,
+                                                ),
+                                              ),
+                                            );
+                                          })
+                                        : Image.asset(
+                                            'assets/images/image_profile.png',
+                                            width: double.infinity,
+                                            height: 350,
+                                            fit: BoxFit.cover,
+                                          ),
+                                    Positioned(
+                                      top: 77,
+                                      right: 60,
+                                      child: Icon(
+                                          Icons.notifications_none_outlined,
+                                          color: Colors.white),
+                                    ),
+                                    Positioned(
+                                        top: 77,
+                                        right: 20,
+                                        child: PopUpProfileButtons(
+                                          deleteFunction: () {
+                                            setState(() {
+                                              isLoading = true;
+                                            });
+                                            context
+                                                .read<ProfileBloc>()
+                                                .add(ProfileLogoutEvent());
+                                          },
+                                          editFunction: () async {
+                                            await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        UpdateProfileScreen(
+                                                          profileModel:
+                                                              profileModel,
+                                                        )));
+                                          },
+                                          settingsFunction: _openSettingsPage,
+                                        )),
+                                    Positioned(
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: ClipRRect(
+                                        child: BackdropFilter(
+                                          filter: ImageFilter.blur(
+                                              sigmaX: 20, sigmaY: 20),
+                                          child: Container(
+                                            height: 120,
+                                            padding: const EdgeInsets.only(
+                                                left: 20, right: 20, top: 10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.withOpacity(
+                                                  0.3), // Тёмный полупрозрачный фон
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  profileModel.surname != null
+                                                      ? '${capitalize(profileModel.surname!)} ${capitalize(profileModel.name!)}'
+                                                      : capitalize(profileModel
+                                                              .name!) ??
+                                                          'Неизвестное имя',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Inter',
+                                                    fontSize: 32,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 4),
+                                                Text(
+                                                  capitalize(
+                                                      profileModel.status),
+                                                  style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontFamily: 'Inter',
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.white70,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      );
-                                    })
-                                  : Image.asset(
-                                      'assets/images/image_profile.png',
-                                      width: double.infinity,
-                                      height: 350,
-                                      fit: BoxFit.cover,
+                                      ),
                                     ),
-                              // Positioned(
-                              //   top: 77,
-                              //   right: 60,
-                              //   child: Icon(Icons.notifications_none_outlined,
-                              //       color: Colors.white),
-                              // ),
-                              Positioned(
-                                  top: 48,
-                                  right: 10,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    Positioned(
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        child: Container(
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          height: 20,
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.only(
+                                                  topLeft: Radius.circular(20),
+                                                  topRight:
+                                                      Radius.circular(20)),
+                                              color: Colors.white),
+                                        )),
+                                  ],
+                                ),
+                                Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  height: MediaQuery.of(context).size.height,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 25, vertical: 5),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
+                                      const Text(
+                                        'Профиль',
+                                        style: TextStyle(
+                                          fontSize: 25,
+                                          fontFamily: 'Gilroy',
+                                          fontWeight: FontWeight.bold,
+                                          color: mainBlueColor,
+                                        ),
+                                      ),
                                       SizedBox(
-                                        width: 40,
-                                        height: 40,
-                                        child: Icon(
-                                            Icons.notifications_none_outlined,
-                                            color: Colors.white),
+                                        height: 10,
                                       ),
-                                      //const SizedBox(width: 8),
-                                      PopUpProfileButtons(
-                                        deleteFunction: () {
-                                          setState(() {
-                                            isLoading = true;
-                                          });
-                                          context
-                                              .read<ProfileBloc>()
-                                              .add(ProfileLogoutEvent());
-                                        },
-                                        editFunction: () async {
-                                          await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (_) =>
-                                                      UpdateProfileScreen(
-                                                        profileModel:
-                                                            profileModel,
-                                                      )));
-                                        },
-                                        settingsFunction: _openSettingsModal,
+                                      const Text(
+                                        'О себе',
+                                        style: TextStyle(
+                                          fontSize: 16.67,
+                                          fontFamily: 'Gilroy',
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black,
+                                        ),
                                       ),
-                                    ],
-                                  )),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: ClipRRect(
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(
-                                      sigmaX: 20,
-                                      sigmaY: 20,
-                                    ),
-                                    child: Container(
-                                      height: 120,
-                                      padding: const EdgeInsets.only(
-                                          left: 20, right: 20, top: 10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(
-                                            0.3), // Тёмный полупрозрачный фон
+                                      Text(
+                                        profileModel.bio == '' ||
+                                                profileModel.bio == null
+                                            ? '...'
+                                            : profileModel.bio!,
+                                        style: TextStyle(
+                                            fontFamily: 'Inter', fontSize: 12),
                                       ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            profileModel.surname != null &&
-                                                    profileModel.surname != ""
-                                                ? '${capitalize(profileModel.surname!)} ${capitalize(profileModel.name!)}'
-                                                : capitalize(
-                                                        profileModel.name!) ??
-                                                    'Неизвестное имя',
-                                            style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontSize: 32,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            capitalize(profileModel.status),
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white70,
-                                            ),
-                                          ),
-                                        ],
+                                      const SizedBox(height: 15),
+                                      // Interests
+                                      Center(
+                                        child: Wrap(
+                                            spacing: 10,
+                                            runSpacing: 10,
+                                            children: profileModel.categories
+                                                .map((event) =>
+                                                    buildInterestChip(
+                                                        event.name))
+                                                .toList()),
                                       ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                  bottom: 0,
-                                  left: 0,
-                                  right: 0,
-                                  child: Container(
-                                    width: MediaQuery.of(context).size.width,
-                                    height: 20,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(20),
-                                            topRight: Radius.circular(20)),
-                                        color: Colors.white),
-                                  )),
-                            ],
-                          ),
-                          Container(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 25, vertical: 5),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Профиль',
-                                  style: TextStyle(
-                                    fontSize: 25,
-                                    fontFamily: 'Gilroy',
-                                    fontWeight: FontWeight.bold,
-                                    color: mainBlueColor,
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                const Text(
-                                  'О себе',
-                                  style: TextStyle(
-                                    fontSize: 16.67,
-                                    fontFamily: 'Gilroy',
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Text(
-                                  profileModel.bio == '' ||
-                                          profileModel.bio == null
-                                      ? '...'
-                                      : profileModel.bio!,
-                                  style: TextStyle(
-                                      fontFamily: 'Inter', fontSize: 12),
-                                ),
-                                const SizedBox(height: 15),
-                                // Interests
-                                buildInterestsGrid(
-                                  profileModel.categories
-                                      .map((e) => e.name)
-                                      .toList(),
-                                ),
 
-                                const SizedBox(height: 25),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 0),
-                                  child: const Text(
-                                    'Похожие пользователи',
-                                    style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        fontFamily: 'Gilroy'),
+                                      const SizedBox(height: 25),
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 0),
+                                        child: const Text(
+                                          'Похожие пользователи',
+                                          style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w700,
+                                              fontFamily: 'Gilroy'),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 15),
+                                      // Similar users row
+                                      Center(
+                                          child: similiarUsersModel.isEmpty
+                                              ? buildNoUsers()
+                                              : SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      0.9,
+                                                  child: Card(
+                                                    elevation: 1.2,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        25)),
+                                                    color: Colors.white,
+                                                    child: buildSimiliarUsers(
+                                                        context),
+                                                  ),
+                                                )),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 15),
-                                // Similar users row
-                                Center(
-                                    child: similiarUsersModel.isEmpty
-                                        ? buildNoUsers()
-                                        : SizedBox(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.9,
-                                            child: Card(
-                                              elevation: 1.2,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          25)),
-                                              color: Colors.white,
-                                              child:
-                                                  buildSimiliarUsers(context),
-                                            ),
-                                          )),
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
     );
   }
@@ -468,46 +453,45 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
 }
 
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
+  final VoidCallback onBack;
+
+  const SettingsPage({super.key, required this.onBack});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<SettingsPageProvider>(
       builder: (context, provider, child) {
-        return SafeArea(
-          child: Material(
-            color: Colors.white,
-            child: Stack(
-              children: [
-                AnimatedSwitcher(
-                  duration: Duration(milliseconds: 250),
-                  child: provider.currentPage == 0
-                      ? _buildMainSettings(context, provider)
-                      : provider.currentPage == 4
-                          ? _buildFaq(context, provider)
-                          : _buildAgreement(context, provider),
-                ),
-                Positioned(
-                  top: 40,
-                  left: 16,
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back_ios_new),
-                    onPressed: () {
-                      if (provider.currentPage == 0) {
-                        Navigator.of(context).pop();
-                      } else {
-                        provider.setPage(0);
-                      }
-                    },
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Material(
+              color: Colors.white,
+              child: Stack(
+                children: [
+                  AnimatedSwitcher(
+                    duration: Duration(milliseconds: 250),
+                    child: provider.currentPage == 0
+                        ? _buildMainSettings(context, provider)
+                        : provider.currentPage == 4
+                            ? _buildFaq(context, provider)
+                            : _buildAgreement(context, provider),
                   ),
-                ),
-                if (provider.currentPage == 0)
                   Positioned(
-                    top: 50,
-                    right: 16,
-                    child: Icon(Icons.check, color: Colors.green, size: 32),
+                    top: 40,
+                    left: 16,
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back_ios_new),
+                      onPressed: onBack,
+                    ),
                   ),
-              ],
+                  if (provider.currentPage == 0)
+                    Positioned(
+                      top: 50,
+                      right: 16,
+                      child: Icon(Icons.check, color: Colors.green, size: 32),
+                    ),
+                ],
+              ),
             ),
           ),
         );
@@ -517,119 +501,131 @@ class SettingsPage extends StatelessWidget {
 
   Widget _buildMainSettings(
       BuildContext context, SettingsPageProvider provider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 45),
-        Center(
-          child: Text('Настройки',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w500)),
-        ),
-        const SizedBox(height: 24),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: [
-              Switch(
-                value: provider.notificationsEnabled,
-                onChanged: (v) async {
-                  try {
-                    provider.setNotifications(v);
-                    await EventsApi().changeNotificationSettings(enabled: v);
-                  } catch (e) {
-                    provider.setNotifications(!v);
-                    developer.log(
-                        '[NOTIFICATIONS_SWITCH] Ошибка настройки уведомлений: $e');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('Ошибка настройки уведомлений: $e')),
-                    );
-                  }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 45),
+          Center(
+            child: Text('Настройки',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w500)),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: [
+                CupertinoSwitch(
+                  activeTrackColor: Colors.blue,
+                  value: provider.notificationsEnabled,
+                  onChanged: (v) async {
+                    try {
+                      provider.setNotifications(v);
+                      await EventsApi().changeNotificationSettings(enabled: v);
+                    } catch (e) {
+                      provider.setNotifications(!v);
+                      developer.log(
+                          '[NOTIFICATIONS_SWITCH] Ошибка настройки уведомлений: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Ошибка настройки уведомлений: $e')),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
+                const Text('Уведомления', style: TextStyle(fontSize: 18)),
+              ],
+            ),
+          ),
+          const Divider(indent: 24, endIndent: 24),
+          _buildSettingsTile(
+              context, provider, 'Пользовательское соглашение', 1),
+          _buildSettingsTile(
+              context, provider, 'Политика конфиденциальности', 2),
+          _buildSettingsTile(context, provider, 'Согласие на обработку ПД', 3),
+          _buildSettingsTile(
+              context, provider, 'Часто задаваемые вопросы и ответы', 4),
+          _buildSettingsTile(context, provider, 'О нас', 5),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                  side: BorderSide(color: Colors.black),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                ),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    isDismissible: false,
+                    enableDrag: false,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const FeedbackPage(),
+                  );
                 },
+                child: Text('Обратная связь',
+                    style: TextStyle(fontSize: 18, color: Colors.black)),
               ),
-              const SizedBox(width: 8),
-              const Text('Уведомления', style: TextStyle(fontSize: 18)),
-            ],
+            ),
           ),
-        ),
-        const Divider(),
-        _buildSettingsTile(context, provider, 'Пользовательское соглашение', 1),
-        _buildSettingsTile(context, provider, 'Политика конфиденциальности', 2),
-        _buildSettingsTile(context, provider, 'Согласие на обработку ПД', 3),
-        _buildSettingsTile(
-            context, provider, 'Часто задаваемые вопросы и ответы', 4),
-        _buildSettingsTile(context, provider, 'О нас', 5),
-        const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
-                side: BorderSide(color: Colors.black12),
-                padding: EdgeInsets.symmetric(vertical: 16),
-              ),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  isDismissible: false,
-                  enableDrag: false,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => const FeedbackPage(),
-                );
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: GestureDetector(
+              onTap: () {
+                context.read<ProfileBloc>().add(ProfileLogoutEvent());
               },
-              child: Text('Обратная связь', style: TextStyle(fontSize: 18)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset('assets/icons/log-out.svg'),
+                  SizedBox(width: 8),
+                  Text('Выйти',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w300)),
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 24),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: GestureDetector(
-            onTap: () {
-              context.read<ProfileBloc>().add(ProfileLogoutEvent());
-            },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.exit_to_app, size: 22),
-                SizedBox(width: 8),
-                Text('Выйти', style: TextStyle(fontSize: 18)),
-              ],
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: GestureDetector(
+              onTap: () {
+                showBlockDialog(context, 'Удалить профиль',
+                    'Вы точно хотите удалить профиль без\nвозможности восстановления?',
+                    () {
+                  context.read<ProfileBloc>().add(ProfileDeleteEvent());
+                });
+              },
+              child: Row(
+                children: [
+                  SvgPicture.asset('assets/icons/trash.svg'),
+                  SizedBox(width: 8),
+                  Text('Удалить профиль',
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.red,
+                          fontWeight: FontWeight.w300)),
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: GestureDetector(
-            onTap: () {
-              showBlockDialog(context, 'Удалить профиль',
-                  'Вы точно хотите удалить профиль без\nвозможности восстановления?',
-                  () {
-                context.read<ProfileBloc>().add(ProfileDeleteEvent());
-              });
-            },
-            child: Row(
-              children: [
-                Icon(Icons.delete_outline, color: Colors.red, size: 22),
-                SizedBox(width: 8),
-                Text('Удалить профиль',
-                    style: TextStyle(fontSize: 18, color: Colors.red)),
-              ],
-            ),
+          const Spacer(),
+          Center(
+            child: Text('Версия 1.1.1.0',
+                style: TextStyle(color: Colors.grey, fontSize: 15)),
           ),
-        ),
-        const Spacer(),
-        Center(
-          child: Text('Версия 1.1.1.0',
-              style: TextStyle(color: Colors.grey, fontSize: 15)),
-        ),
-        const SizedBox(height: 12),
-      ],
+          const SizedBox(height: 12),
+        ],
+      ),
     );
   }
 
@@ -642,7 +638,7 @@ class SettingsPage extends StatelessWidget {
           trailing: Icon(Icons.arrow_forward_ios, size: 18),
           onTap: () => provider.setPage(page),
         ),
-        const Divider(height: 1),
+        const Divider(height: 1, indent: 24, endIndent: 24),
       ],
     );
   }
