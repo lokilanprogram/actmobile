@@ -40,9 +40,6 @@ class _InitialScreenState extends State<InitialScreen> {
       print('refresh token ---- $refreshToken');
       await Future.delayed(Duration(seconds: 1)).then((_) async {
         if (profile != null) {
-          await FirebaseApi().initNotifications();
-          await NotificationService().initNotification();
-          await FirebaseApi().setupInteractedMessage();
           await storage.write(key: userIdStorage, value: profile!.id);
           if (profile!.categories.isNotEmpty) {
             Navigator.push(
@@ -55,6 +52,10 @@ class _InitialScreenState extends State<InitialScreen> {
             Navigator.push(context,
                 MaterialPageRoute(builder: (_) => EventsAroundScreen()));
           }
+          await FirebaseApi().initNotifications();
+          await NotificationService().initNotification();
+          //await NotificationService().checkInitialNotification();
+          await FirebaseApi().setupInteractedMessage();
         } else {
           await deleteAuthTokens(false);
           Navigator.push(

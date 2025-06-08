@@ -14,6 +14,8 @@ class MessageCard extends StatefulWidget {
     required this.currentUserId,
     this.special = false,
     this.interlocutorUserId,
+    this.highlightText,
+    required this.isHighlighted,
   });
 
   final String? interlocutorUserId;
@@ -21,6 +23,8 @@ class MessageCard extends StatefulWidget {
   final MessageModel message;
   final bool special;
   final String currentUserId;
+  final String? highlightText;
+  final bool isHighlighted;
 
   @override
   State<MessageCard> createState() => _MessageCardState();
@@ -170,28 +174,35 @@ class _MessageCardState extends State<MessageCard>
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (widget.isPrivateChats == false && !isSentMessageCard)
+                          if (widget.isPrivateChats == false &&
+                              !isSentMessageCard)
                             InkWell(
                               onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              PublicUserScreen(
-                                                  userId: widget
-                                                      .message.userId)));
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => PublicUserScreen(
+                                            userId: widget.message.userId)));
                               },
                               child: Text(widget.message.user.name),
                             ),
-                          Text(
-                            '${widget.message.content} $textPadding',
-                            textWidthBasis: TextWidthBasis.longestLine,
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: !isSentMessageCard
-                                    ? Colors.black
-                                    : Colors.white),
-                            softWrap: true,
+                          Text.rich(
+                            TextSpan(
+                              children: _highlightOccurrences(
+                                  '${widget.message.content} $textPadding',
+                                  widget.highlightText,
+                                  !isSentMessageCard
+                                      ? Colors.black
+                                      : Colors.white),
+                              // '${widget.message.content} $textPadding',
+                              // textWidthBasis: TextWidthBasis.longestLine,
+                              // style: TextStyle(
+                              //     fontSize: 16,
+                              //     color: !isSentMessageCard
+                              //         ? Colors.black
+                              //         : Colors.white),
+                              // softWrap: true,
+                            ),
                           ),
                         ],
                       ),
@@ -281,6 +292,51 @@ class _MessageCardState extends State<MessageCard>
         ),
       ),
     );
+  }
+
+  List<InlineSpan> _highlightOccurrences(
+      String source, String? query, Color baseColor) {
+    if (query == null || query.trim().isEmpty) {
+      return [TextSpan(text: source, style: TextStyle(color: baseColor))];
+    }
+
+    final matches =
+        RegExp(RegExp.escape(query), caseSensitive: false).allMatches(source);
+    if (matches.isEmpty) {
+      return [TextSpan(text: source, style: TextStyle(color: baseColor))];
+    }
+
+    final spans = <TextSpan>[];
+    int lastIndex = 0;
+
+    for (final match in matches) {
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(
+          text: source.substring(lastIndex, match.start),
+          style: TextStyle(color: baseColor),
+        ));
+      }
+
+      spans.add(TextSpan(
+        text: source.substring(match.start, match.end),
+        style: TextStyle(
+          color: baseColor,
+          backgroundColor: Colors.yellow,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < source.length) {
+      spans.add(TextSpan(
+        text: source.substring(lastIndex),
+        style: TextStyle(color: baseColor),
+      ));
+    }
+
+    return spans;
   }
 }
 

@@ -42,6 +42,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final seacrhController = TextEditingController();
   ScrollController scrollController = ScrollController();
 
+  bool isSearching = false;
+  String searchText = '';
+  List<MessageModel> filteredMessages = [];
+  int currentSearchIndex = 0;
+  final Map<String, GlobalKey> _messageKeys = {};
+
   final picker = ImagePicker();
   bool isSearched = false;
   bool isMe = false;
@@ -190,34 +196,69 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           appBar: isSearched
               ? AppBar(
                   scrolledUnderElevation: 0,
+                  automaticallyImplyLeading: false,
                   backgroundColor: Colors.white,
-                  leading: Padding(
-                    padding: const EdgeInsets.only(left: 15),
-                    child: IconButton(
-                        onPressed: () {
-                          Navigator.pop(context, false);
-                        },
-                        icon: Icon(Icons.arrow_back_ios)),
-                  ),
+                  // leading: Padding(
+                  //   padding: const EdgeInsets.only(left: 15),
+                  //   child: IconButton(
+                  //       onPressed: () {
+                  //         Navigator.pop(context, false);
+                  //       },
+                  //       icon: Icon(Icons.arrow_back_ios)),
+                  // ),
                   title: Padding(
-                      padding: const EdgeInsets.only(right: 20),
-                      child: TextFormField(
-                        controller: seacrhController,
-                        decoration: InputDecoration(
-                          hintText: 'Поиск',
-                          isDense: true,
-                          contentPadding: EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                BorderSide(width: 1.2, color: Colors.blue),
+                      padding: const EdgeInsets.only(right: 20, left: 20),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            width: 1.2,
+                            color: Colors.blue,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                BorderSide(width: 1.2, color: Colors.blue),
-                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: seacrhController,
+                                onChanged: filterMessages,
+                                decoration: InputDecoration(
+                                  hintText: 'Поиск',
+                                  isDense: true,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  disabledBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 12),
+                                  // enabledBorder: OutlineInputBorder(
+                                  //   borderRadius: BorderRadius.circular(10),
+                                  //   borderSide:
+                                  //       BorderSide(width: 1.2, color: Colors.blue),
+                                  // ),
+                                  // focusedBorder: OutlineInputBorder(
+                                  //   borderRadius: BorderRadius.circular(10),
+                                  //   borderSide:
+                                  //       BorderSide(width: 1.2, color: Colors.blue),
+                                  // ),
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.arrow_upward),
+                              onPressed: currentSearchIndex > 0
+                                  ? goToPreviousSearchResult
+                                  : null,
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.arrow_downward),
+                              onPressed: currentSearchIndex <
+                                      filteredMessages.length - 1
+                                  ? goToNextSearchResult
+                                  : null,
+                            ),
+                          ],
                         ),
                       )),
                 )
@@ -450,6 +491,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                             messages[index].userId !=
                                                 messages[index + 1].userId;
 
+                                        final key = _messageKeys[message.id];
+
                                         return Padding(
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 15, vertical: 5),
@@ -476,12 +519,23 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                                             0.47,
                                                   ),
                                                   child: MessageCard(
+                                                    key: key,
                                                     isPrivateChats:
                                                         widget.isPrivateChats,
                                                     message: message,
                                                     currentUserId:
                                                         profileUserId!,
                                                     special: isSpecial,
+                                                    highlightText: isSearching
+                                                        ? searchText
+                                                        : null,
+                                                    isHighlighted: isSearching &&
+                                                        filteredMessages
+                                                            .isNotEmpty &&
+                                                        message.id ==
+                                                            filteredMessages[
+                                                                    currentSearchIndex]
+                                                                .id,
                                                   ),
                                                   // child: Card(
                                                   //   elevation: 1.4,
@@ -781,6 +835,61 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (scrollController.hasClients) {
       scrollController.animateTo(scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 1), curve: Curves.easeOut);
+    }
+  }
+
+  void filterMessages(String text) {
+    setState(() {
+      searchText = text;
+      if (text.isEmpty) {
+        isSearching = false;
+        filteredMessages.clear();
+        currentSearchIndex = 0;
+      } else {
+        isSearching = true;
+        filteredMessages = messages.where((msg) {
+          return msg.content.toLowerCase().contains(text.toLowerCase());
+        }).toList();
+        currentSearchIndex = 0;
+
+        if (filteredMessages.isNotEmpty) {
+          scrollToSearchedMessage(currentSearchIndex);
+        }
+      }
+    });
+  }
+
+  void goToNextSearchResult() {
+    if (currentSearchIndex < filteredMessages.length - 1) {
+      setState(() {
+        currentSearchIndex++;
+      });
+      scrollToSearchedMessage(currentSearchIndex);
+    }
+  }
+
+  void goToPreviousSearchResult() {
+    if (currentSearchIndex > 0) {
+      setState(() {
+        currentSearchIndex--;
+      });
+      scrollToSearchedMessage(currentSearchIndex);
+    }
+  }
+
+  void scrollToSearchedMessage(int index) {
+    if (index < 0 || index >= filteredMessages.length) return;
+
+    final messageId = filteredMessages[index].id;
+    final key = _messageKeys[messageId];
+
+    if (key != null && key.currentContext != null) {
+      Scrollable.ensureVisible(
+        key.currentContext!,
+        duration: const Duration(milliseconds: 300),
+        //alignment: 0.3, // Центрирует сообщение по вертикали
+        curve: Curves.easeInOut,
+      );
     }
   }
 }
