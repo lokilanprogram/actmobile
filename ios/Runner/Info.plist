@@ -34,9 +34,9 @@
 	<string>Приложению нужен доступ к микрофону для записи звука при съёмке видео.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Приложению нужен доступ к фотогалерее для выбора изображений.</string>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Разрешите сохранить изображение в галерею</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
