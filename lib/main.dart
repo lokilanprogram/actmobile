@@ -33,6 +33,7 @@ void main() async {
               : "1:368466897752:ios:d78a2747650774472dd32d",
           messagingSenderId: "927589486813",
           projectId: "acti-54f96"));
+
   runApp(const MyApp());
 }
 

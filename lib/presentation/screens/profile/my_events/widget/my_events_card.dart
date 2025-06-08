@@ -80,34 +80,35 @@ class MyCardEventWidget extends StatelessWidget {
                                 fit: BoxFit.cover,
                               ),
                       ),
-                      Positioned(
-                        bottom: 8,
-                        child: Container(
-                          constraints: BoxConstraints(
-                            minWidth: 110,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: getStatusColor(organizedEvent.status),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 6, horizontal: 12),
-                            child: Center(
-                              child: Text(
-                                getStatusText(organizedEvent.status),
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                    fontSize: 9.87,
-                                    height: 1,
-                                    fontFamily: 'Gilroy',
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700),
+                      if (isPublicUser == false)
+                        Positioned(
+                          bottom: 8,
+                          child: Container(
+                            constraints: BoxConstraints(
+                              minWidth: 110,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: getStatusColor(organizedEvent.status),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 6, horizontal: 12),
+                              child: Center(
+                                child: Text(
+                                  getStatusText(organizedEvent.status),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontSize: 9.87,
+                                      height: 1,
+                                      fontFamily: 'Gilroy',
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   SizedBox(
@@ -152,65 +153,68 @@ class MyCardEventWidget extends StatelessWidget {
                                     itemBuilder: (BuildContext context) =>
                                         isPublicUser
                                             ? [
-                                              PopupMenuItem<int>(
-                                                value: 0,
-                                                onTap: () async {
-                                                  final url = organizedEvent
-                                                          .photos.isNotEmpty
-                                                      ? organizedEvent
-                                                          .photos.first
-                                                      : '';
-                                                  final text =
-                                                      '${organizedEvent.title}\n${organizedEvent.description}\n$url';
-                                                  await Future.delayed(
-                                                      Duration.zero, () {
-                                                    Share.share(text);
-                                                  });
-                                                },
-                                                child: Row(
-                                                  children: [
-                                                    SvgPicture.asset(
-                                                        'assets/icons/icon_share.svg'),
-                                                    SizedBox(width: 10),
-                                                    Text(
-                                                      "Поделиться",
-                                                      style: TextStyle(
-                                                          fontFamily: 'Gilroy',
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          color: Colors.black),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              PopupMenuItem<int>(
-                                                value: 1,
-                                                onTap: () {},
-                                                child: Row(
-                                                  children: [
-                                                    SvgPicture.asset(
-                                                      'assets/icons/icon_block.svg',
-                                                      colorFilter:
-                                                          ColorFilter.mode(
-                                                        Colors.red,
-                                                        BlendMode.srcIn,
+                                                PopupMenuItem<int>(
+                                                  value: 0,
+                                                  onTap: () async {
+                                                    final url = organizedEvent
+                                                            .photos.isNotEmpty
+                                                        ? organizedEvent
+                                                            .photos.first
+                                                        : '';
+                                                    final text =
+                                                        '${organizedEvent.title}\n${organizedEvent.description}\n$url';
+                                                    await Future.delayed(
+                                                        Duration.zero, () {
+                                                      Share.share(text);
+                                                    });
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      SvgPicture.asset(
+                                                          'assets/icons/icon_share.svg'),
+                                                      SizedBox(width: 10),
+                                                      Text(
+                                                        "Поделиться",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                'Gilroy',
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            color:
+                                                                Colors.black),
                                                       ),
-                                                    ),
-                                                    SizedBox(width: 10),
-                                                    Text(
-                                                      "Пожаловаться",
-                                                      style: TextStyle(
-                                                          fontFamily: 'Gilroy',
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          color: Colors.red),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                            ]
+                                                PopupMenuItem<int>(
+                                                  value: 1,
+                                                  onTap: () {},
+                                                  child: Row(
+                                                    children: [
+                                                      SvgPicture.asset(
+                                                        'assets/icons/icon_block.svg',
+                                                        colorFilter:
+                                                            ColorFilter.mode(
+                                                          Colors.red,
+                                                          BlendMode.srcIn,
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 10),
+                                                      Text(
+                                                        "Пожаловаться",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                'Gilroy',
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            color: Colors.red),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ]
                                             : [
                                                 PopupMenuItem<int>(
                                                   value: 0,

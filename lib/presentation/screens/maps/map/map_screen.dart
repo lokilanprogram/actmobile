@@ -1,5 +1,6 @@
 import 'package:acti_mobile/configs/geolocator_utils.dart';
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/domain/api/map/map_api.dart';
 import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
@@ -158,6 +159,7 @@ class _MapScreenState extends State<MapScreen> {
     if (currentPermission.name != 'denied') {
       if (await checkGeolocator()) {
         final position = await geolocator.Geolocator.getCurrentPosition();
+        MapApi().updateUserLocation(position.latitude, position.longitude);
         setState(() {
           currentUserPosition = Position(position.longitude, position.latitude);
           currentSelectedPosition =

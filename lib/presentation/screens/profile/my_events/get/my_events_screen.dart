@@ -26,13 +26,21 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
   bool isMineEvents = true;
   ProfileEventModels? profileEventModels;
   ProfileEventModels? profileVisitedEventModels;
+
+  late final TextEditingController _controller;
+
   @override
   void initState() {
+    _controller = TextEditingController();
+    _controller.addListener(() {
+      setState(() {});
+    });
     initialize();
     super.initState();
   }
 
   initialize() {
+    _controller.dispose;
     setState(() {
       isLoading = true;
     });
@@ -41,6 +49,8 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final String query = _controller.text.trim().toLowerCase();
+
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
         if (state is ProfileAcceptedUserOnActivityState) {
@@ -58,8 +68,10 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
             isVerified = state.isVerified;
             profileEventModels = state.profileEventsModels;
             profileVisitedEventModels = state.profileVisitedEventsModels;
-            hasCompleted = profileEventModels?.events
-                    .any((event) => event.status == 'completed' || event.status == 'canceled') ??
+            hasCompleted = profileEventModels?.events.any((event) =>
+                    event.status == 'completed' ||
+                    event.status == 'canceled' ||
+                    event.status == 'rejected') ??
                 false;
           });
         }
@@ -118,6 +130,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                   color: Colors.grey[200],
                                   borderRadius: BorderRadius.circular(25)),
                               child: TextFormField(
+                                controller: _controller,
                                 decoration: InputDecoration(
                                     border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(25),
@@ -143,7 +156,11 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                         children: profileEventModels!.events
                                             .where((event) =>
                                                 event.status != 'completed' &&
-                                                event.status != 'canceled')
+                                                event.status != 'canceled' &&
+                                                event.status != 'rejected' &&
+                                                event.title
+                                                    .toLowerCase()
+                                                    .contains(query))
                                             .map((event) {
                                           return MyCardEventWidget(
                                             isCompletedEvent: false,
@@ -152,7 +169,19 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                           );
                                         }).toList(),
                                       ),
-                                      hasCompleted
+                                      hasCompleted &&
+                                              profileEventModels!.events
+                                                      .where((event) =>
+                                                          (event.status ==
+                                                                  'completed' ||
+                                                              event.status ==
+                                                                  'canceled' ||
+                                                              event.status ==
+                                                                  'rejected') &&
+                                                          event.title
+                                                              .toLowerCase()
+                                                              .contains(query))
+                                                      .toList().isEmpty == false
                                           ? Column(
                                               children: [
                                                 DashedLineWithText(),
@@ -160,10 +189,15 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                                   children: profileEventModels!
                                                       .events
                                                       .where((event) =>
-                                                          event.status ==
-                                                              'completed' ||
-                                                          event.status ==
-                                                              'canceled')
+                                                          (event.status ==
+                                                                  'completed' ||
+                                                              event.status ==
+                                                                  'canceled' ||
+                                                              event.status ==
+                                                                  'rejected') &&
+                                                          event.title
+                                                              .toLowerCase()
+                                                              .contains(query))
                                                       .map((event) {
                                                     return MyCardEventWidget(
                                                       isCompletedEvent: true,
