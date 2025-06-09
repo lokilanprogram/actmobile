@@ -1,3 +1,4 @@
+import 'package:acti_mobile/configs/date_utils.dart';
 import 'package:acti_mobile/data/models/all_chats_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
@@ -252,7 +253,9 @@ class ChatListTileWidget extends StatelessWidget {
       trailing: Column(
         children: [
           Text(
-            DateFormat('hh:mm').format(chat.createdAt),
+            formattedTimestamp(
+              chat.lastMessage?.createdAt.toLocal() ?? chat.createdAt.toLocal(),
+            ),
             style: TextStyle(fontFamily: 'Inter', fontSize: 13),
           ),
         ],

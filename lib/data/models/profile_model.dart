@@ -25,6 +25,7 @@ class ProfileModel {
     bool isProfileCompleted;
     bool? hideMyEvents;
     bool? hideAttendedEvents;
+    bool notificationsEnabled;
     
 
     ProfileModel({
@@ -42,6 +43,7 @@ class ProfileModel {
         required this.categories,
         required this.isEmailVerified,
         required this.isProfileCompleted,
+        required this.notificationsEnabled
     });
 
     factory ProfileModel.fromJson(Map<String, dynamic> json) => ProfileModel(
@@ -59,6 +61,7 @@ class ProfileModel {
         categories: List<EventOnboarding>.from(json["categories"].map((x) => EventOnboarding.fromJson(x))),
         isEmailVerified: json["is_email_verified"],
         isProfileCompleted: json["is_profile_completed"],
+        notificationsEnabled: json["notifications_enabled"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -74,6 +77,7 @@ class ProfileModel {
         "categories": List<dynamic>.from(categories.map((x) => x.toJson())),
         "is_email_verified": isEmailVerified,
         "is_profile_completed": isProfileCompleted,
+        "notifications_enabled": notificationsEnabled,
     };
 }
 

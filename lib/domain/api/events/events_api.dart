@@ -597,22 +597,6 @@ class EventsApi {
     }
   }
 
-  Future<void> changeNotificationSettings({required bool enabled}) async {
-    final accessToken = await storage.read(key: accessStorageToken);
-    if (accessToken == null) throw Exception('Нет accessToken');
-    final response = await http.put(
-      Uri.parse('$API/api/v1/users/settings/notifications'),
-      headers: {
-        "Content-Type": "application/json",
-        'Authorization': 'Bearer $accessToken'
-      },
-      body: jsonEncode({'enabled': enabled}),
-    );
-    if (response.statusCode != 200) {
-      throw Exception('Ошибка уведомлений: ${response.body}');
-    }
-  }
-
   Future<void> voteForEvent(String eventId) async {
     final accessToken = await storage.read(key: accessStorageToken);
     if (accessToken == null) throw Exception('Нет accessToken');

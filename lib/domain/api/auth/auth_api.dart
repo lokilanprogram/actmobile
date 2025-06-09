@@ -73,7 +73,6 @@ class AuthApi {
         Uri.parse('$API/api/v1/users/profile/delete'),
         headers: {
           'Authorization': 'Bearer $accessToken',
-          "Content-Type": "application/json",
         },
       );
       if (response.statusCode == 204) {

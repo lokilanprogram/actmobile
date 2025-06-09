@@ -195,6 +195,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         isOrganizationRepresentative,
                                     photoUrl: image?.path,
                                     status: widget.profileModel.status,
+                                    notificationsEnabled: widget.profileModel.notificationsEnabled,
                                     categories: selectedCategories)));
                           }
                         },

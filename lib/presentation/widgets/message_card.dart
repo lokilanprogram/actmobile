@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:acti_mobile/configs/date_utils.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/widgets/full_image_screen.dart';
@@ -297,13 +298,29 @@ class _MessageCardState extends State<MessageCard>
   List<InlineSpan> _highlightOccurrences(
       String source, String? query, Color baseColor) {
     if (query == null || query.trim().isEmpty) {
-      return [TextSpan(text: source, style: TextStyle(color: baseColor))];
+      return [
+        TextSpan(
+            text: source,
+            style: TextStyle(
+              color: baseColor,
+              fontFamily: 'Inter',
+              fontSize: 13,
+            ))
+      ];
     }
 
     final matches =
         RegExp(RegExp.escape(query), caseSensitive: false).allMatches(source);
     if (matches.isEmpty) {
-      return [TextSpan(text: source, style: TextStyle(color: baseColor))];
+      return [
+        TextSpan(
+            text: source,
+            style: TextStyle(
+              color: baseColor,
+              fontFamily: 'Inter',
+              fontSize: 13,
+            ))
+      ];
     }
 
     final spans = <TextSpan>[];
@@ -313,7 +330,11 @@ class _MessageCardState extends State<MessageCard>
       if (match.start > lastIndex) {
         spans.add(TextSpan(
           text: source.substring(lastIndex, match.start),
-          style: TextStyle(color: baseColor),
+          style: TextStyle(
+            color: baseColor,
+            fontFamily: 'Inter',
+            fontSize: 13,
+          ),
         ));
       }
 
@@ -321,8 +342,10 @@ class _MessageCardState extends State<MessageCard>
         text: source.substring(match.start, match.end),
         style: TextStyle(
           color: baseColor,
-          backgroundColor: Colors.yellow,
+          backgroundColor: const Color.fromARGB(255, 255, 238, 82),
           fontWeight: FontWeight.bold,
+          fontFamily: 'Inter',
+          fontSize: 13,
         ),
       ));
 
@@ -332,7 +355,11 @@ class _MessageCardState extends State<MessageCard>
     if (lastIndex < source.length) {
       spans.add(TextSpan(
         text: source.substring(lastIndex),
-        style: TextStyle(color: baseColor),
+        style: TextStyle(
+          color: baseColor,
+          fontFamily: 'Inter',
+          fontSize: 13,
+        ),
       ));
     }
 
@@ -370,30 +397,4 @@ class TriangleClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => true;
-}
-
-String formattedTimestamp(DateTime createdAt,
-    [bool timeOnly = false, bool meridiem = false]) {
-  DateTime now = DateTime.now();
-
-  if (timeOnly || datesHaveSameDay(now, createdAt)) {
-    return meridiem
-        ? DateFormat('hh:mm a').format(createdAt)
-        : DateFormat('HH:mm').format(createdAt);
-  }
-
-  if (isYesterday(createdAt)) {
-    return 'Yesterday';
-  }
-
-  return DateFormat.yMd().format(createdAt);
-}
-
-bool datesHaveSameDay(DateTime d1, DateTime d2) {
-  return d1.day == d2.day && d1.month == d2.month && d1.year == d2.year;
-}
-
-bool isYesterday(DateTime date) {
-  final yesterday = DateTime.now().subtract(const Duration(days: 1));
-  return datesHaveSameDay(date, yesterday);
 }

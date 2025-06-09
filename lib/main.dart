@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:acti_mobile/configs/settings_notifier.dart';
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
+import 'package:acti_mobile/domain/bloc/notifications/notifications_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/domain/repositories/auth_repository.dart';
 import 'package:acti_mobile/domain/services/auth_service.dart';
@@ -60,11 +62,17 @@ class MyApp extends StatelessWidget {
         BlocProvider<ChatBloc>(
           create: (context) => ChatBloc(),
         ),
+        BlocProvider<NotificationBloc>(
+          create: (context) => NotificationBloc(),
+        ),
         ChangeNotifierProvider<FilterProvider>(
           create: (context) => FilterProvider(),
         ),
         ChangeNotifierProvider<VoteProvider>(
           create: (context) => VoteProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SettingsNotificationsProvider()..loadProfile(),
         ),
       ],
       child: GetMaterialApp(

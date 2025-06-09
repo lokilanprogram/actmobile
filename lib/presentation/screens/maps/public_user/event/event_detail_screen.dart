@@ -79,7 +79,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             organizedEvent = state.eventModel;
             isJoined = state.eventModel.join_status == 'confirmed' ||
                 state.eventModel.join_status == 'pending';
-            isBlocked = state.eventModel.join_status == 'rejected';
+            isBlocked = state.eventModel.join_status == state.eventModel.freeSlots < 1;
           });
           if (isBlocked) {
             showAlertOKDialog(context,
@@ -413,7 +413,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () {
-                                if (profileModel!.isEmailVerified) {
+                                if (profileModel!.isEmailVerified ) {
                                   setState(() {
                                     isLoading = true;
                                   });
@@ -424,7 +424,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                       : context.read<ProfileBloc>().add(
                                           ProfileJoinEvent(
                                               eventId: organizedEvent.id));
-                                } else {
+                                } else if (!profileModel!.isEmailVerified) {
+                                  showAlertOKDialog(context, null,
+                                      isTitled: true,
+                                      title: 'Подтвердите почту');
+                                } else if (organizedEvent.freeSlots < 1) {
                                   showAlertOKDialog(context, null,
                                       isTitled: true,
                                       title: 'Подтвердите почту');

@@ -251,6 +251,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is ActiCreatedActivityState) {
+          context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
           setState(() {
             isLoading = false;
           });
@@ -866,7 +867,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () => setState(() => peopleCount--),
+            onTap: () {
+              if (peopleCount > 1) setState(() => peopleCount--);
+            },
             child: Container(
                 decoration:
                     BoxDecoration(shape: BoxShape.circle, color: Colors.white),
