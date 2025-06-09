@@ -17,23 +17,31 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
   int phoneLentgh = 0;
   final _formKey = GlobalKey<FormState>();
   final phoneFormatter = MaskTextInputFormatter(
-  mask: '+7 ###-###-##-##',
-  filter: {"#": RegExp(r'[0-9]')},
-);
+    mask: '+7 ###-###-##-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    phoneController.text = '+7';
+    phoneLentgh = phoneFormatter.getUnmaskedText().length;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    resizeToAvoidBottomInset: true,
-        backgroundColor: Colors.white,
-        body:Form(
-          key: _formKey,
-          child: GestureDetector(
+      resizeToAvoidBottomInset: true,
+      backgroundColor: Colors.white,
+      body: Form(
+        key: _formKey,
+        child: GestureDetector(
             onTap: () {
               FocusScope.of(context).unfocus();
             },
             child: SingleChildScrollView(
-                  child: Stack(
-                              children: [
+              child: Stack(
+                children: [
                   Align(
                     alignment: Alignment.topCenter,
                     child: Container(
@@ -49,12 +57,14 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 120, left: 45, right: 45),
+                    padding:
+                        const EdgeInsets.only(top: 120, left: 45, right: 45),
                     child: Column(
                       children: [
                         Align(
                             alignment: Alignment.topCenter,
-                            child: SvgPicture.asset('assets/icons/icon_acti.svg')),
+                            child:
+                                SvgPicture.asset('assets/icons/icon_acti.svg')),
                         SizedBox(
                           height: 30,
                         ),
@@ -78,17 +88,27 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                           height: 15,
                         ),
                         TextFormField(
-                          
                           controller: phoneController,
-                          validator: (val){
-                            if(val!.isEmpty){
+                          validator: (val) {
+                            final unmaskedText =
+                                phoneFormatter.getUnmaskedText();
+                            if (unmaskedText.isEmpty) {
                               return 'Заполните номер телефона';
+                            } else if (unmaskedText.length < 10) {
+                              return 'Неполный номер телефона';
                             }
                             return null;
                           },
-                          onChanged: (val){
+                          onChanged: (val) {
+                            if (!val.startsWith('+7')) {
+                              phoneController.text = '+7';
+                              phoneController.selection =
+                                  TextSelection.fromPosition(TextPosition(
+                                      offset: phoneController.text.length));
+                            }
                             setState(() {
-                              phoneLentgh = phoneController.length;
+                              phoneLentgh =
+                                  phoneFormatter.getUnmaskedText().length;
                             });
                           },
                           keyboardType: TextInputType.phone,
@@ -104,19 +124,19 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                               color: mainBlueColor,
                             ),
                             focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
+                                borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide(color: Colors.white)),
                             border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
+                                borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide(color: Colors.white)),
                             errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
+                                borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide(color: Colors.white)),
                             enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
+                                borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide(color: Colors.white)),
                             focusedBorder: OutlineInputBorder(
-                               borderRadius: BorderRadius.circular(25),
+                              borderRadius: BorderRadius.circular(25),
                               borderSide: BorderSide(color: Colors.white),
                             ),
                           ),
@@ -124,12 +144,15 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                         SizedBox(
                           height: 15,
                         ),
-                      InkWell(
+                        InkWell(
                           onTap: () {
-                            if(_formKey.currentState!.validate()){
+                            if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
-                              Navigator.push(context, MaterialPageRoute(builder: (context)=> InputLoadingScreen(phone: phoneController.text.trim())));
-
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => InputLoadingScreen(
+                                          phone: phoneController.text.trim())));
                             }
                           },
                           child: Container(
@@ -157,12 +180,10 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                       ],
                     ),
                   )
-                              ],
-                            ),
-                )),
-        ),
-        
-      
+                ],
+              ),
+            )),
+      ),
     );
   }
 }
