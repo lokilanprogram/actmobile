@@ -189,7 +189,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                                     publicUserModel.surname != ""
                                                 ? '${capitalize(publicUserModel.surname!)} ${capitalize(publicUserModel.name!)}'
                                                 : capitalize(
-                                                    publicUserModel.name!),
+                                                    publicUserModel?.name ?? "Неизвестный"),
                                             style: TextStyle(
                                               fontFamily: 'Inter',
                                               fontSize: 32,

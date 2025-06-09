@@ -139,7 +139,6 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                   );
                                 }).toList(),
                               )
-                            : Container()
                   ],
                 ),
               ),

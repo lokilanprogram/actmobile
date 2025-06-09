@@ -61,166 +61,163 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<SettingsNotificationsProvider>(context);
-    
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthAccountDeletedState) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => InitialScreen()),
-            (Route<dynamic> route) => false,
-          );
-        }
-      },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Material(
-            color: Colors.white,
-            child: Stack(
-              children: [
-                SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 45),
-                        Center(
-                          child: Text('Настройки',
-                              style: TextStyle(
-                                  fontSize: 28, fontWeight: FontWeight.w500)),
+
+    // return BlocListener<AuthBloc, AuthState>(
+    //   listener: (context, state) {
+    //     if (state is AuthAccountDeletedState) {
+    //       Navigator.of(context).pushAndRemoveUntil(
+    //         MaterialPageRoute(builder: (context) => InitialScreen()),
+    //         (Route<dynamic> route) => false,
+    //       );
+    //     }
+    //   },
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Material(
+          color: Colors.white,
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 45),
+                      Center(
+                        child: Text('Настройки',
+                            style: TextStyle(
+                                fontSize: 28, fontWeight: FontWeight.w500)),
+                      ),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          children: [
+                            CupertinoSwitch(
+                              activeTrackColor: Colors.blue,
+                              value: provider.notificationsEnabled,
+                              onChanged: (v) {
+                                provider.changeNotificationSettings(enabled: v);
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Уведомления',
+                                style: TextStyle(fontSize: 18)),
+                          ],
                         ),
-                        const SizedBox(height: 24),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Row(
-                            children: [
-                              CupertinoSwitch(
-                                activeTrackColor: Colors.blue,
-                                value: provider.notificationsEnabled,
-                                onChanged: (v) {
-                                  provider.changeNotificationSettings(enabled: v);
-                                },
+                      ),
+                      const Divider(indent: 24, endIndent: 24),
+                      _buildSettingsTile('Пользовательское соглашение',
+                          () => _showAgreement()),
+                      _buildSettingsTile('Политика конфиденциальности',
+                          () => _showAgreement()),
+                      _buildSettingsTile(
+                          'Согласие на обработку ПД', () => _showAgreement()),
+                      _buildSettingsTile('FAQ', () => _showFaq()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 22, horizontal: 24),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                  color: Colors.black, width: 1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(40),
                               ),
-                              const SizedBox(width: 8),
-                              const Text('Уведомления',
-                                  style: TextStyle(fontSize: 18)),
+                              backgroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => FeedbackScreen()),
+                              );
+                            },
+                            child: const Text(
+                              'Обратная связь',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontFamily: 'Gilroy',
+                                fontSize: 20,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: GestureDetector(
+                          onTap: () {
+                            context
+                                .read<ProfileBloc>()
+                                .add(ProfileLogoutEvent());
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SvgPicture.asset('assets/icons/log-out.svg'),
+                              SizedBox(width: 8),
+                              Text('Выйти',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w300)),
                             ],
                           ),
                         ),
-                        const Divider(indent: 24, endIndent: 24),
-                        _buildSettingsTile('Пользовательское соглашение',
-                            () => _showAgreement()),
-                        _buildSettingsTile('Политика конфиденциальности',
-                            () => _showAgreement()),
-                        _buildSettingsTile(
-                            'Согласие на обработку ПД', () => _showAgreement()),
-                        _buildSettingsTile('FAQ', () => _showFaq()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 22, horizontal: 24),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                    color: Colors.black, width: 1),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(40),
-                                ),
-                                backgroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 18),
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => FeedbackScreen()),
-                                );
-                              },
-                              child: const Text(
-                                'Обратная связь',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontFamily: 'Gilroy',
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: GestureDetector(
+                          onTap: () {
+                            _showBlockDialog(context, 'Удалить профиль',
+                                'Вы точно хотите удалить профиль без\nвозможности восстановления?',
+                                () {
+                              // context
+                              //     .read<AuthBloc>()
+                              //     .add(AuthDeleteAccountEvent());
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              SvgPicture.asset('assets/icons/trash.svg'),
+                              SizedBox(width: 8),
+                              Text('Удалить профиль',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w300)),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: GestureDetector(
-                            onTap: () {
-                              context
-                                  .read<ProfileBloc>()
-                                  .add(ProfileLogoutEvent());
-                            },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SvgPicture.asset('assets/icons/log-out.svg'),
-                                SizedBox(width: 8),
-                                Text('Выйти',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w300)),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: GestureDetector(
-                            onTap: () {
-                              _showBlockDialog(context, 'Удалить профиль',
-                                  'Вы точно хотите удалить профиль без\nвозможности восстановления?',
-                                  () {
-                                context
-                                    .read<AuthBloc>()
-                                    .add(AuthDeleteAccountEvent());
-                              });
-                            },
-                            child: Row(
-                              children: [
-                                SvgPicture.asset('assets/icons/trash.svg'),
-                                SizedBox(width: 8),
-                                Text('Удалить профиль',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.w300)),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Center(
-                          child: Text('Версия 1.1.1.0',
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 15)),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Text('Версия 1.1.1.0',
+                            style: TextStyle(color: Colors.grey, fontSize: 15)),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                   ),
                 ),
-                Positioned(
-                  top: 40,
-                  left: 16,
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back_ios_new),
-                    onPressed: widget.onBack,
-                  ),
+              ),
+              Positioned(
+                top: 40,
+                left: 16,
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back_ios_new),
+                  onPressed: widget.onBack,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
