@@ -66,6 +66,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   bool isReaded = false;
 
+  bool isScroll = false;
+
   @override
   void initState() {
     initialize();
@@ -124,7 +126,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) => scrollToEnd());
+    if (!isScroll)
+      WidgetsBinding.instance.addPostFrameCallback((_) => scrollToEnd());
 
     return BlocListener<ChatBloc, ChatState>(
       listener: (context, state) {
@@ -132,6 +135,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           if (state.chatModel != null) {
             setState(() {
               messages = state.chatModel!.messages;
+              isScroll = false;
+            });
+          } else {
+            setState(() {
+              isScroll = false;
             });
           }
         }
@@ -219,8 +227,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
+                            IconButton(
+                                onPressed: () {
+                                  isSearched = false;
+                                  setState(() {
+                                    
+                                  });
+                                },
+                                icon: Icon(Icons.arrow_back_ios), color: Colors.grey,),
                             Expanded(
                               child: TextFormField(
+                                autofocus: true,
                                 controller: seacrhController,
                                 onChanged: filterMessages,
                                 decoration: InputDecoration(
@@ -231,7 +248,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   errorBorder: InputBorder.none,
                                   disabledBorder: InputBorder.none,
                                   contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 12),
+                                      horizontal: 10, vertical: 12),
                                   // enabledBorder: OutlineInputBorder(
                                   //   borderRadius: BorderRadius.circular(10),
                                   //   borderSide:
@@ -288,6 +305,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           PopupMenuItem<int>(
                             value: 0,
                             onTap: () {
+                              if (!mounted) return;
                               setState(() {
                                 isSearched = true;
                               });
@@ -491,7 +509,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                             messages[index].userId !=
                                                 messages[index + 1].userId;
 
-                                        final key = _messageKeys[message.id];
+                                        final key = _messageKeys[message.id] ??=
+                                            GlobalKey();
 
                                         return Padding(
                                           padding: const EdgeInsets.symmetric(
@@ -701,7 +720,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   },
                                 ),
                               ),
-                        inputMessage(context),
+                        if (!isSearched) inputMessage(context),
                       ],
                     ),
                   ),
@@ -715,7 +734,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       width: double.infinity,
       child: Padding(
         padding:
-            const EdgeInsets.only(right: 15, left: 15, top: 30, bottom: 50),
+            const EdgeInsets.only(right: 15, left: 15, top: 10, bottom: 50),
         child: Container(
           decoration: BoxDecoration(
               color: Color(0xFFF2F2F2),
@@ -835,6 +854,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (scrollController.hasClients) {
       scrollController.animateTo(scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 1), curve: Curves.easeOut);
+      isScroll = true;
     }
   }
 
@@ -850,7 +870,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         filteredMessages = messages.where((msg) {
           return msg.content.toLowerCase().contains(text.toLowerCase());
         }).toList();
-        currentSearchIndex = 0;
+        currentSearchIndex = filteredMessages.length - 1;
 
         if (filteredMessages.isNotEmpty) {
           scrollToSearchedMessage(currentSearchIndex);
@@ -886,9 +906,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (key != null && key.currentContext != null) {
       Scrollable.ensureVisible(
         key.currentContext!,
-        duration: const Duration(milliseconds: 300),
-        //alignment: 0.3, // Центрирует сообщение по вертикали
-        curve: Curves.easeInOut,
       );
     }
   }

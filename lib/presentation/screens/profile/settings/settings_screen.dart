@@ -1,9 +1,11 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
+import 'package:acti_mobile/configs/settings_notifier.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/feedback/feedback_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/update_profile/update_profile_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,17 +13,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:developer' as developer;
+import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
+import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback onBack;
-  const SettingsScreen({super.key, required this.onBack});
+  bool notificationsEnabled;
+
+  SettingsScreen(
+      {super.key, required this.onBack, required this.notificationsEnabled});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool notificationsEnabled = false;
   int? openedFaqIndex;
 
   void _showBlockDialog(BuildContext context, String title, String message,
@@ -54,170 +60,167 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Material(
-          color: Colors.white,
-          child: Stack(
-            children: [
-              SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 45),
-                      Center(
-                        child: Text('Настройки',
-                            style: TextStyle(
-                                fontSize: 28, fontWeight: FontWeight.w500)),
-                      ),
-                      const SizedBox(height: 24),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Row(
-                          children: [
-                            CupertinoSwitch(
-                              activeTrackColor: Colors.blue,
-                              value: notificationsEnabled,
-                              onChanged: (v) async {
-                                try {
-                                  setState(() {
-                                    notificationsEnabled = v;
-                                  });
-                                  await EventsApi()
-                                      .changeNotificationSettings(enabled: v);
-                                } catch (e) {
-                                  setState(() {
-                                    notificationsEnabled = !v;
-                                  });
-                                  developer.log(
-                                      '[NOTIFICATIONS_SWITCH] Ошибка настройки уведомлений: $e');
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(
-                                            'Ошибка настройки уведомлений: $e')),
-                                  );
-                                }
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            const Text('Уведомления',
-                                style: TextStyle(fontSize: 18)),
-                          ],
-                        ),
-                      ),
-                      const Divider(indent: 24, endIndent: 24),
-                      _buildSettingsTile('Пользовательское соглашение',
-                          () => _showAgreement()),
-                      _buildSettingsTile('Политика конфиденциальности',
-                          () => _showAgreement()),
-                      _buildSettingsTile(
-                          'Согласие на обработку ПД', () => _showAgreement()),
-                      _buildSettingsTile('FAQ', () => _showFaq()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 22, horizontal: 24),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(
-                                  color: Colors.black, width: 1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(40),
-                              ),
-                              backgroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => FeedbackScreen()),
-                              );
-                            },
-                            child: const Text(
-                              'Обратная связь',
+    final provider = Provider.of<SettingsNotificationsProvider>(context);
+    
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthAccountDeletedState) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => InitialScreen()),
+            (Route<dynamic> route) => false,
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Material(
+            color: Colors.white,
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 45),
+                        Center(
+                          child: Text('Настройки',
                               style: TextStyle(
-                                color: Colors.black,
-                                fontFamily: 'Gilroy',
-                                fontSize: 20,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
+                                  fontSize: 28, fontWeight: FontWeight.w500)),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: GestureDetector(
-                          onTap: () {
-                            context
-                                .read<ProfileBloc>()
-                                .add(ProfileLogoutEvent());
-                          },
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Row(
-                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              SvgPicture.asset('assets/icons/log-out.svg'),
-                              SizedBox(width: 8),
-                              Text('Выйти',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w300)),
+                              CupertinoSwitch(
+                                activeTrackColor: Colors.blue,
+                                value: provider.notificationsEnabled,
+                                onChanged: (v) {
+                                  provider.changeNotificationSettings(enabled: v);
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              const Text('Уведомления',
+                                  style: TextStyle(fontSize: 18)),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: GestureDetector(
-                          onTap: () {
-                            _showBlockDialog(context, 'Удалить профиль',
-                                'Вы точно хотите удалить профиль без\nвозможности восстановления?',
-                                () {
+                        const Divider(indent: 24, endIndent: 24),
+                        _buildSettingsTile('Пользовательское соглашение',
+                            () => _showAgreement()),
+                        _buildSettingsTile('Политика конфиденциальности',
+                            () => _showAgreement()),
+                        _buildSettingsTile(
+                            'Согласие на обработку ПД', () => _showAgreement()),
+                        _buildSettingsTile('FAQ', () => _showFaq()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 22, horizontal: 24),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                    color: Colors.black, width: 1),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(40),
+                                ),
+                                backgroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 18),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => FeedbackScreen()),
+                                );
+                              },
+                              child: const Text(
+                                'Обратная связь',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: GestureDetector(
+                            onTap: () {
                               context
                                   .read<ProfileBloc>()
-                                  .add(ProfileDeleteEvent());
-                            });
-                          },
-                          child: Row(
-                            children: [
-                              SvgPicture.asset('assets/icons/trash.svg'),
-                              SizedBox(width: 8),
-                              Text('Удалить профиль',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.w300)),
-                            ],
+                                  .add(ProfileLogoutEvent());
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SvgPicture.asset('assets/icons/log-out.svg'),
+                                SizedBox(width: 8),
+                                Text('Выйти',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w300)),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Center(
-                        child: Text('Версия 1.1.1.0',
-                            style: TextStyle(color: Colors.grey, fontSize: 15)),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: GestureDetector(
+                            onTap: () {
+                              _showBlockDialog(context, 'Удалить профиль',
+                                  'Вы точно хотите удалить профиль без\nвозможности восстановления?',
+                                  () {
+                                context
+                                    .read<AuthBloc>()
+                                    .add(AuthDeleteAccountEvent());
+                              });
+                            },
+                            child: Row(
+                              children: [
+                                SvgPicture.asset('assets/icons/trash.svg'),
+                                SizedBox(width: 8),
+                                Text('Удалить профиль',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.w300)),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Center(
+                          child: Text('Версия 1.1.1.0',
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 15)),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                top: 40,
-                left: 16,
-                child: IconButton(
-                  icon: Icon(Icons.arrow_back_ios_new),
-                  onPressed: widget.onBack,
+                Positioned(
+                  top: 40,
+                  left: 16,
+                  child: IconButton(
+                    icon: Icon(Icons.arrow_back_ios_new),
+                    onPressed: widget.onBack,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

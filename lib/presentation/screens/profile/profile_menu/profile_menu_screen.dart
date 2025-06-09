@@ -12,6 +12,7 @@ import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/notifications/notifications_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/settings/settings_screen.dart';
 import 'package:acti_mobile/presentation/widgets/blurred.dart';
 import 'package:acti_mobile/presentation/widgets/popup_profile_buttons.dart';
@@ -131,6 +132,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
               backgroundColor: Colors.white,
               body: showSettings
                   ? SettingsScreen(
+                    notificationsEnabled: profileModel.notificationsEnabled,
                       onBack: () {
                         setState(() {
                           showSettings = false;
@@ -198,10 +200,19 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                             SizedBox(
                                               width: 40,
                                               height: 40,
-                                              child: Icon(
-                                                  Icons
-                                                      .notifications_none_outlined,
-                                                  color: Colors.white),
+                                              child: InkWell(
+                                                onTap: () async {
+                                                  await Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (_) =>
+                                                              NotificationsScreen()));
+                                                },
+                                                child: Icon(
+                                                    Icons
+                                                        .notifications_none_outlined,
+                                                    color: Colors.white),
+                                              ),
                                             ),
                                             //const SizedBox(width: 8),
                                             PopUpProfileButtons(

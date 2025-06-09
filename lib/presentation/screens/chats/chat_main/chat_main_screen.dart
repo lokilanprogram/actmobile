@@ -1,3 +1,4 @@
+import 'package:acti_mobile/configs/date_utils.dart';
 import 'package:acti_mobile/data/models/all_chats_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
@@ -108,6 +109,24 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                           )
                         : isPrivateChats == false
                             ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const SizedBox(height: 100),
+                                  Center(
+                                    child: Text(
+                                      'У вас пока нет групповых чатов',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                ],
+                              )
+                            : Column(
                                 children: allGroupChats.chats.map((chat) {
                                   return ChatListTileWidget(
                                     onDeletedFunction: () {
@@ -165,7 +184,9 @@ class ChatListTileWidget extends StatelessWidget {
       trailing: Column(
         children: [
           Text(
-            DateFormat('hh:mm').format(chat.createdAt),
+            formattedTimestamp(
+              chat.lastMessage?.createdAt.toLocal() ?? chat.createdAt.toLocal(),
+            ),
             style: TextStyle(fontFamily: 'Inter', fontSize: 13),
           ),
         ],

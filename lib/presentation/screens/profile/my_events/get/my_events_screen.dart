@@ -86,11 +86,21 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
       child: Scaffold(
           backgroundColor: Colors.white,
           resizeToAvoidBottomInset: false,
-          appBar: isLoading
-              ? null
-              : AppBarWidget(
-                  title: 'События',
+          appBar: AppBar(
+            title: Padding(
+              padding: const EdgeInsets.only(left: 5),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  'События',
+                  style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 23,
+                      fontWeight: FontWeight.bold),
                 ),
+              ),
+            ),
+          ),
           extendBody: true,
           body: isLoading
               ? LoaderWidget()
@@ -181,7 +191,9 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                                           event.title
                                                               .toLowerCase()
                                                               .contains(query))
-                                                      .toList().isEmpty == false
+                                                      .toList()
+                                                      .isEmpty ==
+                                                  false
                                           ? Column(
                                               children: [
                                                 DashedLineWithText(),

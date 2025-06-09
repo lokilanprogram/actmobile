@@ -38,7 +38,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
     super.initState();
   }
 
-  initialize() {
+  initialize() async {
     setState(() {
       isLoading = true;
     });
