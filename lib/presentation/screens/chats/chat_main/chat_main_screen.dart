@@ -167,33 +167,6 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 24),
-                                  // Center(
-                                  //   child: ElevatedButton(
-                                  //     onPressed: () {
-                                  //       setState(() {
-                                  //         isPrivateChats = false;
-                                  //       });
-                                  //       initialize();
-                                  //     },
-                                  //     style: ElevatedButton.styleFrom(
-                                  //       backgroundColor: Color(0xFF4293EF),
-                                  //       shape: RoundedRectangleBorder(
-                                  //         borderRadius:
-                                  //             BorderRadius.circular(30),
-                                  //       ),
-                                  //       padding: EdgeInsets.symmetric(
-                                  //           vertical: 14, horizontal: 32),
-                                  //     ),
-                                  //     child: Text(
-                                  //       'Обновить',
-                                  //       style: TextStyle(
-                                  //         fontSize: 16,
-                                  //         color: Colors.white,
-                                  //         fontWeight: FontWeight.w500,
-                                  //       ),
-                                  //     ),
-                                  //   ),
-                                  // ),
                                 ],
                               )
                             : Column(

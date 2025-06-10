@@ -162,157 +162,82 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                               height: 25,
                             ),
                             isMineEvents == true
-                                ? (profileEventModels == null ||
-                                        profileEventModels!.events.isEmpty
-                                    ? Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const SizedBox(height: 100),
-                                            Text(
-                                              'У вас нет ивентов',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 24),
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                initialize();
-                                              },
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor:
-                                                    Color(0xFF4293EF),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(30),
+                                ? Column(
+                                    children: [
+                                      Column(
+                                        children: profileEventModels!.events
+                                            .where((event) =>
+                                                event.status != 'completed' &&
+                                                event.status != 'canceled' &&
+                                                event.status != 'rejected' &&
+                                                event.title
+                                                    .toLowerCase()
+                                                    .contains(query))
+                                            .map((event) {
+                                          return MyCardEventWidget(
+                                            isCompletedEvent: false,
+                                            isPublicUser: false,
+                                            organizedEvent: event,
+                                          );
+                                        }).toList(),
+                                      ),
+                                      hasCompleted &&
+                                              profileEventModels!.events
+                                                      .where((event) =>
+                                                          (event.status ==
+                                                                  'completed' ||
+                                                              event.status ==
+                                                                  'canceled' ||
+                                                              event.status ==
+                                                                  'rejected') &&
+                                                          event.title
+                                                              .toLowerCase()
+                                                              .contains(query))
+                                                      .toList()
+                                                      .isEmpty ==
+                                                  false
+                                          ? Column(
+                                              children: [
+                                                DashedLineWithText(),
+                                                Column(
+                                                  children: profileEventModels!
+                                                      .events
+                                                      .where((event) =>
+                                                          (event.status ==
+                                                                  'completed' ||
+                                                              event.status ==
+                                                                  'canceled' ||
+                                                              event.status ==
+                                                                  'rejected') &&
+                                                          event.title
+                                                              .toLowerCase()
+                                                              .contains(query))
+                                                      .map((event) {
+                                                    return MyCardEventWidget(
+                                                      isCompletedEvent: true,
+                                                      isPublicUser: false,
+                                                      organizedEvent: event,
+                                                    );
+                                                  }).toList(),
                                                 ),
-                                                padding: EdgeInsets.symmetric(
-                                                    vertical: 14,
-                                                    horizontal: 32),
-                                              ),
-                                              child: Text(
-                                                'Обновить',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                              ],
+                                            )
+                                          : Container()
+                                    ],
+                                  )
+                                : isMineEvents == false
+                                    ? Column(
+                                        children: profileVisitedEventModels!
+                                            .events
+                                            .map((event) {
+                                          return MyCardEventWidget(
+                                            isCompletedEvent: false,
+                                            isPublicUser: true,
+                                            organizedEvent: event,
+                                          );
+                                        }).toList(),
                                       )
-                                    : RefreshIndicator(
-                                        onRefresh: () async {
-                                          initialize();
-                                        },
-                                        child: ListView(
-                                          children: [
-                                            Column(
-                                              children: profileEventModels!
-                                                  .events
-                                                  .where((event) =>
-                                                      event.status !=
-                                                          'completed' &&
-                                                      event.status !=
-                                                          'canceled' &&
-                                                      event.status !=
-                                                          'rejected' &&
-                                                      event.title
-                                                          .toLowerCase()
-                                                          .contains(query))
-                                                  .map((event) {
-                                                return MyCardEventWidget(
-                                                  isCompletedEvent: false,
-                                                  isPublicUser: false,
-                                                  organizedEvent: event,
-                                                );
-                                              }).toList(),
-                                            ),
-                                            hasCompleted &&
-                                                    profileEventModels!.events
-                                                            .where((event) =>
-                                                                (event
-                                                                            .status ==
-                                                                        'completed' ||
-                                                                    event.status ==
-                                                                        'canceled' ||
-                                                                    event.status ==
-                                                                        'rejected') &&
-                                                                event.title
-                                                                    .toLowerCase()
-                                                                    .contains(
-                                                                        query))
-                                                            .toList()
-                                                            .isEmpty ==
-                                                        false
-                                                ? Column(
-                                                    children: [
-                                                      DashedLineWithText(),
-                                                      Column(
-                                                        children: profileEventModels!
-                                                            .events
-                                                            .where((event) =>
-                                                                (event
-                                                                            .status ==
-                                                                        'completed' ||
-                                                                    event.status ==
-                                                                        'canceled' ||
-                                                                    event.status ==
-                                                                        'rejected') &&
-                                                                event.title
-                                                                    .toLowerCase()
-                                                                    .contains(
-                                                                        query))
-                                                            .map((event) {
-                                                          return MyCardEventWidget(
-                                                            isCompletedEvent:
-                                                                true,
-                                                            isPublicUser: false,
-                                                            organizedEvent:
-                                                                event,
-                                                          );
-                                                        }).toList(),
-                                                      ),
-                                                    ],
-                                                  )
-                                                : Container()
-                                          ],
-                                        ),
-                                      ))
-                                : (profileVisitedEventModels == null ||
-                                        profileVisitedEventModels!
-                                            .events.isEmpty
-                                    ? Center(
-                                        child: Text(
-                                          'Пусто',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      )
-                                    : RefreshIndicator(
-                                        onRefresh: () async {
-                                          initialize();
-                                        },
-                                        child: ListView(
-                                          children: profileVisitedEventModels!
-                                              .events
-                                              .map((event) {
-                                            return MyCardEventWidget(
-                                              isCompletedEvent: false,
-                                              isPublicUser: true,
-                                              organizedEvent: event,
-                                            );
-                                          }).toList(),
-                                        ),
-                                      )),
+                                    : Container(),
                             SizedBox(
                               height: 150,
                             ),

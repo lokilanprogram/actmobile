@@ -7,6 +7,7 @@ import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/feedback/feedback_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/update_profile/update_profile_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,6 +30,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  int? openedFaqIndex;
+
   void _showBlockDialog(BuildContext context, String title, String message,
       VoidCallback onConfirm) {
     showDialog(
