@@ -1,5 +1,6 @@
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/widget/my_events_card.dart';
@@ -87,6 +88,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           backgroundColor: Colors.white,
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
+            backgroundColor: Colors.white,
             title: Padding(
               padding: const EdgeInsets.only(left: 5),
               child: Align(
@@ -218,10 +220,11 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                                           'completed' &&
                                                       event.status !=
                                                           'canceled' &&
-                                                event.status != 'rejected' &&
-                                                event.title
-                                                    .toLowerCase()
-                                                    .contains(query))
+                                                      event.status !=
+                                                          'rejected' &&
+                                                      event.title
+                                                          .toLowerCase()
+                                                          .contains(query))
                                                   .map((event) {
                                                 return MyCardEventWidget(
                                                   isCompletedEvent: false,
@@ -231,36 +234,40 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                               }).toList(),
                                             ),
                                             hasCompleted &&
-                                              profileEventModels!.events
-                                                      .where((event) =>
-                                                          (event.status ==
-                                                                  'completed' ||
-                                                              event.status ==
-                                                                  'canceled' ||
-                                                              event.status ==
-                                                                  'rejected') &&
-                                                          event.title
-                                                              .toLowerCase()
-                                                              .contains(query))
-                                                      .toList()
-                                                      .isEmpty ==
-                                                  false
-                                          ? Column(
-                                              children: [
-                                                DashedLineWithText(),
-                                                Column(
-                                                  children: profileEventModels!
-                                                      .events
-                                                      .where((event) =>
-                                                          (event.status ==
-                                                                  'completed' ||
-                                                              event.status ==
-                                                                  'canceled' ||
-                                                              event.status ==
-                                                                  'rejected') &&
-                                                          event.title
-                                                              .toLowerCase()
-                                                              .contains(query))
+                                                    profileEventModels!.events
+                                                            .where((event) =>
+                                                                (event
+                                                                            .status ==
+                                                                        'completed' ||
+                                                                    event.status ==
+                                                                        'canceled' ||
+                                                                    event.status ==
+                                                                        'rejected') &&
+                                                                event.title
+                                                                    .toLowerCase()
+                                                                    .contains(
+                                                                        query))
+                                                            .toList()
+                                                            .isEmpty ==
+                                                        false
+                                                ? Column(
+                                                    children: [
+                                                      DashedLineWithText(),
+                                                      Column(
+                                                        children: profileEventModels!
+                                                            .events
+                                                            .where((event) =>
+                                                                (event
+                                                                            .status ==
+                                                                        'completed' ||
+                                                                    event.status ==
+                                                                        'canceled' ||
+                                                                    event.status ==
+                                                                        'rejected') &&
+                                                                event.title
+                                                                    .toLowerCase()
+                                                                    .contains(
+                                                                        query))
                                                             .map((event) {
                                                           return MyCardEventWidget(
                                                             isCompletedEvent:
@@ -335,6 +342,14 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                           MaterialPageRoute(
                                               builder: (context) => MapScreen(
                                                     selectedScreenIndex: 0,
+                                                  )));
+                                    }
+                                    if (index == 1) {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => MapScreen(
+                                                    selectedScreenIndex: 1,
                                                   )));
                                     }
                                     if (index == 2) {
