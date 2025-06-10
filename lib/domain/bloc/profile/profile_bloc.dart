@@ -152,8 +152,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           final events = await ProfileApi().getProfileListEvents();
           final visitedEvents =
               await ProfileApi().getProfileVisitedListEvents();
-          if (events != null) events.events.sort((a, b) => a.dateStart.compareTo(b.dateStart));
-          if (visitedEvents != null) visitedEvents.events.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+          if (events != null)
+            events.events.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+          if (visitedEvents != null)
+            visitedEvents.events
+                .sort((a, b) => a.dateStart.compareTo(b.dateStart));
           emit(ProfileGotListEventsState(
               profileVisitedEventsModels: visitedEvents,
               profileEventsModels: events,
@@ -168,7 +171,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       try {
         final isLogout = await AuthApi().authLogout();
         if (isLogout) {
-          await deleteAuthTokens(false);
+          await deleteAuthTokens(true);
           emit(ProfileLogoutState());
         }
       } catch (e) {

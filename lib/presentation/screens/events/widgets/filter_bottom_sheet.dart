@@ -45,12 +45,19 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
   bool _isLoading = false;
   List<events.Category> _categories = [];
   bool _isLoadingCategories = false;
+  Position? _currentMapPosition;
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
     WidgetsBinding.instance.addObserver(this);
+    if (widget.currentPosition != null) {
+      _currentMapPosition = Position(
+        widget.currentPosition!.longitude,
+        widget.currentPosition!.latitude,
+      );
+    }
   }
 
   @override
@@ -979,12 +986,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => MapPickerScreen(
-                                      position: widget.currentPosition != null
-                                          ? Position(
-                                              widget.currentPosition!.longitude,
-                                              widget.currentPosition!.latitude,
-                                            )
-                                          : null,
+                                      position: _currentMapPosition,
                                       address: '',
                                       isCreated: false,
                                     ),

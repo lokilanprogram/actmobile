@@ -132,7 +132,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
               backgroundColor: Colors.white,
               body: showSettings
                   ? SettingsScreen(
-                    notificationsEnabled: profileModel.notificationsEnabled,
+                      notificationsEnabled: profileModel.notificationsEnabled,
                       onBack: () {
                         setState(() {
                           showSettings = false;
