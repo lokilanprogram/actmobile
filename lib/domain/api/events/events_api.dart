@@ -614,21 +614,51 @@ class EventsApi {
 
   Future<List<events.Category>> getCategories() async {
     final accessToken = await storage.read(key: accessStorageToken);
+    developer.log('[CATEGORIES] Начало запроса категорий', name: 'CATEGORIES');
+    developer.log(
+        '[CATEGORIES] AccessToken: ${accessToken != null ? 'есть' : 'отсутствует'}',
+        name: 'CATEGORIES');
+
     if (accessToken != null) {
-      final response = await http.get(
-        Uri.parse('$API/api/v1/admin/categories'),
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': 'Bearer $accessToken'
-        },
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => events.Category.fromJson(json)).toList();
-      } else {
-        throw Exception('Error: ${response.body}');
+      final url = '$API/api/v1/onboarding';
+      developer.log('[CATEGORIES] URL запроса: $url', name: 'CATEGORIES');
+
+      try {
+        final response = await http.get(
+          Uri.parse(url),
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': 'Bearer $accessToken'
+          },
+        );
+
+        developer.log('[CATEGORIES] Статус ответа: ${response.statusCode}',
+            name: 'CATEGORIES');
+        developer.log('[CATEGORIES] Тело ответа: ${response.body}',
+            name: 'CATEGORIES');
+
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+          final List<dynamic> categoriesData = jsonResponse['categories'] ?? [];
+          developer.log(
+              '[CATEGORIES] Количество полученных категорий: ${categoriesData.length}',
+              name: 'CATEGORIES');
+          return categoriesData
+              .map((json) => events.Category.fromJson(json))
+              .toList();
+        } else {
+          developer.log('[CATEGORIES] Ошибка: ${response.body}',
+              name: 'CATEGORIES');
+          throw Exception('Error: ${response.body}');
+        }
+      } catch (e) {
+        developer.log('[CATEGORIES] Исключение при запросе: $e',
+            name: 'CATEGORIES');
+        throw Exception('Error: $e');
       }
     }
+    developer.log('[CATEGORIES] Возвращаем пустой список (нет accessToken)',
+        name: 'CATEGORIES');
     return [];
   }
 }

@@ -260,12 +260,11 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                   cameraOptions: CameraOptions(
                     zoom: currentZoom,
                     center: Point(
-                      coordinates: widget.position == null
-                          ? Position(
-                              currentPosition!.longitude,
-                              currentPosition!.latitude,
-                            )
-                          : widget.position!,
+                      coordinates: widget.position ??
+                          Position(
+                            currentPosition?.longitude ?? 37.6173,
+                            currentPosition?.latitude ?? 55.7558,
+                          ),
                     ),
                   ),
                   key: const ValueKey("MapWidget"),
