@@ -185,7 +185,7 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                                   ? 'Сохранить'
                                   : (listOnboarding.isNotEmpty
                                       ? 'Сохранить'
-                                      : 'Далее'),
+                                      : 'Выбирите категории'),
                               function: widget.fromUpdate
                                   ? () {
                                       Navigator.pop(context, listOnboarding);

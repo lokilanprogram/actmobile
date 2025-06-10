@@ -181,7 +181,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     id: widget.profileModel.id,
                                     hideMyEvents: _selectedHideMyEvents == 'my',
                                     hideAttendedEvents:
-                                        _selectedHideAttendedEvents == 'visited',
+                                        _selectedHideAttendedEvents ==
+                                            'visited',
                                     name: nameController.text.trim(),
                                     surname: surnameController.text.trim(),
                                     email: emailController.text.trim(),
@@ -195,7 +196,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         isOrganizationRepresentative,
                                     photoUrl: image?.path,
                                     status: widget.profileModel.status,
-                                    notificationsEnabled: widget.profileModel.notificationsEnabled,
+                                    notificationsEnabled: widget
+                                        .profileModel.notificationsEnabled,
                                     categories: selectedCategories)));
                           }
                         },
@@ -451,18 +453,21 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                           padding: EdgeInsets.symmetric(
                                               vertical: 12, horizontal: 20),
                                           decoration: BoxDecoration(
-                                              color: _selectedHideMyEvents == 'my'
-                                                  ? mainBlueColor
-                                                  : Colors.grey[200],
+                                              color:
+                                                  _selectedHideMyEvents == 'my'
+                                                      ? mainBlueColor
+                                                      : Colors.grey[200],
                                               borderRadius:
                                                   BorderRadius.circular(25)),
                                           child: Center(
                                             child: Text(
                                               'Мои',
                                               style: TextStyle(
-                                                  color: _selectedHideMyEvents == 'my'
-                                                      ? Colors.white
-                                                      : Colors.black,
+                                                  color:
+                                                      _selectedHideMyEvents ==
+                                                              'my'
+                                                          ? Colors.white
+                                                          : Colors.black,
                                                   fontSize: 13,
                                                   fontFamily: 'Inter'),
                                             ),
@@ -476,13 +481,15 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     Expanded(
                                       child: GestureDetector(
                                         onTap: () {
-                                          if (_selectedHideAttendedEvents == 'visited') {
+                                          if (_selectedHideAttendedEvents ==
+                                              'visited') {
                                             setState(() {
                                               _selectedHideAttendedEvents = '';
                                             });
                                           } else {
                                             setState(() {
-                                              _selectedHideAttendedEvents = 'visited';
+                                              _selectedHideAttendedEvents =
+                                                  'visited';
                                             });
                                           }
                                         },
@@ -490,9 +497,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                           padding: EdgeInsets.symmetric(
                                               vertical: 12, horizontal: 20),
                                           decoration: BoxDecoration(
-                                              color: _selectedHideAttendedEvents == 'visited'
-                                                  ? mainBlueColor
-                                                  : Colors.grey[200],
+                                              color:
+                                                  _selectedHideAttendedEvents ==
+                                                          'visited'
+                                                      ? mainBlueColor
+                                                      : Colors.grey[200],
                                               borderRadius:
                                                   BorderRadius.circular(25)),
                                           child: Center(
@@ -500,7 +509,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                               'Посещённые',
                                               style: TextStyle(
                                                   color:
-                                                      _selectedHideAttendedEvents == 'visited'
+                                                      _selectedHideAttendedEvents ==
+                                                              'visited'
                                                           ? Colors.white
                                                           : Colors.black,
                                                   fontSize: 13,
@@ -552,7 +562,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                       .toList(),
                                 ),
                                 SizedBox(
-                                  height: 100,
+                                  height: 150,
                                 ),
                               ],
                             ),
@@ -719,13 +729,43 @@ class TextInputNameWidget extends StatelessWidget {
   final String text;
   final String? Function(String?)? validator;
 
+  String? _validateName(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Заполните поле';
+    }
+    if (!RegExp(r'^[а-яА-ЯёЁa-zA-Z\s-]+$').hasMatch(value)) {
+      return 'Используйте только буквы';
+    }
+    return null;
+  }
+
+  String _formatName(String value) {
+    if (value.isEmpty) return value;
+    // Удаляем все символы кроме букв, пробелов и дефиса
+    value = value.replaceAll(RegExp(r'[^а-яА-ЯёЁa-zA-Z\s-]'), '');
+    // Делаем первую букву заглавной
+    if (value.isNotEmpty) {
+      value = value[0].toUpperCase() + value.substring(1).toLowerCase();
+    }
+    return value;
+  }
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       textCapitalization: TextCapitalization.sentences,
       style: TextStyle(fontSize: 18, fontFamily: 'Inter'),
       controller: controller,
-      validator: validator,
+      validator: validator ?? _validateName,
+      onChanged: (value) {
+        final formattedValue = _formatName(value);
+        if (formattedValue != value) {
+          controller.value = TextEditingValue(
+            text: formattedValue,
+            selection: TextSelection.collapsed(offset: formattedValue.length),
+          );
+        }
+      },
       decoration: InputDecoration(
         hintText: text,
         hintStyle: hintTextStyleEdit,

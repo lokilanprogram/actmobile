@@ -1,6 +1,7 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/settings_notifier.dart';
+import 'package:acti_mobile/configs/faq_provider.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
@@ -28,8 +29,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  int? openedFaqIndex;
-
   void _showBlockDialog(BuildContext context, String title, String message,
       VoidCallback onConfirm) {
     showDialog(
@@ -86,20 +85,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-
-            // TextButton(
-            //   child: Text('Отмена'),
-            //   onPressed: () {
-            //     Navigator.of(context).pop();
-            //   },
-            // ),
-            // TextButton(
-            //   child: Text('Подтвердить', style: TextStyle(color: Colors.red)),
-            //   onPressed: () {
-            //     Navigator.of(context).pop();
-            //     onConfirm();
-            //   },
-            // ),
           ],
         );
       },
@@ -110,15 +95,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<SettingsNotificationsProvider>(context);
 
-    // return BlocListener<AuthBloc, AuthState>(
-    //   listener: (context, state) {
-    //     if (state is AuthAccountDeletedState) {
-    //       Navigator.of(context).pushAndRemoveUntil(
-    //         MaterialPageRoute(builder: (context) => InitialScreen()),
-    //         (Route<dynamic> route) => false,
-    //       );
-    //     }
-    //   },
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -153,7 +129,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             const SizedBox(width: 8),
                             const Text('Уведомления',
-                                style: TextStyle(fontSize: 18)),
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w300,
+                                    fontFamily: "Inter")),
                           ],
                         ),
                       ),
@@ -164,7 +143,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           () => _showAgreement()),
                       _buildSettingsTile(
                           'Согласие на обработку ПД', () => _showAgreement()),
-                      _buildSettingsTile('FAQ', () => _showFaq()),
+                      _buildSettingsTile('Часто задаваемые вопросы и ответы',
+                          () => _showFaq()),
+                      _buildSettingsTile('О нас', () => _showAgreement()),
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             vertical: 22, horizontal: 24),
@@ -191,8 +172,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               'Обратная связь',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontFamily: 'Gilroy',
-                                fontSize: 20,
+                                fontFamily: 'Inter',
+                                fontSize: 17,
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
@@ -215,8 +196,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               SizedBox(width: 8),
                               Text('Выйти',
                                   style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w300)),
+                                    fontFamily: 'Inter_Light',
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w300,
+                                  )),
                             ],
                           ),
                         ),
@@ -240,9 +223,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               SizedBox(width: 8),
                               Text('Удалить профиль',
                                   style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.w300)),
+                                    fontFamily: 'Inter_Light',
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w300,
+                                    color: Colors.red,
+                                  )),
                             ],
                           ),
                         ),
@@ -250,7 +235,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 24),
                       Center(
                         child: Text('Версия 1.1.1.0',
-                            style: TextStyle(color: Colors.grey, fontSize: 15)),
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontFamily: 'Inter_Light',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w300,
+                            )),
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -276,7 +266,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       children: [
         ListTile(
-          title: Text(title, style: TextStyle(fontSize: 18)),
+          title: Text(title,
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w300,
+                  fontFamily: "Inter")),
           trailing: Icon(Icons.arrow_forward_ios, size: 18),
           onTap: onTap,
         ),
@@ -346,111 +340,132 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showFaq() {
-    final faqs = [
-      {
-        'q': 'Когда будет обновление?',
-        'a':
-            'На данный момент мы занимаемся этим.\nОжидать новой версии приложения нужно летом этого года.\nМы рады, что вы с нами и ждёте новых возможностей!',
-      },
-      {
-        'q': 'Зачем мне это приложение',
-        'a':
-            'Это приложение помогает находить интересные мероприятия и единомышленников.',
-      },
-    ];
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.9,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 50),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 60.0, right: 16),
-                child: Text(
-                  'Часто задаваемые вопросы и ответы',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: "Gilroy"),
-                  maxLines: 2,
-                  textAlign: TextAlign.left,
+      builder: (context) => ChangeNotifierProvider(
+        create: (_) => FaqProvider()..loadFaqs(),
+        child: Consumer<FaqProvider>(
+          builder: (context, faqProvider, child) {
+            if (faqProvider.isLoading ?? false) {
+              return Container(
+                height: MediaQuery.of(context).size.height * 0.9,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (faqProvider.error != null) {
+              return Container(
+                height: MediaQuery.of(context).size.height * 0.9,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: Center(
+                  child: Text('Ошибка загрузки: ${faqProvider.error}'),
+                ),
+              );
+            }
+
+            final faqs = faqProvider.faqs ?? [];
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.9,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                itemCount: faqs.length,
-                itemBuilder: (context, idx) {
-                  final isOpen = openedFaqIndex == idx;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        openedFaqIndex = isOpen ? null : idx;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: 200),
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      padding: EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFEAF3FF),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  faqs[idx]['q']!,
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              Icon(
-                                isOpen ? Icons.expand_less : Icons.expand_more,
-                                size: 28,
-                              ),
-                            ],
-                          ),
-                          if (isOpen) ...[
-                            Divider(height: 24, color: Colors.blue[100]),
-                            Text(
-                              'Ответ:',
-                              style: TextStyle(
-                                  color: Colors.blue,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              faqs[idx]['a']!,
-                              style: TextStyle(fontSize: 16, height: 1.3),
-                            ),
-                          ]
-                        ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 50),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 60.0, right: 16),
+                      child: Text(
+                        'Часто задаваемые вопросы и ответы',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: "Gilroy"),
+                        maxLines: 2,
+                        textAlign: TextAlign.left,
                       ),
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: faqs.length,
+                      itemBuilder: (context, idx) {
+                        final isOpen = faqProvider.openedFaqIndex == idx;
+                        return GestureDetector(
+                          onTap: () => faqProvider.toggleFaq(idx),
+                          child: AnimatedContainer(
+                            duration: Duration(milliseconds: 200),
+                            margin: EdgeInsets.symmetric(vertical: 8),
+                            padding: EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFEAF3FF),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        faqs[idx].question,
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      isOpen
+                                          ? Icons.expand_less
+                                          : Icons.expand_more,
+                                      size: 28,
+                                    ),
+                                  ],
+                                ),
+                                if (isOpen) ...[
+                                  Divider(height: 24, color: Colors.blue[100]),
+                                  Text(
+                                    'Ответ:',
+                                    style: TextStyle(
+                                        color: const Color.fromARGB(
+                                            255, 26, 107, 199),
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 12),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    faqs[idx].answer,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 10,
+                                        height: 1),
+                                  ),
+                                ]
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

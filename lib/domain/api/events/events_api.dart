@@ -7,6 +7,7 @@ import 'package:acti_mobile/data/models/mapbox_reverse_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/recommendated_user_model.dart';
 import 'package:acti_mobile/data/models/searched_events_model.dart';
+import 'package:acti_mobile/data/models/faq_model.dart';
 import 'package:dio/dio.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
@@ -659,6 +660,49 @@ class EventsApi {
     }
     developer.log('[CATEGORIES] Возвращаем пустой список (нет accessToken)',
         name: 'CATEGORIES');
+    return [];
+  }
+
+  Future<List<FaqModel>> getFaqs() async {
+    final accessToken = await storage.read(key: accessStorageToken);
+    developer.log('[FAQ] Начало запроса FAQ', name: 'FAQ');
+    developer.log(
+        '[FAQ] AccessToken: ${accessToken != null ? 'есть' : 'отсутствует'}',
+        name: 'FAQ');
+
+    if (accessToken != null) {
+      final url = '$API/api/v1/admin/faq';
+      developer.log('[FAQ] URL запроса: $url', name: 'FAQ');
+
+      try {
+        final response = await http.get(
+          Uri.parse(url),
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': 'Bearer $accessToken'
+          },
+        );
+
+        developer.log('[FAQ] Статус ответа: ${response.statusCode}',
+            name: 'FAQ');
+        developer.log('[FAQ] Тело ответа: ${response.body}', name: 'FAQ');
+
+        if (response.statusCode == 200) {
+          final List<dynamic> data = jsonDecode(response.body);
+          developer.log('[FAQ] Количество полученных FAQ: ${data.length}',
+              name: 'FAQ');
+          return data.map((json) => FaqModel.fromJson(json)).toList();
+        } else {
+          developer.log('[FAQ] Ошибка: ${response.body}', name: 'FAQ');
+          throw Exception('Error: ${response.body}');
+        }
+      } catch (e) {
+        developer.log('[FAQ] Исключение при запросе: $e', name: 'FAQ');
+        throw Exception('Error: $e');
+      }
+    }
+    developer.log('[FAQ] Возвращаем пустой список (нет accessToken)',
+        name: 'FAQ');
     return [];
   }
 }
