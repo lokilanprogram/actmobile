@@ -58,11 +58,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileGetPublicUserEvent>((event, emit) async {
       try {
         final user = await ProfileApi().getPublicUser(event.userId);
-        if (user != null) {
-          emit(ProfileGotPublicUserState(publicUserModel: user));
-        }
+        user.fold((l) {
+          emit(ProfileGotPublicUserState(publicUserModel: l));
+        }, (r) {
+          emit(ProfileGotPublicUserErrorState(message: r.toString()));
+        });
       } catch (e) {
-        emit(ProfileGotPublicUserErrorState());
+        emit(ProfileGotPublicUserErrorState(message: e.toString()));
       }
     });
 
@@ -152,8 +154,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           final events = await ProfileApi().getProfileListEvents();
           final visitedEvents =
               await ProfileApi().getProfileVisitedListEvents();
-          if (events != null) events.events.sort((a, b) => a.dateStart.compareTo(b.dateStart));
-          if (visitedEvents != null) visitedEvents.events.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+          if (events != null)
+            events.events.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+          if (visitedEvents != null)
+            visitedEvents.events
+                .sort((a, b) => a.dateStart.compareTo(b.dateStart));
           emit(ProfileGotListEventsState(
               profileVisitedEventsModels: visitedEvents,
               profileEventsModels: events,

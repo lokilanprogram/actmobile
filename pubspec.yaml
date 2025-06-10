@@ -75,6 +75,7 @@ dependencies:
   provider: ^6.1.5
   top_snackbar_flutter: ^3.3.0
   flutter_xlider: ^3.5.0
+  dartz: ^0.10.1
 
 dev_dependencies:
   flutter_test:

@@ -6,6 +6,7 @@ import 'package:acti_mobile/data/models/status_model.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/detail/event_detail_home_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/widget/drop_down_icon.dart';
 import 'package:acti_mobile/presentation/widgets/image_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -144,110 +145,7 @@ class MyCardEventWidget extends StatelessWidget {
                                       ? SvgPicture.asset(
                                           'assets/icons/icon_adult.svg')
                                       : Container(),
-                                  PopupMenuButton<int>(
-                                    color: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    offset: const Offset(-20, 5),
-                                    itemBuilder: (BuildContext context) =>
-                                        isPublicUser
-                                            ? [
-                                                PopupMenuItem<int>(
-                                                  value: 0,
-                                                  onTap: () async {
-                                                    final url = organizedEvent
-                                                            .photos.isNotEmpty
-                                                        ? organizedEvent
-                                                            .photos.first
-                                                        : '';
-                                                    final text =
-                                                        '${organizedEvent.title}\n${organizedEvent.description}\n$url';
-                                                    await Future.delayed(
-                                                        Duration.zero, () {
-                                                      Share.share(text);
-                                                    });
-                                                  },
-                                                  child: Row(
-                                                    children: [
-                                                      SvgPicture.asset(
-                                                          'assets/icons/icon_share.svg'),
-                                                      SizedBox(width: 10),
-                                                      Text(
-                                                        "Поделиться",
-                                                        style: TextStyle(
-                                                            fontFamily:
-                                                                'Gilroy',
-                                                            fontSize: 14,
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            color:
-                                                                Colors.black),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                PopupMenuItem<int>(
-                                                  value: 1,
-                                                  onTap: () {},
-                                                  child: Row(
-                                                    children: [
-                                                      SvgPicture.asset(
-                                                        'assets/icons/icon_block.svg',
-                                                        colorFilter:
-                                                            ColorFilter.mode(
-                                                          Colors.red,
-                                                          BlendMode.srcIn,
-                                                        ),
-                                                      ),
-                                                      SizedBox(width: 10),
-                                                      Text(
-                                                        "Пожаловаться",
-                                                        style: TextStyle(
-                                                            fontFamily:
-                                                                'Gilroy',
-                                                            fontSize: 14,
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            color: Colors.red),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ]
-                                            : [
-                                                PopupMenuItem<int>(
-                                                  value: 0,
-                                                  onTap: () {
-                                                    Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                CreateEventScreen(
-                                                                    organizedEventModel:
-                                                                        organizedEvent)));
-                                                  },
-                                                  child: Row(
-                                                    children: [
-                                                      SvgPicture.asset(
-                                                          'assets/icons/icon_edit.svg'),
-                                                      SizedBox(width: 10),
-                                                      Text(
-                                                        "Редактировать",
-                                                        style: TextStyle(
-                                                            fontFamily:
-                                                                'Gilroy',
-                                                            fontSize: 12.93,
-                                                            color:
-                                                                Colors.black),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                    child: const Icon(Icons.more_vert,
-                                        color: Colors.black),
-                                  )
+                                  DropDownIcon(isPublicUser: isPublicUser, organizedEvent: organizedEvent),
                                 ],
                               )
                             ],

@@ -37,6 +37,7 @@ class NotificationModel {
   final String userId;
   final String? eventId;
   final String? senderId;
+  final String? chatId;
   final DateTime createdAt;
   final DateTime sentAt;
   final bool isRead;
@@ -50,6 +51,7 @@ class NotificationModel {
     required this.userId,
     this.eventId,
     this.senderId,
+    this.chatId,
     required this.createdAt,
     required this.sentAt,
     required this.isRead,
@@ -71,6 +73,7 @@ class NotificationModel {
       event: json['event'] != null ? EventModel.fromJson(json['event']) : null,
       sender:
           json['sender'] != null ? SenderModel.fromJson(json['sender']) : null,
+      chatId: json["chat_id"],
     );
   }
 

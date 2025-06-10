@@ -2,12 +2,14 @@ import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/configs/date_utils.dart' as custom_date;
+import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/map_picker/map_picker_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/widget/drop_down_icon.dart';
 import 'package:acti_mobile/presentation/widgets/image_widget.dart';
 import 'package:acti_mobile/presentation/widgets/popup_event_buttons.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
@@ -31,12 +33,22 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   bool isBlocked = false;
   late OrganizedEventModel organizedEvent;
   ProfileModel? profileModel;
+  int _currentPage = 0;
+  late final PageController _pageController;
+  late final bool isPublicUser;
+  late final userId;
 
   @override
   void initState() {
+    _pageController = PageController();
+    _initAsync();
     initialize();
     super.initState();
   }
+
+  Future<void> _initAsync() async {
+  userId = await storage.read(key: userIdStorage);
+}
 
   initialize() {
     setState(() {
@@ -45,6 +57,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     context
         .read<ProfileBloc>()
         .add(ProfileGetEventDetailEvent(eventId: widget.eventId));
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -77,9 +95,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             profileModel = state.profileModel;
             isLoading = false;
             organizedEvent = state.eventModel;
+            isPublicUser = userId != state.eventModel.creatorId;
             isJoined = state.eventModel.join_status == 'confirmed' ||
                 state.eventModel.join_status == 'pending';
-            isBlocked = state.eventModel.join_status == state.eventModel.freeSlots < 1;
+            isBlocked =
+                state.eventModel.join_status == state.eventModel.freeSlots < 1;
           });
           if (isBlocked) {
             showAlertOKDialog(context,
@@ -121,30 +141,47 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     Stack(
                       children: [
                         organizedEvent.photos.isNotEmpty
-                            ? Image.network(organizedEvent.photos.first,
-                                width: double.infinity,
+                            ? SizedBox(
                                 height: 260,
-                                fit: BoxFit.cover, loadingBuilder:
-                                    (BuildContext context, Widget child,
-                                        ImageChunkEvent? loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return SizedBox(
-                                  height: 260,
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      color: mainBlueColor,
-                                      value:
-                                          loadingProgress.expectedTotalBytes !=
-                                                  null
-                                              ? loadingProgress
-                                                      .cumulativeBytesLoaded /
-                                                  loadingProgress
-                                                      .expectedTotalBytes!
-                                              : null,
-                                    ),
-                                  ),
-                                );
-                              })
+                                child: PageView.builder(
+                                    controller: _pageController,
+                                    itemCount: organizedEvent.photos.length,
+                                    onPageChanged: (index) {
+                                      setState(() {
+                                        _currentPage = index;
+                                      });
+                                    },
+                                    itemBuilder: (context, index) {
+                                      return Image.network(
+                                          organizedEvent.photos[index],
+                                          width: double.infinity,
+                                          height: 260,
+                                          fit: BoxFit.cover, loadingBuilder:
+                                              (BuildContext context,
+                                                  Widget child,
+                                                  ImageChunkEvent?
+                                                      loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return SizedBox(
+                                          height: 260,
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              color: mainBlueColor,
+                                              value: loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      loadingProgress
+                                                          .expectedTotalBytes!
+                                                  : null,
+                                            ),
+                                          ),
+                                        );
+                                      });
+                                    }),
+                              )
                             : Image.asset(
                                 'assets/images/image_default_event.png',
                                 width: double.infinity,
@@ -152,11 +189,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 fit: BoxFit.cover,
                               ),
                         Positioned(
-                            top: 50,
-                            right: 20,
-                            child: PopUpEventButtons(
-                                eventId: organizedEvent.id,
-                                blockFunction: () async {})),
+                          top: 50,
+                          right: 20,
+                          child: DropDownIcon(
+                            isPublicUser: isPublicUser,
+                            organizedEvent: organizedEvent,
+                          ),
+                        ),
 
                         // Индикаторы
                         Positioned(
@@ -166,14 +205,16 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           child: Center(
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(4, (index) {
-                                return Container(
+                              children: List.generate(
+                                  organizedEvent.photos.length, (index) {
+                                return AnimatedContainer(
+                                  duration: Duration(milliseconds: 200),
                                   margin:
                                       const EdgeInsets.symmetric(horizontal: 3),
-                                  width: 6,
-                                  height: 6,
+                                  width: 8,
+                                  height: 8,
                                   decoration: BoxDecoration(
-                                    color: index == 0
+                                    color: index == _currentPage
                                         ? Colors.white
                                         : Colors.white.withOpacity(0.5),
                                     shape: BoxShape.circle,
@@ -232,23 +273,15 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               SizedBox(
                                 width: 25,
                               ),
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.65,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    organizedEvent.price == 0
-                                        ? buildTag('Бесплатное')
-                                        : Container(),
-                                    const SizedBox(width: 8),
-                                    buildTag('Компания'),
-                                    Spacer(),
-                                    SvgPicture.asset(
-                                      'assets/icons/icon_adult.svg',
-                                      width: 34,
-                                    )
-                                  ],
-                                ),
+                              organizedEvent.price == 0
+                                  ? buildTag('Бесплатное')
+                                  : Container(),
+                              const SizedBox(width: 8),
+                              buildTag('Компания'),
+                              Spacer(),
+                              SvgPicture.asset(
+                                'assets/icons/icon_adult.svg',
+                                width: 34,
                               )
                             ],
                           ),
@@ -296,6 +329,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                         Text('Организатор',
                                             style: TextStyle(
                                                 fontSize: 16,
+                                                letterSpacing: 0,
+                                                fontWeight: FontWeight.w400,
                                                 fontFamily: 'Gilroy')),
                                       ],
                                     ),
@@ -411,9 +446,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           SizedBox(
                             height: 59,
                             width: double.infinity,
-                            child: ElevatedButton(
+                            child: !isPublicUser ? Container() : ElevatedButton(
                               onPressed: () {
-                                if (profileModel!.isEmailVerified ) {
+                                if (profileModel!.isEmailVerified) {
                                   setState(() {
                                     isLoading = true;
                                   });
@@ -477,8 +512,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       ),
       child: Text(
         label,
-        style: const TextStyle(
-            color: Colors.white, fontSize: 12.46, fontFamily: 'Gilroy'),
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 12.46,
+          fontFamily: 'Gilroy',
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -608,9 +647,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ),
                         overflow: TextOverflow.fade,
                       ),
-                      if (trailing != null)
-                        Text(trailing,
-                            style: const TextStyle(color: Colors.grey)),
+                      // if (trailing != null)
+                      //   Text(trailing,
+                      //       style: const TextStyle(color: Colors.grey)),
                     ],
                   )
                 : Row(

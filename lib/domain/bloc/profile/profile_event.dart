@@ -47,6 +47,8 @@ class ProfileUpdateEvent extends ProfileEvent {
 
 class ProfileGetListEventsEvent extends ProfileEvent {}
 
+class ProfileGetVerifiedEventsEvent extends ProfileEvent {}
+
 class ProfileGetEventDetailEvent extends ProfileEvent {
   final String eventId;
 

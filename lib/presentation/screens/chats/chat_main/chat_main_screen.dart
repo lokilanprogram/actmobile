@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:acti_mobile/configs/date_utils.dart';
+import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/all_chats_model.dart';
+import 'package:acti_mobile/data/models/all_chats_snapshot_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
+import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/domain/websocket/websocket.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/tab_bar_widget.dart';
@@ -16,36 +22,70 @@ class ChatMainScreen extends StatefulWidget {
 }
 
 class _ChatMainScreenState extends State<ChatMainScreen> {
+  AllChatWebSocketService? webSocketService;
   String selectedTab = 'mine';
   late AllChatsModel allPrivateChats;
   late AllChatsModel allGroupChats;
   bool isLoading = false;
   bool isPrivateChats = true;
+  late bool isVerified;
+  String? lastProcessedEventId;
+
   @override
   void initState() {
     initialize();
+    initWs();
     super.initState();
   }
 
-  initialize() {
+  initWs() async {
+    final accessToken = await storage.read(key: accessStorageToken);
+    webSocketService = AllChatWebSocketService(token: accessToken!);
+  }
+
+  initialize() async {
     setState(() {
       isLoading = true;
+      isVerified = true;
     });
+    context.read<ProfileBloc>().add(ProfileGetEvent());
     context.read<ChatBloc>().add(GetAllChatsEvent());
   }
 
   @override
+  void dispose() {
+    webSocketService?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocListener<ChatBloc, ChatState>(
-      listener: (context, state) {
-        if (state is GotAllChatsState) {
-          setState(() {
-            allGroupChats = state.allGroupChats;
-            allPrivateChats = state.allPrivateChats;
-            isLoading = false;
-          });
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ChatBloc, ChatState>(
+          listener: (context, state) {
+            if (state is GotAllChatsState) {
+              setState(() {
+                allGroupChats = state.allGroupChats;
+                allPrivateChats = state.allPrivateChats;
+                isLoading = false;
+              });
+            }
+          },
+        ),
+        BlocListener<ProfileBloc, ProfileState>(
+          listener: (context, state) {
+            if (state is ProfileGotState) {
+              if (state.profileModel.isEmailVerified = false) {
+                setState(() {
+                  isLoading = false;
+                  isVerified = false;
+                });
+              }
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -224,6 +264,7 @@ class ChatListTileWidget extends StatelessWidget {
             fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 17),
       ),
       trailing: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
             formattedTimestamp(
@@ -231,10 +272,31 @@ class ChatListTileWidget extends StatelessWidget {
             ),
             style: TextStyle(fontFamily: 'Inter', fontSize: 13),
           ),
+          chat?.unreadCount != null && chat?.unreadCount != 0
+              ? Container(
+                  width: 33,
+                  decoration: BoxDecoration(
+                      color: Color.fromARGB(255, 66, 147, 239),
+                      borderRadius: BorderRadius.all(Radius.circular(108))),
+                  child: Text(
+                    chat!.unreadCount.toString(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
+                  ),
+                )
+              : Container(
+                  width: 33,
+                ),
         ],
       ),
       subtitle: Text(
-        chat.lastMessage?.content ?? '...',
+        chat.status != null
+            ? chat.status ?? chat.lastMessage?.content ?? '...'
+            : chat.lastMessage?.content ?? '...',
         style: TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.w500,

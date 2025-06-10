@@ -88,7 +88,7 @@ class _TabBarWidgetState extends State<TabBarWidget> {
                               : 18,
                           fontFamily: 'Gilroy',
                           fontWeight: _selectedTab == "mine"
-                              ? FontWeight.w400
+                              ? FontWeight.w800
                               : FontWeight.w400,
                         ),
                       ),
@@ -150,7 +150,7 @@ class _TabBarWidgetState extends State<TabBarWidget> {
                             fontSize: 19,
                             fontFamily: 'Gilroy',
                             fontWeight: _selectedTab == "notMine"
-                                ? FontWeight.w400
+                                ? FontWeight.w800
                                 : FontWeight.w400),
                       ),
                       SizedBox(

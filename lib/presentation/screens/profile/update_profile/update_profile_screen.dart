@@ -464,12 +464,12 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                               'Мои',
                                               style: TextStyle(
                                                   color:
-                                                      _selectedHideMyEvents ==
-                                                              'my'
+                                                      _selectedHideAttendedEvents == 'my'
                                                           ? Colors.white
                                                           : Colors.black,
-                                                  fontSize: 13,
-                                                  fontFamily: 'Inter'),
+                                                  fontSize: 18,
+                                                  fontWeight: _selectedHideAttendedEvents == 'my' ? FontWeight.w800 : FontWeight.w400,
+                                                  fontFamily: 'Gilroy'),
                                             ),
                                           ),
                                         ),
@@ -506,15 +506,16 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                   BorderRadius.circular(25)),
                                           child: Center(
                                             child: Text(
-                                              'Посещённые',
+                                              'Учавствую',
                                               style: TextStyle(
                                                   color:
                                                       _selectedHideAttendedEvents ==
                                                               'visited'
                                                           ? Colors.white
                                                           : Colors.black,
-                                                  fontSize: 13,
-                                                  fontFamily: 'Inter'),
+                                                  fontSize: 18,
+                                                  fontWeight: _selectedHideAttendedEvents == 'visited' ? FontWeight.w800 : FontWeight.w400,
+                                                  fontFamily: 'Gilroy'),
                                             ),
                                           ),
                                         ),

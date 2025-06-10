@@ -118,7 +118,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     try {
       final url =
           'https://api.mapbox.com/geocoding/v5/mapbox.places/$place.json'
-          '?language=ru&proximity=-74.70850,40.78375&country=ru'
+          '?language=ru&proximity=-74.70850,40.78375&country=ru&types=address,place'
           '&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg';
 
       final response = await http.get(Uri.parse(url));
@@ -1026,7 +1026,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       content: Text(
                           'Время начала должно быть раньше времени конца')),
                 );
-              } else if (selectedDate.isBefore(now) &&
+              } else if (startDateTime.isBefore(now)  &&
                   widget.organizedEventModel?.status != 'completed' &&
                   widget.organizedEventModel?.status != 'canceled' &&
                   widget.organizedEventModel?.status != 'rejected') {

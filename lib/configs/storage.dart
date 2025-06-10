@@ -3,7 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 FlutterSecureStorage storage = const FlutterSecureStorage();
 const accessStorageToken = 'accessToken';
 const refreshStorageToken = 'refreshToken';
-const userIdStorage = 'refreshToken';
+const userIdStorage = 'userIdStorage';
 
 Future<void> writeAuthTokens(String accessToken, String? refreshToken) async {
   await storage.write(key: accessStorageToken, value: accessToken);
