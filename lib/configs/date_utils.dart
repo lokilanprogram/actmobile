@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class DateUtils {
   static DateTime convertToLocalTime(String dateStr, String timeWithOffsetStr) {
@@ -58,29 +59,25 @@ String formattedTimestamp(DateTime createdAt,
   DateTime now = DateTime.now();
   createdAt = createdAt.toLocal();
 
-  // Если явно указано только время или это сегодня
   if (timeOnly || datesHaveSameDay(now, createdAt)) {
-    return DateFormat('HH:mm').format(createdAt);
+    return DateFormat('HH:mm', 'ru').format(createdAt);
   }
 
-  // Если это вчера
   if (isYesterday(createdAt)) {
     return meridiem
-        ? 'Вчера ${DateFormat('hh:mm a').format(createdAt)}'
-        : 'Вчера ${DateFormat('HH:mm').format(createdAt)}';
+        ? 'Вчера ${DateFormat('hh:mm a', 'ru').format(createdAt)}'
+        : 'Вчера ${DateFormat('HH:mm', 'ru').format(createdAt)}';
   }
 
-  // Если в этом году
   if (createdAt.year == now.year) {
     return meridiem
-        ? DateFormat('MMM d, hh:mm a').format(createdAt)
-        : DateFormat('MMM d, HH:mm').format(createdAt);
+        ? DateFormat('d MMM, hh:mm a', 'ru').format(createdAt)
+        : DateFormat('d MMM, HH:mm', 'ru').format(createdAt);
   }
 
-  // Если в прошлом году и ранее
   return meridiem
-      ? DateFormat('y MMM d, hh:mm a').format(createdAt)
-      : DateFormat('y MMM d, HH:mm').format(createdAt);
+      ? DateFormat('y MMM d, hh:mm a', 'ru').format(createdAt)
+      : DateFormat('y MMM d, HH:mm', 'ru').format(createdAt);
 }
 
 bool datesHaveSameDay(DateTime d1, DateTime d2) {

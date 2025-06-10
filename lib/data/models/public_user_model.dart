@@ -27,6 +27,7 @@ class PublicUserModel {
     bool? hideAttendedEvents;
     bool? isBlockedByUser;
     String? chatId;
+    double? rating;
 
     PublicUserModel({
       required this.userId,
@@ -45,6 +46,7 @@ class PublicUserModel {
         required this.reviews,
         required this.hideMyEvents,
         required this.hideAttendedEvents,
+        required this.rating,
     });
 
     factory PublicUserModel.fromJson(Map<String, dynamic> json) => PublicUserModel(
@@ -64,6 +66,7 @@ class PublicUserModel {
         reviews: List<Review>.from(json["reviews"].map((x) => Review.fromJson(x))),
         hideMyEvents: json["hide_my_events"],
         hideAttendedEvents: json["hide_attended_events"], userId: json['user_id'],
+        rating: json["rating"]?.toDouble(),
     );
 
     Map<String, dynamic> toJson() => {

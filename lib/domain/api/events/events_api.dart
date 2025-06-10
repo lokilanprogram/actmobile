@@ -16,6 +16,9 @@ import 'package:flutter/foundation.dart';
 
 class EventsApi {
   Dio dio = Dio();
+  static DateTime? _lastSearchTime;
+  static SearchedEventsModel? _lastResultCache;
+
   Future<bool?> cancelActivity(String eventId, bool isRecurring) async {
     final queryParameter = {
       'cancel_recurring': isRecurring.toString(),
@@ -141,17 +144,23 @@ class EventsApi {
   Future<SearchedEventsModel?> searchEventsOnMap(
       double latitude, double longitude,
       {Map<String, dynamic>? filters}) async {
+    final now = DateTime.now();
+
+    if (_lastSearchTime != null &&
+        now.difference(_lastSearchTime!).inSeconds < 2) {
+      developer.log('Пропущен запрос: менее 2 секунд', name: 'MAP_SEARCH');
+      return _lastResultCache;
+    }
+
     final accessToken = await storage.read(key: accessStorageToken);
     if (accessToken != null) {
-      // Формируем базовые параметры
       final Map<String, dynamic> queryParameters = {
         'latitude': latitude.toString(),
         'longitude': longitude.toString(),
-        'limit': 100.toString(),
+        'limit': '100',
         'radius': filters?['radius']?.toString() ?? '100',
       };
 
-      // Добавляем дополнительные параметры фильтрации
       if (filters != null) {
         if (filters['restrictions'] != null) {
           queryParameters['restrictions'] = filters['restrictions'];
@@ -191,29 +200,22 @@ class EventsApi {
         }
       }
 
-      // Удаляем параметры, которые равны null или строке 'null'
       queryParameters
           .removeWhere((key, value) => value == null || value == 'null');
 
-      // Формируем URL вручную для поддержки массивов
-      final baseUrl = '$API/api/v1/events/map';
       final queryParams = <String, List<String>>{};
-
-      // Преобразуем обычные параметры
       queryParameters.forEach((key, value) {
         if (key != 'category_ids' && key != 'restrictions') {
           queryParams[key] = [value.toString()];
         }
       });
 
-      // Добавляем restrictions как массив
       if (filters?['restrictions'] != null) {
         final restrictions = filters!['restrictions'] as List;
         queryParams['restrictions'] =
             restrictions.map((e) => e.toString()).toList();
       }
 
-      // Добавляем category_ids как массив
       if (filters?['category_ids'] != null) {
         final categoryIds = filters!['category_ids'] as List;
         queryParams['category_ids'] =
@@ -245,11 +247,15 @@ class EventsApi {
       developer.log('Тело ответа: ${response.body}', name: 'MAP_SEARCH');
 
       if (response.statusCode == 200) {
-        return SearchedEventsModel.fromJson(jsonDecode(response.body));
+        _lastSearchTime = now;
+        _lastResultCache =
+            SearchedEventsModel.fromJson(jsonDecode(response.body));
+        return _lastResultCache;
       } else {
         throw Exception('Error: ${response.body}');
       }
     }
+
     return null;
   }
 

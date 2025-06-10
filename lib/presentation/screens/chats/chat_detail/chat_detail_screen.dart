@@ -7,6 +7,7 @@ import 'package:acti_mobile/data/models/chat_info_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
+import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/message_card.dart';
@@ -17,20 +18,20 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class ChatDetailScreen extends StatefulWidget {
-  final String interlocutorName;
-  final bool isPrivateChats;
-  final String? trailingText;
-  final String? interlocutorAvatar;
-  final String? interlocutorChatId;
-  final String? interlocutorUserId;
-  const ChatDetailScreen(
+  String? interlocutorName;
+  bool? isPrivateChats;
+  String? trailingText;
+  String? interlocutorAvatar;
+  final String interlocutorChatId;
+  String? interlocutorUserId;
+  ChatDetailScreen(
       {super.key,
-      required this.isPrivateChats,
-      required this.interlocutorAvatar,
-      required this.interlocutorName,
+      this.isPrivateChats,
+      this.interlocutorAvatar,
+      this.interlocutorName,
       required this.interlocutorChatId,
-      required this.interlocutorUserId,
-      required this.trailingText});
+      this.interlocutorUserId,
+      this.trailingText});
 
   @override
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();
@@ -60,6 +61,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   String? interlocutorName;
   String? interlocutorAvatar;
   String? trailing;
+  late bool isPrivate;
+
+  String? status = "Офлайн";
 
   XFile? file;
   bool isUpdatedPhoto = false;
@@ -68,27 +72,34 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   bool isScroll = false;
 
+  ChatInfoModel? chatInfo;
+  bool isOk = false;
+
   @override
   void initState() {
-    initialize();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      initialize();
+    });
   }
 
   initialize() async {
     setState(() {
       isLoading = true;
     });
+
     final userId = await storage.read(key: userIdStorage);
     final accessToken = await storage.read(key: accessStorageToken);
+
+    context
+        .read<ChatBloc>()
+        .add(GetChatHistoryEvent(chatId: widget.interlocutorChatId!));
+
     if (widget.interlocutorChatId != null && widget.interlocutorName != '...') {
       webSocketService = ChatWebSocketService(
         chatId: widget.interlocutorChatId!,
         token: accessToken!,
       );
-
-      context
-          .read<ChatBloc>()
-          .add(GetChatHistoryEvent(chatId: widget.interlocutorChatId!));
     } else if (widget.interlocutorChatId != null &&
         widget.interlocutorName == '...' &&
         widget.interlocutorUserId == null &&
@@ -102,13 +113,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           .read<ChatBloc>()
           .add(GetChatFromPushHistoryEvent(chatId: widget.interlocutorChatId!));
     }
+
     setState(() {
       profileUserId = userId;
       trailing = widget.trailingText;
       chatId = widget.interlocutorChatId;
       interlocutorName = widget.interlocutorName;
       interlocutorAvatar = widget.interlocutorAvatar;
-      isLoading = false;
     });
   }
 
@@ -158,8 +169,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             isLoading = true;
           });
           setState(() {
+            chatInfo = state.chatInfoModel;
             messages = state.chatModel.messages;
+            isPrivate = state.chatInfoModel!.users?.length == null
+                ? false
+                : state.chatInfoModel!.users!.length == 1;
             isLoading = false;
+            isOk = true;
           });
         }
 
@@ -167,6 +183,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           setState(() {
             isLoading = false;
           });
+          webSocketService?.dispose();
           Navigator.pop(context, true);
         }
 
@@ -198,533 +215,610 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           });
         }
       },
-      child: Scaffold(
-          resizeToAvoidBottomInset: true,
-          backgroundColor: Colors.white,
-          appBar: isSearched
-              ? AppBar(
-                  scrolledUnderElevation: 0,
-                  automaticallyImplyLeading: false,
-                  backgroundColor: Colors.white,
-                  // leading: Padding(
-                  //   padding: const EdgeInsets.only(left: 15),
-                  //   child: IconButton(
-                  //       onPressed: () {
-                  //         Navigator.pop(context, false);
-                  //       },
-                  //       icon: Icon(Icons.arrow_back_ios)),
-                  // ),
-                  title: Padding(
-                      padding: const EdgeInsets.only(right: 20, left: 20),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            width: 1.2,
-                            color: Colors.blue,
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Scaffold(
+            resizeToAvoidBottomInset: true,
+            backgroundColor: Colors.white,
+            appBar: isSearched
+                ? AppBar(
+                    scrolledUnderElevation: 0,
+                    automaticallyImplyLeading: false,
+                    backgroundColor: Colors.white,
+                    // leading: Padding(
+                    //   padding: const EdgeInsets.only(left: 15),
+                    //   child: IconButton(
+                    //       onPressed: () {
+                    //         Navigator.pop(context, false);
+                    //       },
+                    //       icon: Icon(Icons.arrow_back_ios)),
+                    // ),
+                    title: Padding(
+                        padding: const EdgeInsets.only(right: 20, left: 20),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              width: 1.2,
+                              color: Colors.blue,
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            IconButton(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              IconButton(
                                 onPressed: () {
                                   isSearched = false;
-                                  setState(() {
-                                    
-                                  });
+                                  setState(() {});
                                 },
-                                icon: Icon(Icons.arrow_back_ios), color: Colors.grey,),
-                            Expanded(
-                              child: TextFormField(
-                                autofocus: true,
-                                controller: seacrhController,
-                                onChanged: filterMessages,
-                                decoration: InputDecoration(
-                                  hintText: 'Поиск',
-                                  isDense: true,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  errorBorder: InputBorder.none,
-                                  disabledBorder: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 12),
-                                  // enabledBorder: OutlineInputBorder(
-                                  //   borderRadius: BorderRadius.circular(10),
-                                  //   borderSide:
-                                  //       BorderSide(width: 1.2, color: Colors.blue),
-                                  // ),
-                                  // focusedBorder: OutlineInputBorder(
-                                  //   borderRadius: BorderRadius.circular(10),
-                                  //   borderSide:
-                                  //       BorderSide(width: 1.2, color: Colors.blue),
-                                  // ),
+                                icon: Icon(Icons.arrow_back_ios),
+                                color: Colors.grey,
+                              ),
+                              Expanded(
+                                child: TextFormField(
+                                  autofocus: true,
+                                  controller: seacrhController,
+                                  onChanged: filterMessages,
+                                  decoration: InputDecoration(
+                                    hintText: 'Поиск',
+                                    isDense: true,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    errorBorder: InputBorder.none,
+                                    disabledBorder: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 12),
+                                    // enabledBorder: OutlineInputBorder(
+                                    //   borderRadius: BorderRadius.circular(10),
+                                    //   borderSide:
+                                    //       BorderSide(width: 1.2, color: Colors.blue),
+                                    // ),
+                                    // focusedBorder: OutlineInputBorder(
+                                    //   borderRadius: BorderRadius.circular(10),
+                                    //   borderSide:
+                                    //       BorderSide(width: 1.2, color: Colors.blue),
+                                    // ),
+                                  ),
                                 ),
                               ),
+                              IconButton(
+                                icon: Icon(Icons.arrow_upward),
+                                onPressed: currentSearchIndex > 0
+                                    ? goToPreviousSearchResult
+                                    : null,
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.arrow_downward),
+                                onPressed: currentSearchIndex <
+                                        filteredMessages.length - 1
+                                    ? goToNextSearchResult
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        )),
+                  )
+                : AppBar(
+                    backgroundColor: Colors.white,
+                    scrolledUnderElevation: 0,
+                    shadowColor: Colors.transparent,
+                    titleSpacing: 1.3,
+                    leading: Padding(
+                      padding: const EdgeInsets.only(left: 15),
+                      child: IconButton(
+                          onPressed: () {
+                            Navigator.pop(context, false);
+                          },
+                          icon: Icon(Icons.arrow_back_ios)),
+                    ),
+                    actions: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20),
+                        child: PopupMenuButton<int>(
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          offset: const Offset(0, 20),
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem<int>(
+                              value: 0,
+                              onTap: () {
+                                if (!mounted) return;
+                                setState(() {
+                                  isSearched = true;
+                                });
+                              },
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(
+                                      'assets/icons/icon_search.svg'),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    "Поиск",
+                                    style: TextStyle(
+                                        fontFamily: 'Gilroy',
+                                        fontSize: 12.93,
+                                        color: Colors.black),
+                                  ),
+                                ],
+                              ),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.arrow_upward),
-                              onPressed: currentSearchIndex > 0
-                                  ? goToPreviousSearchResult
-                                  : null,
+                            PopupMenuItem<int>(
+                              value: 0,
+                              onTap: () {
+                                if (chatId != null) {
+                                  showBlockDialog(
+                                      context,
+                                      'Удалить диалог?',
+                                      trailing != null
+                                          ? 'Вы точно хотите удалить групповой чат?'
+                                          : 'Вы точно хотите удалить диалог c пользователем $interlocutorName?',
+                                      () {
+                                    setState(() {
+                                      isLoading = true;
+                                    });
+                                    context
+                                        .read<ChatBloc>()
+                                        .add(DeleteChatEvent(chatId: chatId!));
+                                  });
+                                }
+                              },
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(
+                                      'assets/icons/icon_delete.svg'),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    "Удалить у всех",
+                                    style: TextStyle(
+                                        fontFamily: 'Gilroy',
+                                        fontSize: 12.93,
+                                        color: Colors.red),
+                                  ),
+                                ],
+                              ),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.arrow_downward),
-                              onPressed: currentSearchIndex <
-                                      filteredMessages.length - 1
-                                  ? goToNextSearchResult
-                                  : null,
+                          ],
+                          child:
+                              const Icon(Icons.more_vert, color: Colors.black),
+                        ),
+                      ),
+                    ],
+                    title: Padding(
+                      padding: const EdgeInsets.only(right: 20),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                if (chatInfo != null) {
+                                  if (chatInfo?.eventId == null) {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                PublicUserScreen(
+                                                    userId: chatInfo!
+                                                        .users!.first.id)));
+                                  } else {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                EventDetailScreen(
+                                                  eventId:
+                                                      chatInfo!.eventId ?? "",
+                                                )));
+                                  }
+                                }
+                              },
+                              child: chatInfo == null
+                                  ? CircleAvatar(
+                                      maxRadius: 26,
+                                      backgroundImage: AssetImage(
+                                        'assets/images/image_profile.png',
+                                      ))
+                                  : chatInfo?.event?.photos?.first == null &&
+                                          chatInfo?.users?.first.photoUrl ==
+                                              null
+                                      ? CircleAvatar(
+                                          maxRadius: 26,
+                                          backgroundImage: AssetImage(
+                                            'assets/images/image_default_event.png',
+                                          ))
+                                      : CircleAvatar(
+                                          maxRadius: 26,
+                                          backgroundImage: NetworkImage(
+                                              chatInfo?.event?.photos?.first ==
+                                                      null
+                                                  ? chatInfo!.users?.first
+                                                          .photoUrl ??
+                                                      ""
+                                                  : chatInfo!
+                                                      .event!.photos!.first)),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  chatInfo?.event != null
+                                      ? Text(
+                                          chatInfo?.event?.title ?? '...',
+                                          style: TextStyle(
+                                              fontFamily: 'Inter',
+                                              fontSize: 17.14,
+                                              overflow: TextOverflow.visible,
+                                              fontWeight: FontWeight.bold),
+                                        )
+                                      : chatInfo?.users != null
+                                          ? Text(
+                                              chatInfo?.users!.first.name ??
+                                                  '...',
+                                              style: TextStyle(
+                                                  fontFamily: 'Inter',
+                                                  fontSize: 17.14,
+                                                  overflow:
+                                                      TextOverflow.visible,
+                                                  fontWeight: FontWeight.bold),
+                                            )
+                                          : Text(
+                                              '...',
+                                              style: TextStyle(
+                                                  fontFamily: 'Inter',
+                                                  fontSize: 17.14,
+                                                  overflow:
+                                                      TextOverflow.visible,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                  SizedBox(
+                                    height: status != null ? 5 : 0,
+                                  ),
+                                  chatInfo != null
+                                      ? Text(
+                                          status ?? "",
+                                          style: TextStyle(
+                                            fontFamily: 'Gilroy',
+                                            fontSize: 16,
+                                          ),
+                                        )
+                                      : Text(
+                                          'Оффлайн',
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                      )),
-                )
-              : AppBar(
-                  backgroundColor: Colors.white,
-                  scrolledUnderElevation: 0,
-                  shadowColor: Colors.transparent,
-                  titleSpacing: 1.3,
-                  leading: Padding(
-                    padding: const EdgeInsets.only(left: 15),
-                    child: IconButton(
-                        onPressed: () {
-                          Navigator.pop(context, false);
-                        },
-                        icon: Icon(Icons.arrow_back_ios)),
-                  ),
-                  actions: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 20),
-                      child: PopupMenuButton<int>(
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        offset: const Offset(0, 20),
-                        itemBuilder: (BuildContext context) => [
-                          PopupMenuItem<int>(
-                            value: 0,
-                            onTap: () {
-                              if (!mounted) return;
-                              setState(() {
-                                isSearched = true;
-                              });
-                            },
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(
-                                    'assets/icons/icon_search.svg'),
-                                SizedBox(width: 10),
-                                Text(
-                                  "Поиск",
-                                  style: TextStyle(
-                                      fontFamily: 'Gilroy',
-                                      fontSize: 12.93,
-                                      color: Colors.black),
-                                ),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem<int>(
-                            value: 0,
-                            onTap: () {
-                              if (chatId != null) {
-                                showBlockDialog(
-                                    context,
-                                    'Удалить диалог?',
-                                    trailing != null
-                                        ? 'Вы точно хотите удалить групповой чат?'
-                                        : 'Вы точно хотите удалить диалог c пользователем $interlocutorName?',
-                                    () {
-                                  setState(() {
-                                    isLoading = true;
-                                  });
-                                  context
-                                      .read<ChatBloc>()
-                                      .add(DeleteChatEvent(chatId: chatId!));
-                                });
-                              }
-                            },
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(
-                                    'assets/icons/icon_delete.svg'),
-                                SizedBox(width: 10),
-                                Text(
-                                  "Удалить у всех",
-                                  style: TextStyle(
-                                      fontFamily: 'Gilroy',
-                                      fontSize: 12.93,
-                                      color: Colors.red),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                        child: const Icon(Icons.more_vert, color: Colors.black),
                       ),
                     ),
-                  ],
-                  title: Padding(
-                    padding: const EdgeInsets.only(right: 20),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
+                  ),
+            body: isLoading || isOk == false
+                ? LoaderWidget()
+                : SafeArea(
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.only(left: 15, right: 15, top: 15),
+                      child: Column(
                         children: [
-                          InkWell(
-                            onTap: () {
-                              if (widget.interlocutorUserId != null) {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => PublicUserScreen(
-                                            userId:
-                                                widget.interlocutorUserId!)));
-                              }
-                            },
-                            child: interlocutorAvatar == null &&
-                                    widget.trailingText == null
-                                ? CircleAvatar(
-                                    maxRadius: 26,
-                                    backgroundImage: AssetImage(
-                                      'assets/images/image_profile.png',
-                                    ))
-                                : interlocutorAvatar == null &&
-                                        widget.trailingText != null
-                                    ? CircleAvatar(
-                                        maxRadius: 26,
-                                        backgroundImage: AssetImage(
-                                          'assets/images/image_default_event.png',
-                                        ))
-                                    : CircleAvatar(
-                                        maxRadius: 26,
-                                        backgroundImage:
-                                            NetworkImage(interlocutorAvatar!)),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  interlocutorName ?? '...',
-                                  style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 17.14,
-                                      overflow: TextOverflow.visible,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(
-                                  height: widget.trailingText != null ? 5 : 0,
-                                ),
-                                widget.trailingText != null
-                                    ? Text(
-                                        widget.trailingText!,
-                                        style: TextStyle(
-                                          fontFamily: 'Gilroy',
-                                          fontSize: 16,
-                                        ),
-                                      )
-                                    : Text(
-                                        'Онлайн',
-                                        style: TextStyle(
-                                          fontFamily: 'Inter',
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-          body: isLoading
-              ? LoaderWidget()
-              : SafeArea(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.only(left: 15, right: 15, top: 15),
-                    child: Column(
-                      children: [
-                        messages.isEmpty
-                            ? Expanded(
-                                child: Column(
-                                  children: [],
-                                ),
-                              )
-                            : Expanded(
-                                child: StreamBuilder(
-                                  stream: webSocketService!.stream,
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasData) {
-                                      final result = ChatSnapshotModel.fromJson(
-                                          jsonDecode(snapshot.data));
-                                      if (result.type == 'new_message') {
-                                        print(result);
+                          messages.isEmpty
+                              ? Expanded(
+                                  child: Column(
+                                    children: [],
+                                  ),
+                                )
+                              : Expanded(
+                                  child: StreamBuilder(
+                                    stream: webSocketService!.stream,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        final result =
+                                            ChatSnapshotModel.fromJson(
+                                                jsonDecode(snapshot.data));
+                                        if (result.type == 'new_message') {
+                                          print(result);
 
-                                        final newMessage = result.message;
-                                        final alreadyExists = messages
-                                            .any((m) => m.id == newMessage!.id);
-                                        if (!alreadyExists) {
+                                          final newMessage = result.message;
+                                          final alreadyExists = messages.any(
+                                              (m) => m.id == newMessage!.id);
+                                          if (!alreadyExists) {
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((_) {
+                                              setState(() {
+                                                messages.add(newMessage!);
+                                              });
+                                            });
+                                          }
+                                        } else if (result.type ==
+                                                'user_typing' &&
+                                            result.userId != profileUserId &&
+                                            result.userId != null) {
                                           WidgetsBinding.instance
                                               .addPostFrameCallback((_) {
                                             setState(() {
-                                              messages.add(newMessage!);
+                                              status = "Печатает...";
+                                              messages.forEach(
+                                                  (i) => i.status = "read");
+                                              isReaded = true;
                                             });
                                           });
-                                        }
-                                      } else if (result.type ==
-                                          'message_status_update') {
-                                        WidgetsBinding.instance
-                                            .addPostFrameCallback((_) {
-                                          setState(() {
-                                            isReaded = true;
+                                          print(result);
+                                        } else if (result.type ==
+                                                'user_joined' &&
+                                            result.userId != profileUserId &&
+                                            result.userId != null) {
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                            setState(() {
+                                              status = "Онлайн";
+                                              messages.forEach(
+                                                  (i) => i.status = "read");
+                                              isReaded = true;
+                                            });
                                           });
-                                        });
-                                        print(result);
+                                          print(result);
+                                        } else if (result.type ==
+                                                'user_left' &&
+                                            result.userId != profileUserId &&
+                                            result.userId != null) {
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                            setState(() {
+                                              status = "Офлайн";
+                                            });
+                                          });
+                                          print(result);
+                                        }
                                       }
-                                    }
 
-                                    return ListView.builder(
-                                      shrinkWrap: true,
-                                      primary: false,
-                                      itemCount: messages.length,
-                                      controller: scrollController,
-                                      itemBuilder: (context, index) {
-                                        final message = messages[index];
-                                        final isMe =
-                                            message.userId == profileUserId;
-                                        final hasAttachment =
-                                            message.attachmentUrl != null;
-                                        final isLongText =
-                                            message.content.length > 40;
+                                      return ListView.builder(
+                                        shrinkWrap: true,
+                                        primary: false,
+                                        itemCount: messages.length,
+                                        controller: scrollController,
+                                        itemBuilder: (context, index) {
+                                          final message = messages[index];
+                                          final isMe =
+                                              message.userId == profileUserId;
+                                          final hasAttachment =
+                                              message.attachmentUrl != null;
+                                          final isLongText =
+                                              message.content.length > 40;
 
-                                        final isFirstMsg =
-                                            index == messages.length - 1;
-                                        final isSpecial = isFirstMsg ||
-                                            messages[index].userId !=
-                                                messages[index + 1].userId;
+                                          final isFirstMsg =
+                                              index == messages.length - 1;
+                                          final isSpecial = isFirstMsg ||
+                                              messages[index].userId !=
+                                                  messages[index + 1].userId;
 
-                                        final key = _messageKeys[message.id] ??=
-                                            GlobalKey();
+                                          final key =
+                                              _messageKeys[message.id] ??=
+                                                  GlobalKey();
 
-                                        return Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 15, vertical: 5),
-                                          child: Column(
-                                            crossAxisAlignment: isMe
-                                                ? CrossAxisAlignment.end
-                                                : CrossAxisAlignment.start,
-                                            children: [
-                                              Align(
-                                                alignment: isMe
-                                                    ? Alignment.centerRight
-                                                    : Alignment.centerLeft,
-                                                child: ConstrainedBox(
-                                                  constraints: BoxConstraints(
-                                                    maxWidth: (hasAttachment ||
-                                                            isLongText)
-                                                        ? MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.85
-                                                        : MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.47,
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 15, vertical: 5),
+                                            child: Column(
+                                              crossAxisAlignment: isMe
+                                                  ? CrossAxisAlignment.end
+                                                  : CrossAxisAlignment.start,
+                                              children: [
+                                                Align(
+                                                  alignment: isMe
+                                                      ? Alignment.centerRight
+                                                      : Alignment.centerLeft,
+                                                  child: ConstrainedBox(
+                                                    constraints: BoxConstraints(
+                                                      maxWidth: (hasAttachment ||
+                                                              isLongText)
+                                                          ? MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              0.85
+                                                          : MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              0.47,
+                                                    ),
+                                                    child: MessageCard(
+                                                      key: key,
+                                                      isPrivateChats: isPrivate,
+                                                      message: message,
+                                                      currentUserId:
+                                                          profileUserId!,
+                                                      special: isSpecial,
+                                                      highlightText: isSearching
+                                                          ? searchText
+                                                          : null,
+                                                      isHighlighted: isSearching &&
+                                                          filteredMessages
+                                                              .isNotEmpty &&
+                                                          message.id ==
+                                                              filteredMessages[
+                                                                      currentSearchIndex]
+                                                                  .id,
+                                                      isReaded: isReaded,
+                                                    ),
+                                                    // child: Card(
+                                                    //   elevation: 1.4,
+                                                    //   color: isMe
+                                                    //       ? mainBlueColor
+                                                    //       : Colors.white,
+                                                    //   shape:
+                                                    //       RoundedRectangleBorder(
+                                                    //     side: isMe
+                                                    //         ? BorderSide.none
+                                                    //         : BorderSide(
+                                                    //             color:
+                                                    //                 Colors.grey,
+                                                    //           ),
+                                                    //     borderRadius:
+                                                    //         BorderRadius.only(
+                                                    //       topLeft:
+                                                    //           Radius.circular(
+                                                    //               isMe ? 20 : 15),
+                                                    //       topRight:
+                                                    //           Radius.circular(
+                                                    //               isMe ? 15 : 20),
+                                                    //       bottomLeft:
+                                                    //           Radius.circular(
+                                                    //               isMe ? 20 : 15),
+                                                    //       bottomRight:
+                                                    //           Radius.circular(
+                                                    //               isMe ? 15 : 20),
+                                                    //     ),
+                                                    //   ),
+                                                    //   child: Container(
+                                                    //     padding: const EdgeInsets
+                                                    //         .symmetric(
+                                                    //         horizontal: 10,
+                                                    //         vertical: 5),
+                                                    //     child: Column(
+                                                    //       crossAxisAlignment:
+                                                    //           CrossAxisAlignment
+                                                    //               .start,
+                                                    //       children: [
+                                                    //         if (hasAttachment) ...[
+                                                    //           ClipRRect(
+                                                    //             borderRadius:
+                                                    //                 BorderRadius
+                                                    //                     .circular(
+                                                    //                         12),
+                                                    //             child: Image.network(
+                                                    //                 message
+                                                    //                     .attachmentUrl!,
+                                                    //                 fit: BoxFit
+                                                    //                     .cover,
+                                                    //                 width: double
+                                                    //                     .infinity,
+                                                    //                 height: 300,
+                                                    //                 loadingBuilder: (BuildContext
+                                                    //                         context,
+                                                    //                     Widget
+                                                    //                         child,
+                                                    //                     ImageChunkEvent?
+                                                    //                         loadingProgress) {
+                                                    //               if (loadingProgress ==
+                                                    //                   null)
+                                                    //                 return child;
+                                                    //               return SizedBox(
+                                                    //                 height: 300,
+                                                    //                 child: Center(
+                                                    //                   child:
+                                                    //                       CircularProgressIndicator(
+                                                    //                     color: Colors
+                                                    //                         .white,
+                                                    //                     value: loadingProgress.expectedTotalBytes !=
+                                                    //                             null
+                                                    //                         ? loadingProgress.cumulativeBytesLoaded /
+                                                    //                             loadingProgress.expectedTotalBytes!
+                                                    //                         : null,
+                                                    //                   ),
+                                                    //                 ),
+                                                    //               );
+                                                    //             }),
+                                                    //           ),
+                                                    //         ],
+                                                    //         if (message.content
+                                                    //             .isNotEmpty) ...[
+                                                    //           Text(
+                                                    //             message.content,
+                                                    //             style: TextStyle(
+                                                    //               height: 1.3,
+                                                    //               fontSize: 16,
+                                                    //               fontFamily:
+                                                    //                   'Jakarta',
+                                                    //               color: isMe
+                                                    //                   ? Colors
+                                                    //                       .white
+                                                    //                   : Colors
+                                                    //                       .black,
+                                                    //             ),
+                                                    //           ),
+                                                    //         ],
+                                                    //         SizedBox(
+                                                    //           height: 5,
+                                                    //         ),
+                                                    //         Row(
+                                                    //           mainAxisAlignment:
+                                                    //               MainAxisAlignment
+                                                    //                   .end,
+                                                    //           children: [
+                                                    //             Row(
+                                                    //               children: [
+                                                    //                 Text(
+                                                    //                   DateFormat(
+                                                    //                           'HH:mm')
+                                                    //                       .format(
+                                                    //                           message.createdAt),
+                                                    //                   style:
+                                                    //                       TextStyle(
+                                                    //                     fontFamily:
+                                                    //                         'Gilroy',
+                                                    //                     fontWeight:
+                                                    //                         FontWeight
+                                                    //                             .w600,
+                                                    //                     color: isMe
+                                                    //                         ? Color.fromARGB(
+                                                    //                             255,
+                                                    //                             233,
+                                                    //                             237,
+                                                    //                             239)
+                                                    //                         : Color.fromARGB(
+                                                    //                             255,
+                                                    //                             158,
+                                                    //                             157,
+                                                    //                             159),
+                                                    //                     fontSize:
+                                                    //                         14,
+                                                    //                   ),
+                                                    //                 ),
+                                                    //                 SizedBox(
+                                                    //                   width: 5,
+                                                    //                 ),
+                                                    //                 isMe == true &&
+                                                    //                         isReaded ==
+                                                    //                             true
+                                                    //                     ? SvgPicture
+                                                    //                         .asset(
+                                                    //                         'assets/icons/icon_readed.svg',
+                                                    //                       )
+                                                    //                     : const SizedBox
+                                                    //                         .shrink(),
+                                                    //               ],
+                                                    //             ),
+                                                    //           ],
+                                                    //         ),
+                                                    //       ],
+                                                    //     ),
+                                                    //   ),
+                                                    // ),
                                                   ),
-                                                  child: MessageCard(
-                                                    key: key,
-                                                    isPrivateChats:
-                                                        widget.isPrivateChats,
-                                                    message: message,
-                                                    currentUserId:
-                                                        profileUserId!,
-                                                    special: isSpecial,
-                                                    highlightText: isSearching
-                                                        ? searchText
-                                                        : null,
-                                                    isHighlighted: isSearching &&
-                                                        filteredMessages
-                                                            .isNotEmpty &&
-                                                        message.id ==
-                                                            filteredMessages[
-                                                                    currentSearchIndex]
-                                                                .id,
-                                                  ),
-                                                  // child: Card(
-                                                  //   elevation: 1.4,
-                                                  //   color: isMe
-                                                  //       ? mainBlueColor
-                                                  //       : Colors.white,
-                                                  //   shape:
-                                                  //       RoundedRectangleBorder(
-                                                  //     side: isMe
-                                                  //         ? BorderSide.none
-                                                  //         : BorderSide(
-                                                  //             color:
-                                                  //                 Colors.grey,
-                                                  //           ),
-                                                  //     borderRadius:
-                                                  //         BorderRadius.only(
-                                                  //       topLeft:
-                                                  //           Radius.circular(
-                                                  //               isMe ? 20 : 15),
-                                                  //       topRight:
-                                                  //           Radius.circular(
-                                                  //               isMe ? 15 : 20),
-                                                  //       bottomLeft:
-                                                  //           Radius.circular(
-                                                  //               isMe ? 20 : 15),
-                                                  //       bottomRight:
-                                                  //           Radius.circular(
-                                                  //               isMe ? 15 : 20),
-                                                  //     ),
-                                                  //   ),
-                                                  //   child: Container(
-                                                  //     padding: const EdgeInsets
-                                                  //         .symmetric(
-                                                  //         horizontal: 10,
-                                                  //         vertical: 5),
-                                                  //     child: Column(
-                                                  //       crossAxisAlignment:
-                                                  //           CrossAxisAlignment
-                                                  //               .start,
-                                                  //       children: [
-                                                  //         if (hasAttachment) ...[
-                                                  //           ClipRRect(
-                                                  //             borderRadius:
-                                                  //                 BorderRadius
-                                                  //                     .circular(
-                                                  //                         12),
-                                                  //             child: Image.network(
-                                                  //                 message
-                                                  //                     .attachmentUrl!,
-                                                  //                 fit: BoxFit
-                                                  //                     .cover,
-                                                  //                 width: double
-                                                  //                     .infinity,
-                                                  //                 height: 300,
-                                                  //                 loadingBuilder: (BuildContext
-                                                  //                         context,
-                                                  //                     Widget
-                                                  //                         child,
-                                                  //                     ImageChunkEvent?
-                                                  //                         loadingProgress) {
-                                                  //               if (loadingProgress ==
-                                                  //                   null)
-                                                  //                 return child;
-                                                  //               return SizedBox(
-                                                  //                 height: 300,
-                                                  //                 child: Center(
-                                                  //                   child:
-                                                  //                       CircularProgressIndicator(
-                                                  //                     color: Colors
-                                                  //                         .white,
-                                                  //                     value: loadingProgress.expectedTotalBytes !=
-                                                  //                             null
-                                                  //                         ? loadingProgress.cumulativeBytesLoaded /
-                                                  //                             loadingProgress.expectedTotalBytes!
-                                                  //                         : null,
-                                                  //                   ),
-                                                  //                 ),
-                                                  //               );
-                                                  //             }),
-                                                  //           ),
-                                                  //         ],
-                                                  //         if (message.content
-                                                  //             .isNotEmpty) ...[
-                                                  //           Text(
-                                                  //             message.content,
-                                                  //             style: TextStyle(
-                                                  //               height: 1.3,
-                                                  //               fontSize: 16,
-                                                  //               fontFamily:
-                                                  //                   'Jakarta',
-                                                  //               color: isMe
-                                                  //                   ? Colors
-                                                  //                       .white
-                                                  //                   : Colors
-                                                  //                       .black,
-                                                  //             ),
-                                                  //           ),
-                                                  //         ],
-                                                  //         SizedBox(
-                                                  //           height: 5,
-                                                  //         ),
-                                                  //         Row(
-                                                  //           mainAxisAlignment:
-                                                  //               MainAxisAlignment
-                                                  //                   .end,
-                                                  //           children: [
-                                                  //             Row(
-                                                  //               children: [
-                                                  //                 Text(
-                                                  //                   DateFormat(
-                                                  //                           'HH:mm')
-                                                  //                       .format(
-                                                  //                           message.createdAt),
-                                                  //                   style:
-                                                  //                       TextStyle(
-                                                  //                     fontFamily:
-                                                  //                         'Gilroy',
-                                                  //                     fontWeight:
-                                                  //                         FontWeight
-                                                  //                             .w600,
-                                                  //                     color: isMe
-                                                  //                         ? Color.fromARGB(
-                                                  //                             255,
-                                                  //                             233,
-                                                  //                             237,
-                                                  //                             239)
-                                                  //                         : Color.fromARGB(
-                                                  //                             255,
-                                                  //                             158,
-                                                  //                             157,
-                                                  //                             159),
-                                                  //                     fontSize:
-                                                  //                         14,
-                                                  //                   ),
-                                                  //                 ),
-                                                  //                 SizedBox(
-                                                  //                   width: 5,
-                                                  //                 ),
-                                                  //                 isMe == true &&
-                                                  //                         isReaded ==
-                                                  //                             true
-                                                  //                     ? SvgPicture
-                                                  //                         .asset(
-                                                  //                         'assets/icons/icon_readed.svg',
-                                                  //                       )
-                                                  //                     : const SizedBox
-                                                  //                         .shrink(),
-                                                  //               ],
-                                                  //             ),
-                                                  //           ],
-                                                  //         ),
-                                                  //       ],
-                                                  //     ),
-                                                  //   ),
-                                                  // ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                                 ),
-                              ),
-                        if (!isSearched) inputMessage(context),
-                      ],
+                          if (!isSearched) inputMessage(context),
+                        ],
+                      ),
                     ),
-                  ),
-                )),
+                  )),
+      ),
     );
   }
 
@@ -783,6 +877,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         : Container(),
                     TextFormField(
                       controller: messageController,
+                      onChanged: (value) => webSocketService!.sendTyping(),
                       decoration: InputDecoration(
                         hintText: 'Сообщение',
                         filled: true,
@@ -835,7 +930,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                     file = null;
                                     messageController.clear();
                                   });
+                                  webSocketService!.sendOnline();
                                 }
+                                
                               },
                             ),
                           ],

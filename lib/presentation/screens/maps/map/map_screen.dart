@@ -168,7 +168,7 @@ class _MapScreenState extends State<MapScreen> {
     if (currentPermission.name != 'denied') {
       if (await checkGeolocator()) {
         final position = await geolocator.Geolocator.getCurrentPosition();
-        MapApi().updateUserLocation(position.latitude, position.longitude);
+        await delayedLocationUpdate(position.latitude, position.longitude);
         setState(() {
           currentUserPosition = Position(position.longitude, position.latitude);
           currentSelectedPosition =
@@ -200,6 +200,11 @@ class _MapScreenState extends State<MapScreen> {
     context.read<ProfileBloc>().add(InitializeMapEvent(
         latitude: currentSelectedPosition.lat.toDouble(),
         longitude: currentSelectedPosition.lng.toDouble()));
+  }
+
+  Future<void> delayedLocationUpdate(double lat, double lon) async {
+    await Future.delayed(Duration(seconds: 10));
+    await MapApi().updateUserLocation(lat, lon);
   }
 
   @override
@@ -277,7 +282,7 @@ class _MapScreenState extends State<MapScreen> {
 
           // Ensure mapboxMap and pointAnnotationManager are initialized before adding annotations
           if (mapboxMap != null) {
-            for (var event in searchedEventsModel!.events) {
+            for (var event in searchedEventsModel!.events.toList()) {
               final result = await screenshotController.captureFromWidget(
                 CategoryMarker(
                     title: event.category!.name,

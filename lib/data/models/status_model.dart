@@ -38,3 +38,5 @@ String getStatusText(String status) {
       return '';
   }
 }
+
+List completedStatus = ["rejected", "completed", "canceled"];

@@ -1,8 +1,12 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/date_utils.dart';
 import 'package:acti_mobile/data/models/notifications_model.dart';
+import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/detail/event_detail_home_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/requests/event_request_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -37,15 +41,26 @@ class NotificationTile extends StatelessWidget {
           Text(
             notification.content,
             style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-            ),
+                fontFamily: 'Gilroy',
+                fontWeight: FontWeight.w400,
+                fontSize: 17.14,
+                letterSpacing: 0,
+                color: Colors.black),
           ),
           Text(
             formattedTimestamp(notification.sentAt.toLocal()),
             style: TextStyle(
-                fontFamily: 'Inter', fontSize: 13, color: Colors.grey),
+                fontFamily: 'Gilroy',
+                fontWeight: FontWeight.w500,
+                fontSize: 11,
+                color: Color.fromARGB(
+                  255,
+                  137,
+                  137,
+                  137,
+                )),
           ),
+          Text(notification.type),
           SizedBox(height: 5),
           _handleTap(context, notification),
         ],
@@ -55,7 +70,7 @@ class NotificationTile extends StatelessWidget {
   }
 
   Widget _getIcon(NotificationModel n) {
-    final double radius = 30;
+    final double radius = 24;
 
     if (n.sender != null) {
       final photoUrl = n.sender?.photoUrl;
@@ -82,7 +97,7 @@ class NotificationTile extends StatelessWidget {
     }
 
     return CircleAvatar(
-      radius: 30,
+      radius: 24,
       backgroundImage:
           const AssetImage('assets/images/image_default_event.png'),
     );
@@ -128,11 +143,29 @@ class NotificationTile extends StatelessWidget {
 
     switch (type) {
       case 'new_message':
-        return Container();
+        return NotificationButton(
+            text: "К чату",
+            onTap: () async {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => ChatDetailScreen(
+                            interlocutorChatId: n.chatId ?? "",
+                          )));
+            });
       case 'email_verification':
       case 'email_verified':
         return Container();
       case 'event_invite':
+        return NotificationButton(
+            text: "К заявкам",
+            onTap: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          EventDetailHomeScreen(eventId: n.eventId ?? "")));
+            });
       case 'event_reminder':
       case 'event_update':
       case 'new_comment':
@@ -147,7 +180,15 @@ class NotificationTile extends StatelessWidget {
       case 'event_finished':
       case 'event_edited_by_admin':
       case 'event_deleted_by_admin':
-        return NotificationButton(text: "Событие", onTap: () {});
+        return NotificationButton(
+            text: "Событие",
+            onTap: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          EventDetailScreen(eventId: n.eventId ?? "")));
+            });
       case 'report_resolved':
       case 'user_blocked':
       case 'user_banned':
@@ -184,10 +225,10 @@ class NotificationButton extends StatelessWidget {
             onTap: onTap,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 5),
-              width: MediaQuery.of(context).size.width * 0.8,
+              width: 180,
               decoration: BoxDecoration(
-                color: mainBlueColor,
-                borderRadius: BorderRadius.circular(10),
+                color: Color.fromARGB(255, 66, 147, 239),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 text,
@@ -195,8 +236,8 @@ class NotificationButton extends StatelessWidget {
                 style: TextStyle(
                     color: Colors.white,
                     fontFamily: 'Gilroy',
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500),
               ),
             ),
           ),

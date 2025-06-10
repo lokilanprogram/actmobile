@@ -62,7 +62,7 @@ class NotificationService {
           builder: (_) => ChatDetailScreen(
             isPrivateChats: true,
             interlocutorAvatar: null,
-            interlocutorChatId: null,
+            interlocutorChatId: "",
             interlocutorName: '...',
             trailingText: null,
             interlocutorUserId: null,

@@ -77,11 +77,9 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
               .showSnackBar(SnackBar(content: Text('Ошибка')));
         }
         if (state is ProfileGotPublicUserErrorState) {
-          setState(() {
-            isLoading = false;
-          });
+          Navigator.pop(context);
           ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Ошибка')));
+              .showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -169,47 +167,43 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                 left: 0,
                                 right: 0,
                                 child: ClipRRect(
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(
-                                        sigmaX: 20, sigmaY: 20),
-                                    child: Container(
-                                      height: 120,
-                                      padding: const EdgeInsets.only(
-                                          left: 20, right: 20, top: 10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(
-                                            0.3), // Тёмный полупрозрачный фон
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            publicUserModel.surname != null &&
-                                                    publicUserModel.surname != ""
-                                                ? '${capitalize(publicUserModel.surname!)} ${capitalize(publicUserModel.name!)}'
-                                                : capitalize(
-                                                    publicUserModel?.name ?? "Неизвестный"),
-                                            style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontSize: 32,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
+                                  child: Container(
+                                    height: 120,
+                                    padding: const EdgeInsets.only(
+                                        left: 20, right: 20, top: 10),
+                                    // decoration: BoxDecoration(
+                                    //   color: Colors.grey.withOpacity(
+                                    //       0.3), // Тёмный полупрозрачный фон
+                                    // ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          publicUserModel.surname != null &&
+                                                  publicUserModel.surname != ""
+                                              ? '${capitalize(publicUserModel.surname!)} ${capitalize(publicUserModel.name!)}'
+                                              : capitalize(
+                                                  publicUserModel?.name ?? "Неизвестный"),
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 32,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
                                           ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            capitalize(publicUserModel.status ??
-                                                'Offline'),
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.white70,
-                                            ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          capitalize(publicUserModel.status ??
+                                              'Offline'),
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white.withOpacity(0.5),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -296,7 +290,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                         'assets/icons/icon_star.svg'),
                                     const SizedBox(width: 3),
                                     GradientText(
-                                      '4.1',
+                                      publicUserModel.rating != null ? publicUserModel.rating.toString() : '0',
                                       gradient: LinearGradient(
                                         colors: [
                                           Color.fromRGBO(23, 132, 255, 1),
@@ -358,7 +352,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                                 publicUserModel.name ??
                                                     'Неизвестный',
                                             interlocutorChatId:
-                                                publicUserModel.chatId,
+                                                publicUserModel.chatId ?? "",
                                             interlocutorUserId: widget.userId,
                                           )));
                             }),

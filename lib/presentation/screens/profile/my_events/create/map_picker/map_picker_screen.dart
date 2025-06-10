@@ -53,11 +53,32 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
         await geolocator.Geolocator.requestPermission();
       }
 
-      final position = await geolocator.Geolocator.getCurrentPosition();
-      setState(() {
-        currentPosition = position;
-        isLoading = false;
-      });
+      try {
+        final position = await geolocator.Geolocator.getCurrentPosition();
+        setState(() {
+          currentPosition = position;
+          isLoading = false;
+        });
+      } on Exception catch (e) {
+        const defaultLatitude = 55.7558;
+        const defaultLongitude = 37.6173;
+        final position = geolocator.Position(
+          latitude: defaultLatitude,
+          longitude: defaultLongitude,
+          timestamp: DateTime.now(),
+          accuracy: 0.0,
+          altitude: 0.0,
+          heading: 0.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+          altitudeAccuracy: 0.0,
+          headingAccuracy: 0.0,
+        );
+        setState(() {
+          currentPosition = position;
+          isLoading = false;
+        });
+      }
     } else {
       setState(() {
         tappedPosition = widget.position;
@@ -197,7 +218,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     setState(() {
       print('Suggestion text: ${suggestion.text}'); // Логирование
       print('Suggestion placeName: ${suggestion.placeName}'); // Логирование
-      searchController.text = suggestion.text;
+      searchController.text = suggestion.placeName;
       _suggestions = [];
     });
     await pointAnnotationManager.deleteAll();

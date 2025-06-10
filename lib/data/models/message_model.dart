@@ -13,16 +13,19 @@ String welcomeToJson(MessageModel data) => json.encode(data.toJson());
 class ChatSnapshotModel {
     String type;
     MessageModel? message;
+    String? userId;
 
     ChatSnapshotModel({
         required this.type,
         required this.message,
+        this.userId,
     });
 
     factory ChatSnapshotModel.fromJson(Map<String, dynamic> json) => ChatSnapshotModel(
         type: json["type"],
         message:json["message"]!=null?
          MessageModel.fromJson(json["message"]):null,
+         userId:json["user_id"] ?? "",
     );
 
     Map<String, dynamic> toJson() => {

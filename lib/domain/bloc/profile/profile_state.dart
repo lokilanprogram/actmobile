@@ -12,6 +12,8 @@ class ProfileGotState extends ProfileState {
       {required this.profileModel, required this.similiarUsersModel});
 }
 
+
+
 class ProfileGotErrorState extends ProfileState {}
 
 class ProfileUpdatedState extends ProfileState {
@@ -105,7 +107,11 @@ class ProfileGotPublicUserState extends ProfileState {
   ProfileGotPublicUserState({required this.publicUserModel});
 }
 
-class ProfileGotPublicUserErrorState extends ProfileState {}
+class ProfileGotPublicUserErrorState extends ProfileState {
+  final String message;
+
+  ProfileGotPublicUserErrorState({required this.message});
+}
 
 class ProfileAcceptedUserOnActivityState extends ProfileState {
   final String userId;

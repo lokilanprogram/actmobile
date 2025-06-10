@@ -5,6 +5,7 @@ import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/widgets/full_image_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 
 class MessageCard extends StatefulWidget {
@@ -17,6 +18,7 @@ class MessageCard extends StatefulWidget {
     this.interlocutorUserId,
     this.highlightText,
     required this.isHighlighted,
+    required this.isReaded,
   });
 
   final String? interlocutorUserId;
@@ -26,6 +28,7 @@ class MessageCard extends StatefulWidget {
   final String currentUserId;
   final String? highlightText;
   final bool isHighlighted;
+  final bool isReaded;
 
   @override
   State<MessageCard> createState() => _MessageCardState();
@@ -187,24 +190,33 @@ class _MessageCardState extends State<MessageCard>
                               },
                               child: Text(widget.message.user.name),
                             ),
-                          Text.rich(
+                          SelectableText.rich(
                             TextSpan(
-                              children: _highlightOccurrences(
-                                  '${widget.message.content} $textPadding',
+                              children: [
+                                ..._highlightOccurrences(
+                                  widget.message.content,
                                   widget.highlightText,
                                   !isSentMessageCard
                                       ? Colors.black
-                                      : Colors.white),
-                              // '${widget.message.content} $textPadding',
-                              // textWidthBasis: TextWidthBasis.longestLine,
-                              // style: TextStyle(
-                              //     fontSize: 16,
-                              //     color: !isSentMessageCard
-                              //         ? Colors.black
-                              //         : Colors.white),
-                              // softWrap: true,
+                                      : Colors.white,
+                                ),
+                                WidgetSpan(
+                                  child: IgnorePointer(
+                                    child: Opacity(
+                                      opacity: 0,
+                                      child: Text(
+                                        textPadding,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.transparent,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                          )
                         ],
                       ),
                     )
@@ -252,6 +264,8 @@ class _MessageCardState extends State<MessageCard>
                               !isSentMessageCard ? Colors.black : Colors.white,
                         ),
                       ),
+                      if (widget.message.status == "read" && isSentMessageCard)
+                        SvgPicture.asset('assets/icons/icon_message_read.svg'),
                       // if (isSentMessageCard) ...[
                       //   const SizedBox(
                       //     width: 2.0,

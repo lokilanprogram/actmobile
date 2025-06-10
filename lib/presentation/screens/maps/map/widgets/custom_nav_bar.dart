@@ -35,7 +35,6 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
   }
 
   void _handleTap(int index) {
-    // Скрываем клавиатуру при нажатии на любую кнопку
     FocusScope.of(context).unfocus();
     widget.onTabSelected(index);
   }

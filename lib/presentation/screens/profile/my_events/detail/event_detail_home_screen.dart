@@ -21,13 +21,13 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class EventDetailHomeScreen extends StatefulWidget {
   final String eventId;
-  final bool isCompletedEvent;
-  final OrganizedEventModel organizedEventModel;
+  final bool? isCompletedEvent;
+  final OrganizedEventModel? organizedEventModel;
   const EventDetailHomeScreen(
       {super.key,
-      required this.isCompletedEvent,
+      this.isCompletedEvent,
       required this.eventId,
-      required this.organizedEventModel});
+      this.organizedEventModel});
 
   @override
   State<EventDetailHomeScreen> createState() => _EventDetailHomeScreenState();
@@ -121,7 +121,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                   Stack(
                                     children: [
                                       SizedBox(
-                                        height: 200,
+                                        height: 260,
                                         child: organizedEvent.photos.isNotEmpty
                                             ? PageView.builder(
                                                 controller: _pageController,
@@ -134,12 +134,36 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                 },
                                                 itemBuilder: (context, index) {
                                                   return Image.network(
-                                                    organizedEvent
-                                                        .photos[index],
-                                                    width: double.infinity,
-                                                    height: 200,
-                                                    fit: BoxFit.cover,
-                                                  );
+                                                      organizedEvent
+                                                          .photos[index],
+                                                      width: double.infinity,
+                                                      height: 260,
+                                                      fit: BoxFit.cover,
+                                                      loadingBuilder: (BuildContext
+                                                              context,
+                                                          Widget child,
+                                                          ImageChunkEvent?
+                                                              loadingProgress) {
+                                                    if (loadingProgress == null)
+                                                      return child;
+                                                    return SizedBox(
+                                                      height: 260,
+                                                      child: Center(
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                          color: mainBlueColor,
+                                                          value: loadingProgress
+                                                                      .expectedTotalBytes !=
+                                                                  null
+                                                              ? loadingProgress
+                                                                      .cumulativeBytesLoaded /
+                                                                  loadingProgress
+                                                                      .expectedTotalBytes!
+                                                              : null,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  });
                                                 },
                                               )
                                             : Image.asset(
@@ -197,7 +221,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
 
                                       // Индикаторы
                                       Positioned(
-                                        bottom: 30,
+                                        bottom: 35,
                                         left: 0,
                                         right: 0,
                                         child: Center(
@@ -230,7 +254,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                     ],
                                   ),
                                   Positioned(
-                                    top: 180,
+                                    top: 240,
                                     child: Container(
                                       width: MediaQuery.of(context).size.width,
                                       height:
@@ -395,7 +419,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                               .spaceAround,
                                                       children: [
                                                         Text(
-                                                          widget.isCompletedEvent
+                                                          completedStatus.contains(organizedEvent.status)
                                                               ? 'Участники'
                                                               : 'Заявки',
                                                           style: TextStyle(
@@ -539,7 +563,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                           ),
                         ),
                       ),
-                      widget.isCompletedEvent
+                      completedStatus.contains(organizedEvent.status)
                           ? Container()
                           : Padding(
                               padding: const EdgeInsets.only(
