@@ -1026,41 +1026,41 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                 ),
                               ),
                             ),
-                            // "Метро" segment
-                            GestureDetector(
-                              onTap: () {
-                                if (_cityController.text.isNotEmpty) {
-                                  _cityController.clear();
-                                  filterProvider.updateCityFilter('');
-                                }
-                                filterProvider.updateLocationType('metro');
-                              },
-                              child: AnimatedContainer(
-                                duration: Duration(milliseconds: 100),
-                                curve: Curves.easeInBack,
-                                decoration: BoxDecoration(
-                                  color: filterProvider.selectedLocationType ==
-                                          'metro'
-                                      ? mainBlueColor
-                                      : Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                child: Text(
-                                  'Метро',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color:
-                                        filterProvider.selectedLocationType ==
-                                                'metro'
-                                            ? Colors.white
-                                            : Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
+                            // // "Метро" segment
+                            // GestureDetector(
+                            //   onTap: () {
+                            //     if (_cityController.text.isNotEmpty) {
+                            //       _cityController.clear();
+                            //       filterProvider.updateCityFilter('');
+                            //     }
+                            //     filterProvider.updateLocationType('metro');
+                            //   },
+                            //   child: AnimatedContainer(
+                            //     duration: Duration(milliseconds: 100),
+                            //     curve: Curves.easeInBack,
+                            //     decoration: BoxDecoration(
+                            //       color: filterProvider.selectedLocationType ==
+                            //               'metro'
+                            //           ? mainBlueColor
+                            //           : Colors.grey[200],
+                            //       borderRadius: BorderRadius.circular(30.0),
+                            //     ),
+                            //     padding: EdgeInsets.symmetric(
+                            //         vertical: 8.0, horizontal: 16.0),
+                            //     child: Text(
+                            //       'Метро',
+                            //       style: TextStyle(
+                            //         fontSize: 11,
+                            //         color:
+                            //             filterProvider.selectedLocationType ==
+                            //                     'metro'
+                            //                 ? Colors.white
+                            //                 : Colors.black,
+                            //         fontWeight: FontWeight.w500,
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                         // const SizedBox(height: 20),
