@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import '../models/social_login_request.dart';
-import '../models/social_login_response.dart';
-import '../models/api_error.dart';
-import '../models/auth_request.dart';
-import '../models/auth_response.dart';
+import '../../presentation/screens/chats/chat_detail/models/social_login_request.dart';
+import '../../presentation/screens/chats/chat_detail/models/social_login_response.dart';
+import '../../presentation/screens/chats/chat_detail/models/api_error.dart';
+import '../../presentation/screens/chats/chat_detail/models/auth_request.dart';
+import '../../presentation/screens/chats/chat_detail/models/auth_response.dart';
 import 'dart:developer' as developer;
 
 class AuthService {

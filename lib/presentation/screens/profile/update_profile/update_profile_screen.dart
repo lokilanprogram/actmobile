@@ -464,11 +464,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                               'Мои',
                                               style: TextStyle(
                                                   color:
-                                                      _selectedHideAttendedEvents == 'my'
+                                                      _selectedHideMyEvents == 'my'
                                                           ? Colors.white
                                                           : Colors.black,
                                                   fontSize: 18,
-                                                  fontWeight: _selectedHideAttendedEvents == 'my' ? FontWeight.w800 : FontWeight.w400,
+                                                  fontWeight: _selectedHideMyEvents == 'my' ? FontWeight.w800 : FontWeight.w400,
                                                   fontFamily: 'Gilroy'),
                                             ),
                                           ),

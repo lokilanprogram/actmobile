@@ -8,9 +8,10 @@ import 'package:http/http.dart' as http;
 
 class SettingsNotificationsProvider extends ChangeNotifier {
   bool notificationsEnabled = false;
+  final storage = SecureStorageService();
 
   Future<void> loadProfile() async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     final response = await Dio().get('$API/api/v1/users/profile',
         options: Options(
           headers: {'Authorization': 'Bearer $accessToken'},
@@ -20,7 +21,7 @@ class SettingsNotificationsProvider extends ChangeNotifier {
   }
 
   Future<void> changeNotificationSettings({required bool enabled}) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken == null) throw Exception('Нет accessToken');
     final response = await http.put(
       Uri.parse('$API/api/v1/users/settings/notifications'),

@@ -1,9 +1,9 @@
 import '../services/auth_service.dart';
-import '../models/social_login_request.dart';
-import '../models/social_login_response.dart';
-import '../models/api_error.dart';
-import '../models/auth_request.dart';
-import '../models/auth_response.dart';
+import '../../presentation/screens/chats/chat_detail/models/social_login_request.dart';
+import '../../presentation/screens/chats/chat_detail/models/social_login_response.dart';
+import '../../presentation/screens/chats/chat_detail/models/api_error.dart';
+import '../../presentation/screens/chats/chat_detail/models/auth_request.dart';
+import '../../presentation/screens/chats/chat_detail/models/auth_response.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:acti_mobile/configs/storage.dart';
 import 'dart:convert';
@@ -13,8 +13,8 @@ import 'package:dio/dio.dart';
 class AuthRepository {
   final AuthService _authService;
   final FlutterSecureStorage _secureStorage;
-  static const _accessTokenKey = accessStorageToken;
-  static const _refreshTokenKey = refreshStorageToken;
+  static const _accessTokenKey = 'accessToken';
+  static const _refreshTokenKey = 'refreshToken';
   static const _tokenTypeKey = 'token_type';
 
   AuthRepository(this._authService)

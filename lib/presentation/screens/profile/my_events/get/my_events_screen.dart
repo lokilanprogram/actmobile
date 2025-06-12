@@ -23,6 +23,7 @@ class MyEventsScreen extends StatefulWidget {
 class _MyEventsScreenState extends State<MyEventsScreen> {
   bool isLoading = false;
   bool isVerified = false;
+  bool isProfileCompleted = false;
   bool hasCompleted = false;
   bool hasCompletedVisited = false;
   String selectedTab = 'mine';
@@ -71,6 +72,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           setState(() {
             isLoading = false;
             isVerified = state.isVerified;
+            isProfileCompleted = state.isProfileCompleted;
             profileEventModels = state.profileEventsModels;
             profileVisitedEventModels = state.profileVisitedEventsModels;
             hasCompleted = profileEventModels?.events.any((event) =>
@@ -195,7 +197,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ActivityBarWidget(isVerified: isVerified),
+                  ActivityBarWidget(isVerified: isVerified, isProfileCompleted: isProfileCompleted),
                   const SizedBox(height: 15),
                   CustomNavBarWidget(
                     selectedIndex: 4,

@@ -60,7 +60,7 @@ class NotificationTile extends StatelessWidget {
                   137,
                 )),
           ),
-          Text(notification.type),
+          //Text(notification.type),
           SizedBox(height: 5),
           _handleTap(context, notification),
         ],

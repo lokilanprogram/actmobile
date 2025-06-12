@@ -78,12 +78,7 @@ class FirebaseApi {
     if (chatId != null) {
       navigatorKey.currentState?.push(MaterialPageRoute(
         builder: (_) => ChatDetailScreen(
-          isPrivateChats: true,
-          interlocutorAvatar: null,
           interlocutorChatId: chatId,
-          interlocutorName: '...',
-          trailingText: null,
-          interlocutorUserId: null,
         ),
       ));
     }

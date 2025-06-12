@@ -45,28 +45,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             return bDate.compareTo(aDate);
           });
         }
-
-        if (allPrivateChats != null) {
-          allPrivateChats.chats.sort((a, b) =>
-              b.lastMessage!.createdAt.compareTo(a.lastMessage!.createdAt));
-        }
-
-        if (allGroupChats != null) {
-          allGroupChats.chats.sort((a, b) {
-            final aMessage = a.lastMessage;
-            final bMessage = b.lastMessage;
-
-            if (aMessage != null && bMessage != null) {
-              return bMessage.createdAt.compareTo(aMessage.createdAt);
-            } else if (aMessage != null && bMessage == null) {
-              return -1;
-            } else if (aMessage == null && bMessage != null) {
-              return 1;
-            } else {
-              return 0;
-            }
-          });
-        }
+        
         if (allPrivateChats != null && allGroupChats != null) {
           emit(GotAllChatsState(
               allGroupChats: allGroupChats, allPrivateChats: allPrivateChats));
@@ -79,7 +58,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<StartChatMessageEvent>((event, emit) async {
       bool? isSent = false;
       try {
-        final accessToken = await storage.read(key: accessStorageToken);
+        final storage = SecureStorageService();
+        final accessToken = await storage.getAccessToken();
         final createdChat = await ChatApi().createPrivateChat(event.userId);
         if (createdChat != null) {
           if (event.imagePath == null) {

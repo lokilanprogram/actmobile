@@ -7,41 +7,58 @@ class ActivityBarWidget extends StatelessWidget {
   const ActivityBarWidget({
     super.key,
     required this.isVerified,
+    required this.isProfileCompleted,
   });
 
   final bool isVerified;
+  final bool isProfileCompleted;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-        onTap: (){
-        isVerified ?  Navigator.push(context, MaterialPageRoute(builder: (context)=>
-          CreateEventScreen(organizedEventModel: null,))): 
-          
-          showAlertOKDialog(context,null,isTitled: true,title:  'Подтвердите почту');
-        },
-        child: Material(
-          elevation: 1.2,
-          borderRadius: BorderRadius.circular(25),
-          child: Container(  height: 59,
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      decoration: BoxDecoration(
-                        color: Color.fromRGBO(98, 207, 102, 1),
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                        SvgPicture.asset('assets/icons/icon_add.svg'),
-                        SizedBox(width: 10,),
-                        Text('Создать активность',style: TextStyle(color: Colors.white,
-                        fontFamily: 'Gilroy',fontSize: 17,fontWeight: FontWeight.bold),)
-                      ],),
-            
-            
+      onTap: () {
+        !isProfileCompleted
+            ? showAlertOKDialog(context, null,
+                isTitled: true, title: 'Заполните профиль')
+            : isVerified
+                ? Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CreateEventScreen(
+                              organizedEventModel: null,
+                            )))
+                : showAlertOKDialog(context, null,
+                    isTitled: true, title: 'Подтвердите почту');
+      },
+      child: Material(
+        elevation: 1.2,
+        borderRadius: BorderRadius.circular(25),
+        child: Container(
+          height: 59,
+          width: MediaQuery.of(context).size.width * 0.8,
+          decoration: BoxDecoration(
+            color: Color.fromRGBO(98, 207, 102, 1),
+            borderRadius: BorderRadius.circular(25),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset('assets/icons/icon_add.svg'),
+              SizedBox(
+                width: 10,
+              ),
+              Text(
+                'Создать активность',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Gilroy',
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold),
+              )
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
 }
-

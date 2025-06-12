@@ -76,6 +76,8 @@ dependencies:
   top_snackbar_flutter: ^3.3.0
   flutter_xlider: ^3.5.0
   dartz: ^0.10.1
+  flutter_xlider: ^3.5.0
+  top_snackbar_flutter: ^3.3.0
   icons_launcher: ^3.0.1
 
 dev_dependencies:

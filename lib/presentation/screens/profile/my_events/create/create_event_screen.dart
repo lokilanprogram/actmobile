@@ -437,11 +437,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                                                 address: null,
                                                               )));
                                               if (localAddressModel != null) {
+                                                // setState(() {
+                                                //   addressController.text =
+                                                //       'г. ${localAddressModel.properties!.fullAddress.split(', ')[2]}, ${localAddressModel.address}';
+                                                //   selectedAddressModel =
+                                                //       localAddressModel;
+                                                // });
                                                 setState(() {
-                                                  addressController.text =
-                                                      'г. ${localAddressModel.properties!.fullAddress.split(', ')[2]}, ${localAddressModel.address}';
-                                                  selectedAddressModel =
-                                                      localAddressModel;
+                                                  addressController.text = localAddressModel.properties?.fullAddress ?? "";
+                                                  selectedAddressModel = localAddressModel;
                                                 });
                                               }
                                             },
@@ -1026,18 +1030,35 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       content: Text(
                           'Время начала должно быть раньше времени конца')),
                 );
-              } else if (startDateTime.isBefore(now)  &&
+              } else if (startDateTime.isBefore(now) &&
                   widget.organizedEventModel?.status != 'completed' &&
                   widget.organizedEventModel?.status != 'canceled' &&
                   widget.organizedEventModel?.status != 'rejected') {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Дата события должна быть в будущем')),
                 );
-              } else if (_images.isEmpty) {
-                final defaultImage = await getImageFileFromAssets(
-                    'assets/images/image_default_event.png');
-                _images.add(defaultImage.path);
               } else if (selectedCategory != null) {
+                if (_images.isEmpty) {
+                  final defaultImage = await getImageFileFromAssets(
+                      'assets/images/image_default_event.png');
+                  _images.add(defaultImage.path);
+                }
+                context.read<AuthBloc>().add(widget.organizedEventModel != null
+                    ? ActiUpdateActivityEvent(
+                        alterEventModel:
+                            eventmodel(dateStart, timeStart, timeEnd))
+                    : ActiCreateActivityEvent(
+                        createEventModel:
+                            eventmodel(dateStart, timeStart, timeEnd)));
+                setState(() {
+                  isLoading = true;
+                });
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Выберите категорию')));
+              }
+            } else {
+              if (selectedCategory != null) {
                 setState(() {
                   isLoading = true;
                 });
@@ -1048,25 +1069,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     : ActiCreateActivityEvent(
                         createEventModel:
                             eventmodel(dateStart, timeStart, timeEnd)));
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Выберите категорию')));
-              }
-            } else {
-              if (selectedCategory != null) {
-                await Future.delayed(Duration(seconds: 2)).then((val) {
-                  setState(() {
-                    isLoading = true;
-                  });
-                  context.read<AuthBloc>().add(
-                      widget.organizedEventModel != null
-                          ? ActiUpdateActivityEvent(
-                              alterEventModel:
-                                  eventmodel(dateStart, timeStart, timeEnd))
-                          : ActiCreateActivityEvent(
-                              createEventModel:
-                                  eventmodel(dateStart, timeStart, timeEnd)));
-                });
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Выберите категорию')));

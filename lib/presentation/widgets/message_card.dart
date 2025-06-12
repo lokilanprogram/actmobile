@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/date_utils.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
@@ -19,6 +20,7 @@ class MessageCard extends StatefulWidget {
     this.highlightText,
     required this.isHighlighted,
     required this.isReaded,
+    required this.orgId,
   });
 
   final String? interlocutorUserId;
@@ -29,6 +31,7 @@ class MessageCard extends StatefulWidget {
   final String? highlightText;
   final bool isHighlighted;
   final bool isReaded;
+  final String? orgId;
 
   @override
   State<MessageCard> createState() => _MessageCardState();
@@ -188,7 +191,30 @@ class _MessageCardState extends State<MessageCard>
                                         builder: (context) => PublicUserScreen(
                                             userId: widget.message.userId)));
                               },
-                              child: Text(widget.message.user.name),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    widget.message.user.name,
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                        fontFamily: 'Gilroy',
+                                        fontWeight: FontWeight.w700,
+                                        color: mainBlueColor,
+                                        fontSize: 12),
+                                  ),
+                                  if (widget.orgId == widget.message.userId &&
+                                      widget.isPrivateChats == false) ...[
+                                    Icon(
+                                      Icons.star,
+                                      color: Color.fromARGB(255, 239, 178, 66),
+                                      size: 13,
+                                      weight: 700,
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
                           SelectableText.rich(
                             TextSpan(
@@ -259,7 +285,9 @@ class _MessageCardState extends State<MessageCard>
                           Platform.isIOS,
                         ),
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: 'Gilroy',
                           color:
                               !isSentMessageCard ? Colors.black : Colors.white,
                         ),
@@ -316,10 +344,10 @@ class _MessageCardState extends State<MessageCard>
         TextSpan(
             text: source,
             style: TextStyle(
-              color: baseColor,
-              fontFamily: 'Inter',
-              fontSize: 13,
-            ))
+                color: baseColor,
+                fontFamily: 'Gilroy',
+                fontSize: 14,
+                fontWeight: FontWeight.w500))
       ];
     }
 
@@ -330,10 +358,10 @@ class _MessageCardState extends State<MessageCard>
         TextSpan(
             text: source,
             style: TextStyle(
-              color: baseColor,
-              fontFamily: 'Inter',
-              fontSize: 13,
-            ))
+                color: baseColor,
+                fontFamily: 'Gilroy',
+                fontSize: 14,
+                fontWeight: FontWeight.w500))
       ];
     }
 
@@ -345,10 +373,10 @@ class _MessageCardState extends State<MessageCard>
         spans.add(TextSpan(
           text: source.substring(lastIndex, match.start),
           style: TextStyle(
-            color: baseColor,
-            fontFamily: 'Inter',
-            fontSize: 13,
-          ),
+              color: baseColor,
+              fontFamily: 'Gilroy',
+              fontSize: 14,
+              fontWeight: FontWeight.w500),
         ));
       }
 
@@ -358,8 +386,8 @@ class _MessageCardState extends State<MessageCard>
           color: baseColor,
           backgroundColor: const Color.fromARGB(255, 255, 238, 82),
           fontWeight: FontWeight.bold,
-          fontFamily: 'Inter',
-          fontSize: 13,
+          fontFamily: 'Gilroy',
+          fontSize: 14,
         ),
       ));
 
@@ -371,8 +399,9 @@ class _MessageCardState extends State<MessageCard>
         text: source.substring(lastIndex),
         style: TextStyle(
           color: baseColor,
-          fontFamily: 'Inter',
-          fontSize: 13,
+          fontFamily: 'Gilroy',
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
         ),
       ));
     }

@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 class MapApi {
   final dio = Dio();
   static DateTime? _lastUpdated;
+  final storage = SecureStorageService();
 
   Future<void> updateUserLocation(double lat, double lon) async {
     final now = DateTime.now();
@@ -14,7 +15,7 @@ class MapApi {
       return;
     }
 
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
 
     if (accessToken != null) {
       try {

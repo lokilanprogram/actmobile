@@ -148,7 +148,8 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       currentPermission = permission;
     });
-    final accessToken = await storage.read(key: accessStorageToken);
+    final storage = SecureStorageService();
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       try {
         connectToOnlineStatus(accessToken);
@@ -168,7 +169,7 @@ class _MapScreenState extends State<MapScreen> {
     if (currentPermission.name != 'denied') {
       if (await checkGeolocator()) {
         final position = await geolocator.Geolocator.getCurrentPosition();
-        await delayedLocationUpdate(position.latitude, position.longitude);
+        delayedLocationUpdate(position.latitude, position.longitude);
         setState(() {
           currentUserPosition = Position(position.longitude, position.latitude);
           currentSelectedPosition =
@@ -203,8 +204,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> delayedLocationUpdate(double lat, double lon) async {
-    await Future.delayed(Duration(seconds: 10));
-    await MapApi().updateUserLocation(lat, lon);
+    MapApi().updateUserLocation(lat, lon);
   }
 
   @override

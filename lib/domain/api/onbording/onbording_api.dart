@@ -4,6 +4,8 @@ import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
 import 'package:http/http.dart' as http;
 class OnbordingApi {
+  final storage = SecureStorageService();
+  
    Future<ListOnbordingModel?> getOnbording() async {
   final response = await http.get(
     Uri.parse('$API/api/v1/onboarding'),
@@ -19,7 +21,7 @@ class OnbordingApi {
   }
 }
 Future<bool> saveOnbording(List<String> listId) async {
-  final accessToken = await storage.read(key: accessStorageToken);
+  final accessToken = await storage.getAccessToken();
   final response = await http.post(
     Uri.parse('$API/api/v1/onboarding/categories'),
     headers: {

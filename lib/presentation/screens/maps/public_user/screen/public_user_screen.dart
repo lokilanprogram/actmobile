@@ -184,7 +184,8 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                                   publicUserModel.surname != ""
                                               ? '${capitalize(publicUserModel.surname!)} ${capitalize(publicUserModel.name!)}'
                                               : capitalize(
-                                                  publicUserModel?.name ?? "Неизвестный"),
+                                                  publicUserModel?.name ??
+                                                      "Неизвестный"),
                                           style: TextStyle(
                                             fontFamily: 'Inter',
                                             fontSize: 32,
@@ -200,7 +201,8 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                             fontSize: 20,
                                             fontFamily: 'Inter',
                                             fontWeight: FontWeight.w700,
-                                            color: Colors.white.withOpacity(0.5),
+                                            color:
+                                                Colors.white.withOpacity(0.5),
                                           ),
                                         ),
                                       ],
@@ -290,7 +292,9 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                         'assets/icons/icon_star.svg'),
                                     const SizedBox(width: 3),
                                     GradientText(
-                                      publicUserModel.rating != null ? publicUserModel.rating.toString() : '0',
+                                      publicUserModel.rating != null
+                                          ? publicUserModel.rating.toString()
+                                          : '0',
                                       gradient: LinearGradient(
                                         colors: [
                                           Color.fromRGBO(23, 132, 255, 1),
@@ -339,23 +343,55 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            SendMessageBarWidget(function: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ChatDetailScreen(
-                                            isPrivateChats: true,
-                                            trailingText: null,
-                                            interlocutorAvatar:
-                                                publicUserModel.photoUrl,
-                                            interlocutorName:
-                                                publicUserModel.name ??
-                                                    'Неизвестный',
-                                            interlocutorChatId:
-                                                publicUserModel.chatId ?? "",
-                                            interlocutorUserId: widget.userId,
-                                          )));
-                            }),
+                            publicUserModel.isBlockedByUser == true
+                                ? Material(
+                                    elevation: 1.2,
+                                    borderRadius: BorderRadius.circular(25),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                                      height: 59,
+                                      width: MediaQuery.of(context).size.width *
+                                          0.8,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Color.fromARGB(255, 235, 235, 235),
+                                        borderRadius: BorderRadius.circular(25),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'Данный пользователь вас заблокировал, вы не можете ему написать',
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          style: TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 161, 161, 161),
+                                              fontFamily: 'Gilroy',
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : SendMessageBarWidget(function: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                ChatDetailScreen(
+                                                  isPrivateChats: true,
+                                                  trailingText: null,
+                                                  interlocutorAvatar:
+                                                      publicUserModel.photoUrl,
+                                                  interlocutorName:
+                                                      publicUserModel.name ??
+                                                          'Неизвестный',
+                                                  interlocutorChatId:
+                                                      publicUserModel.chatId ??
+                                                          "",
+                                                  interlocutorUserId:
+                                                      widget.userId,
+                                                )));
+                                  }),
                             SizedBox(
                               height: 15,
                             ),

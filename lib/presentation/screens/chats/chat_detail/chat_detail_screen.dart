@@ -88,19 +88,27 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       isLoading = true;
     });
 
-    final userId = await storage.read(key: userIdStorage);
-    final accessToken = await storage.read(key: accessStorageToken);
+    final storage = SecureStorageService();
+    final userId = await storage.getUserId();
+    final accessToken = await storage.getAccessToken();
 
-    context
-        .read<ChatBloc>()
-        .add(GetChatHistoryEvent(chatId: widget.interlocutorChatId!));
+    if (widget.interlocutorChatId != "") {
+      context
+          .read<ChatBloc>()
+          .add(GetChatHistoryEvent(chatId: widget.interlocutorChatId!));
+    } else {
+      setState(() {
+        isLoading = false;
+        isOk = true;
+      });
+    }
 
-    if (widget.interlocutorChatId != null && widget.interlocutorName != '...') {
+    if (widget.interlocutorChatId != "" && widget.interlocutorName != '...') {
       webSocketService = ChatWebSocketService(
         chatId: widget.interlocutorChatId!,
         token: accessToken!,
       );
-    } else if (widget.interlocutorChatId != null &&
+    } else if (widget.interlocutorChatId != "" &&
         widget.interlocutorName == '...' &&
         widget.interlocutorUserId == null &&
         widget.interlocutorAvatar == null &&
@@ -393,26 +401,30 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           children: [
                             InkWell(
                               onTap: () {
-                                if (chatInfo != null) {
-                                  if (chatInfo?.eventId == null) {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                PublicUserScreen(
-                                                    userId: chatInfo!
-                                                        .users!.first.id)));
-                                  } else {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                EventDetailScreen(
-                                                  eventId:
-                                                      chatInfo!.eventId ?? "",
-                                                )));
-                                  }
+                                //if (chatInfo != null) {
+                                if (chatInfo?.eventId == null) {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              PublicUserScreen(
+                                                  userId: widget
+                                                          .interlocutorUserId ??
+                                                      chatInfo!
+                                                          .users!.first.id)));
+                                } else {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              EventDetailScreen(
+                                                eventId:
+                                                    widget.interlocutorUserId ??
+                                                        chatInfo!.eventId ??
+                                                        "",
+                                              )));
                                 }
+                                //}
                               },
                               child: chatInfo == null
                                   ? CircleAvatar(
@@ -467,7 +479,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                                   fontWeight: FontWeight.bold),
                                             )
                                           : Text(
-                                              '...',
+                                              widget.interlocutorName ?? '...',
                                               style: TextStyle(
                                                   fontFamily: 'Inter',
                                                   fontSize: 17.14,
@@ -527,6 +539,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                           print(result);
 
                                           final newMessage = result.message;
+                                          status = "Онлайн";
                                           final alreadyExists = messages.any(
                                               (m) => m.id == newMessage!.id);
                                           if (!alreadyExists) {
@@ -565,8 +578,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                             });
                                           });
                                           print(result);
-                                        } else if (result.type ==
-                                                'user_left' &&
+                                        } else if (result.type == 'user_left' &&
                                             result.userId != profileUserId &&
                                             result.userId != null) {
                                           WidgetsBinding.instance
@@ -632,7 +644,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                                     ),
                                                     child: MessageCard(
                                                       key: key,
-                                                      isPrivateChats: isPrivate,
+                                                      isPrivateChats: widget.isPrivateChats ?? isPrivate,
+                                                      orgId: chatInfo?.creatorId ?? "",
                                                       message: message,
                                                       currentUserId:
                                                           profileUserId!,
@@ -875,69 +888,97 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             ],
                           )
                         : Container(),
-                    TextFormField(
-                      controller: messageController,
-                      onChanged: (value) => webSocketService!.sendTyping(),
-                      decoration: InputDecoration(
-                        hintText: 'Сообщение',
-                        filled: true,
-                        fillColor: Color(0xFFF2F2F2),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: SvgPicture.asset(
-                                  'assets/icons/icon_pin_files.svg'),
-                              onPressed: () async {
-                                final xfile = await ImagePicker()
-                                    .pickImage(source: ImageSource.gallery);
-                                if (xfile != null) {
-                                  setState(() {
-                                    file = xfile;
-                                    isUpdatedPhoto = true;
-                                  });
-                                }
-                              },
+                    Stack(
+                      children: [
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 150),
+                          child: TextFormField(
+                            controller: messageController,
+                            onChanged: (value) {
+                              webSocketService?.sendTyping();
+                            },
+                            textCapitalization: TextCapitalization.sentences,
+                            keyboardType: TextInputType.multiline,
+                            maxLines: null,
+                            minLines: 1,
+                            decoration: InputDecoration(
+                              hintText: 'Сообщение',
+                              filled: true,
+                              fillColor: const Color(0xFFF2F2F2),
+                              contentPadding:
+                                  const EdgeInsets.fromLTRB(20, 16, 90, 16),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide.none,
+                              ),
                             ),
-                            IconButton(
-                              icon: SvgPicture.asset(
-                                  'assets/icons/icon_send_message.svg'),
-                              onPressed: () {
-                                if (messageController.text.isNotEmpty ||
-                                    file != null) {
-                                  if (chatId == null) {
+                          ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: SvgPicture.asset(
+                                    'assets/icons/icon_pin_files.svg'),
+                                onPressed: () async {
+                                  final xfile = await ImagePicker()
+                                      .pickImage(source: ImageSource.gallery);
+                                  if (xfile != null) {
+                                    setState(() {
+                                      file = xfile;
+                                      isUpdatedPhoto = true;
+                                    });
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                icon: SvgPicture.asset(
+                                    'assets/icons/icon_send_message.svg'),
+                                onPressed: () {
+                                  final messageText =
+                                      messageController.text.trim();
+                                  final hasMessage =
+                                      messageText.isNotEmpty || file != null;
+
+                                  if (!hasMessage) return;
+
+                                  if (chatId == null || chatId == "") {
                                     context.read<ChatBloc>().add(
-                                        StartChatMessageEvent(
+                                          StartChatMessageEvent(
                                             imagePath: file?.path,
                                             userId: widget.interlocutorUserId!,
-                                            message: messageController.text));
+                                            message: messageText,
+                                          ),
+                                        );
                                   } else {
                                     context.read<ChatBloc>().add(
-                                        SendMessageEvent(
+                                          SendMessageEvent(
                                             imagePath: file?.path,
                                             chatId: chatId!,
-                                            message: messageController.text,
-                                            isEmptyChat: messages.isEmpty));
+                                            message: messageText,
+                                            isEmptyChat: messages.isEmpty,
+                                          ),
+                                        );
                                   }
+
                                   setState(() {
                                     isUpdatedPhoto = false;
                                     file = null;
                                     messageController.clear();
                                   });
-                                  webSocketService!.sendOnline();
-                                }
-                                
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+
+                                  webSocketService?.sendOnline();
+                                },
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
                     ),
                   ],
                 ),
