@@ -13,6 +13,7 @@ import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/notifications/notifications_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/notifications/notifications_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/settings/settings_screen.dart';
 import 'package:acti_mobile/presentation/widgets/blurred.dart';
 import 'package:acti_mobile/presentation/widgets/popup_profile_buttons.dart';
@@ -132,7 +133,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
               backgroundColor: Colors.white,
               body: showSettings
                   ? SettingsScreen(
-                    notificationsEnabled: profileModel.notificationsEnabled,
+                      notificationsEnabled: profileModel.notificationsEnabled,
                       onBack: () {
                         setState(() {
                           showSettings = false;

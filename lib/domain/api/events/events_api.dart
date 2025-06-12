@@ -7,6 +7,7 @@ import 'package:acti_mobile/data/models/mapbox_reverse_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/recommendated_user_model.dart';
 import 'package:acti_mobile/data/models/searched_events_model.dart';
+import 'package:acti_mobile/data/models/faq_model.dart';
 import 'package:dio/dio.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
@@ -703,6 +704,8 @@ class EventsApi {
         throw Exception('Error: $e');
       }
     }
+    developer.log('[FAQ] Возвращаем пустой список (нет accessToken)',
+        name: 'FAQ');
     return [];
   }
 }

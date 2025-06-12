@@ -244,7 +244,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     setState(() {
       tappedPosition = Position(suggestion.longitude, suggestion.latitude);
       tappedProperties = Properties(
-        name: suggestion.text,
+        name: suggestion.shortAddress,
         fullAddress: suggestion.placeName,
         mapboxId: '',
         featureType: '',
@@ -281,12 +281,11 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                   cameraOptions: CameraOptions(
                     zoom: currentZoom,
                     center: Point(
-                      coordinates: widget.position == null
-                          ? Position(
-                              currentPosition!.longitude,
-                              currentPosition!.latitude,
-                            )
-                          : widget.position!,
+                      coordinates: widget.position ??
+                          Position(
+                            currentPosition?.longitude ?? 37.6173,
+                            currentPosition?.latitude ?? 55.7558,
+                          ),
                     ),
                   ),
                   key: const ValueKey("MapWidget"),
@@ -327,11 +326,6 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                           ),
                         ),
                       ),
-                      if (_isSearching)
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
                       if (_suggestions.isNotEmpty)
                         Container(
                           margin: const EdgeInsets.only(top: 4),
@@ -484,11 +478,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                   )
                 ],
               ),
-              subtitle: Text(
-                tappedProperties?.fullAddress.split(', ')[2] ?? '...',
-                style: TextStyle(
-                    fontFamily: 'Gilroy', fontSize: 15, color: Colors.grey),
-              ),
+              subtitle: null,
             ),
             Padding(
               padding: const EdgeInsets.only(left: 10, right: 10),
@@ -508,11 +498,11 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
           child: Divider(),
         ),
         ListTile(
-          onTap: () {
-            setState(() {
-              isFullSheet = !isFullSheet;
-            });
-          },
+          // onTap: () {
+          //   setState(() {
+          //     isFullSheet = !isFullSheet;
+          //   });
+          // },
           leading: SvgPicture.asset('assets/icons/icon_dot.svg'),
           title: Row(
             children: [
@@ -522,17 +512,13 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                   style: TextStyle(fontFamily: 'Gilroy', fontSize: 24),
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 12,
-              )
+              // Icon(
+              //   Icons.arrow_forward_ios,
+              //   size: 12,
+              // )
             ],
           ),
-          subtitle: Text(
-            tappedProperties?.fullAddress.split(', ')[2] ?? '...',
-            style: TextStyle(
-                fontFamily: 'Gilroy', fontSize: 15, color: Colors.grey),
-          ),
+          subtitle: null,
         ),
         InkWell(
           onTap: () {
@@ -576,20 +562,88 @@ class MapBoxSuggestion {
   final String placeName;
   final double latitude;
   final double longitude;
+  final String? city;
+  final String? streetAndHouse;
 
   MapBoxSuggestion({
     required this.text,
     required this.placeName,
     required this.latitude,
     required this.longitude,
+    this.city,
+    this.streetAndHouse,
   });
 
   factory MapBoxSuggestion.fromJson(Map<String, dynamic> json) {
+    String? city;
+    String? streetAndHouse;
+
+    // 1. Если тип feature — address, то text = "улица", а дом — из place_name
+    if (json['place_type'] != null &&
+        (json['place_type'] as List).contains('address')) {
+      final street = json['text'] ?? '';
+      final placeName = json['place_name'] ?? '';
+      String? house;
+      if (placeName.contains(street)) {
+        final idx = placeName.lastIndexOf(street);
+        if (idx != -1) {
+          final after = placeName.substring(idx + street.length).trim();
+          // after = "32" или "32 корпус 1"
+          // Берём только первые 10 символов после улицы (на случай длинных адресов)
+          final houseMatch = RegExp(r'^(\d+.*?)(,|$)').firstMatch(after);
+          if (houseMatch != null) {
+            house = houseMatch.group(1)?.trim();
+          } else if (after.isNotEmpty) {
+            house = after.split(',').first.trim();
+          }
+        }
+      }
+      streetAndHouse =
+          house != null && house.isNotEmpty ? '$street $house' : street;
+    }
+
+    // 2. Парсим context для города
+    if (json['context'] != null) {
+      for (final ctx in json['context']) {
+        if (ctx['id'] != null &&
+            (ctx['id'].toString().startsWith('place') ||
+                ctx['id'].toString().startsWith('locality'))) {
+          city = ctx['text'];
+        }
+      }
+    }
+
+    // 3. Если streetAndHouse пусто, fallback на text
+    if (streetAndHouse == null || streetAndHouse.isEmpty) {
+      streetAndHouse = json['text'] ?? '';
+    }
+
     return MapBoxSuggestion(
       text: json['text'] ?? '',
       placeName: json['place_name'] ?? '',
       latitude: (json['center'] as List).last.toDouble(),
       longitude: (json['center'] as List).first.toDouble(),
+      city: city,
+      streetAndHouse: streetAndHouse,
     );
   }
+
+  String get shortAddress {
+    if (city != null && streetAndHouse != null && streetAndHouse!.isNotEmpty) {
+      return '$city, $streetAndHouse';
+    }
+    if (city != null) {
+      return city!;
+    }
+    return placeName;
+  }
+}
+
+String getShortAddress(String placeName) {
+  // Обычно placeName: "улица, дом, корпус, город, регион, страна"
+  final parts = placeName.split(', ');
+  if (parts.length >= 3) {
+    return parts.take(3).join(', ');
+  }
+  return placeName;
 }

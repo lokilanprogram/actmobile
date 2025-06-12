@@ -37,8 +37,9 @@ class ActiUpdateActivityEvent extends AuthEvent {
 
 class SocialLoginRequested extends AuthEvent {
   final dynamic request;
+  final BuildContext context;
 
-  SocialLoginRequested(this.request);
+  SocialLoginRequested(this.request, this.context);
 
   @override
   List<Object?> get props => [request];

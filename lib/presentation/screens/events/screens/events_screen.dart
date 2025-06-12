@@ -639,19 +639,7 @@ class _EventsScreenState extends State<EventsScreen> {
                                           ],
                                         )
                                       else
-                                        IconButton(
-                                          icon: SvgPicture.asset(
-                                            'assets/icons/sorting.svg',
-                                            height: 16,
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              _searchController.clear();
-                                              _searchSuggestions = [];
-                                            });
-                                            _removeAutocompleteOverlay();
-                                          },
-                                        ),
+                                        Container()
                                     ],
                                   )
                                 : (showVotes
@@ -701,19 +689,7 @@ class _EventsScreenState extends State<EventsScreen> {
                                           ),
                                         ],
                                       )
-                                    : IconButton(
-                                        icon: SvgPicture.asset(
-                                          'assets/icons/sorting.svg',
-                                          height: 16,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            _searchController.clear();
-                                            _searchSuggestions = [];
-                                          });
-                                          _removeAutocompleteOverlay();
-                                        },
-                                      )),
+                                    : null),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30),
                               borderSide: BorderSide.none,

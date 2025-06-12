@@ -3,6 +3,13 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
+import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
+import 'package:acti_mobile/domain/api/profile/profile_api.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
+import 'package:acti_mobile/presentation/screens/onbording/events_around/events_around_screen.dart';
+import 'package:acti_mobile/presentation/screens/auth/select_input/select_input_screen.dart';
 
 class SocialAuthWebView extends StatefulWidget {
   final String provider;
@@ -228,61 +235,76 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        // title: Text(
-        //   widget.provider == 'vk'
-        //       ? 'Вход через VK'
-        //       : widget.provider == 'yandex'
-        //           ? 'Вход через Яндекс'
-        //           : 'Социальная авторизация',
-        // ),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: Stack(
-        children: [
-          if (_hasError)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline,
-                        color: Colors.red, size: 48),
-                    const SizedBox(height: 16),
-                    Text(
-                      _errorMessage ?? 'Произошла ошибка',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _hasError = false;
-                          _errorMessage = null;
-                        });
-                        _controller.reload();
-                      },
-                      child: const Text('Повторить'),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            WebViewWidget(controller: _controller),
-          if (_isLoading && !_hasError)
-            const Center(
-              child: CircularProgressIndicator(),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) async {
+        if (state is ActiRegisteredState) {
+          developer.log(
+              'Получен ActiRegisteredState, переходим на InitialScreen',
+              name: 'SOCIAL_AUTH_WEBVIEW');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => InitialScreen(),
             ),
-        ],
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          // title: Text(
+          //   widget.provider == 'vk'
+          //       ? 'Вход через VK'
+          //       : widget.provider == 'yandex'
+          //           ? 'Вход через Яндекс'
+          //           : 'Социальная авторизация',
+          // ),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        body: Stack(
+          children: [
+            if (_hasError)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          color: Colors.red, size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        _errorMessage ?? 'Произошла ошибка',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _hasError = false;
+                            _errorMessage = null;
+                          });
+                          _controller.reload();
+                        },
+                        child: const Text('Повторить'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              WebViewWidget(controller: _controller),
+            if (_isLoading && !_hasError)
+              const Center(
+                child: CircularProgressIndicator(),
+              ),
+          ],
+        ),
       ),
     );
   }

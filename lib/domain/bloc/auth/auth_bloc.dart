@@ -12,11 +12,13 @@ import 'package:acti_mobile/presentation/screens/chats/chat_detail/models/api_er
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/models/auth_response.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/models/social_login_response.dart';
 import 'package:acti_mobile/domain/repositories/auth_repository.dart';
+import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'dart:developer' as developer;
+import 'package:flutter/material.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';

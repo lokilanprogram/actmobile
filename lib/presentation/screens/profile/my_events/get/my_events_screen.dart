@@ -1,6 +1,7 @@
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
+import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/widget/my_events_card.dart';

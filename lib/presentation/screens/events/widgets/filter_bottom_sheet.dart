@@ -14,6 +14,7 @@ import 'package:acti_mobile/data/models/local_address_model.dart';
 import 'package:acti_mobile/data/models/all_events_model.dart' as events;
 import 'dart:convert';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
+import 'package:flutter_xlider/flutter_xlider.dart';
 
 class TimeRange {
   final TimeOfDay startTime;
@@ -45,12 +46,19 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
   bool _isLoading = false;
   List<events.Category> _categories = [];
   bool _isLoadingCategories = false;
+  Position? _currentMapPosition;
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
     WidgetsBinding.instance.addObserver(this);
+    if (widget.currentPosition != null) {
+      _currentMapPosition = Position(
+        widget.currentPosition!.longitude,
+        widget.currentPosition!.latitude,
+      );
+    }
   }
 
   @override
@@ -979,12 +987,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => MapPickerScreen(
-                                      position: widget.currentPosition != null
-                                          ? Position(
-                                              widget.currentPosition!.longitude,
-                                              widget.currentPosition!.latitude,
-                                            )
-                                          : null,
+                                      position: _currentMapPosition,
                                       address: '',
                                       isCreated: false,
                                     ),
@@ -1023,41 +1026,41 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                 ),
                               ),
                             ),
-                            // "Метро" segment
-                            GestureDetector(
-                              onTap: () {
-                                if (_cityController.text.isNotEmpty) {
-                                  _cityController.clear();
-                                  filterProvider.updateCityFilter('');
-                                }
-                                filterProvider.updateLocationType('metro');
-                              },
-                              child: AnimatedContainer(
-                                duration: Duration(milliseconds: 100),
-                                curve: Curves.easeInBack,
-                                decoration: BoxDecoration(
-                                  color: filterProvider.selectedLocationType ==
-                                          'metro'
-                                      ? mainBlueColor
-                                      : Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                child: Text(
-                                  'Метро',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color:
-                                        filterProvider.selectedLocationType ==
-                                                'metro'
-                                            ? Colors.white
-                                            : Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
+                            // // "Метро" segment
+                            // GestureDetector(
+                            //   onTap: () {
+                            //     if (_cityController.text.isNotEmpty) {
+                            //       _cityController.clear();
+                            //       filterProvider.updateCityFilter('');
+                            //     }
+                            //     filterProvider.updateLocationType('metro');
+                            //   },
+                            //   child: AnimatedContainer(
+                            //     duration: Duration(milliseconds: 100),
+                            //     curve: Curves.easeInBack,
+                            //     decoration: BoxDecoration(
+                            //       color: filterProvider.selectedLocationType ==
+                            //               'metro'
+                            //           ? mainBlueColor
+                            //           : Colors.grey[200],
+                            //       borderRadius: BorderRadius.circular(30.0),
+                            //     ),
+                            //     padding: EdgeInsets.symmetric(
+                            //         vertical: 8.0, horizontal: 16.0),
+                            //     child: Text(
+                            //       'Метро',
+                            //       style: TextStyle(
+                            //         fontSize: 11,
+                            //         color:
+                            //             filterProvider.selectedLocationType ==
+                            //                     'metro'
+                            //                 ? Colors.white
+                            //                 : Colors.black,
+                            //         fontWeight: FontWeight.w500,
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                         // const SizedBox(height: 20),
@@ -1066,46 +1069,117 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Text('Радиус поиска',
-                            //     style: TextStyle(
-                            //       fontSize: 18,
-                            //       fontWeight: FontWeight.bold,
-                            //       fontFamily: 'Gilroy',
-                            //       color: authBlueColor,
-                            //     )),
-                            // const SizedBox(height: 8),
-                            // Кастомный слайдер
                             Builder(builder: (context) {
                               final radiusValues = [0, 1, 3, 5, 10, 15, 20, 50];
                               final selectedIndex = radiusValues.indexOf(
                                   filterProvider.selectedRadius.round());
                               return Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: Slider(
-                                      value: selectedIndex.toDouble(),
-                                      min: 0,
-                                      max: (radiusValues.length - 1).toDouble(),
-                                      divisions: radiusValues.length - 1,
-                                      activeColor: mainBlueColor,
-                                      inactiveColor: Colors.grey[300],
-                                      onChanged: (value) {
-                                        final idx = value.round();
-                                        filterProvider.updateLocationType(
-                                          filterProvider.selectedLocationType ??
-                                              'current',
-                                          radius: radiusValues[idx].toDouble(),
-                                        );
-                                      },
+                                  FlutterSlider(
+                                    values: [selectedIndex.toDouble()],
+                                    max: (radiusValues.length - 1).toDouble(),
+                                    min: 0,
+                                    handler: FlutterSliderHandler(
+                                      decoration: BoxDecoration(),
+                                      child: Container(
+                                        width: 32,
+                                        height: 32,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              mainBlueColor.withOpacity(0.9),
+                                              mainBlueColor
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: mainBlueColor
+                                                  .withOpacity(0.15),
+                                              blurRadius: 8,
+                                              spreadRadius: 2,
+                                            ),
+                                          ],
+                                        ),
+                                        child: Center(
+                                          child: Container(
+                                            width: 10,
+                                            height: 10,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
+                                    trackBar: FlutterSliderTrackBar(
+                                      inactiveTrackBar: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      activeTrackBar: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            mainBlueColor,
+                                            mainBlueColor.withOpacity(0.6),
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      activeTrackBarHeight: 12,
+                                      inactiveTrackBarHeight: 12,
+                                    ),
+                                    handlerHeight: 22,
+                                    handlerWidth: 36,
+                                    selectByTap: true,
+                                    jump: true,
+                                    tooltip:
+                                        FlutterSliderTooltip(disabled: true),
+                                    step: FlutterSliderStep(step: 1),
+                                    onDragging:
+                                        (handlerIndex, lowerValue, upperValue) {
+                                      final idx = lowerValue.round();
+                                      filterProvider.updateLocationType(
+                                        filterProvider.selectedLocationType ??
+                                            'current',
+                                        radius: radiusValues[idx].toDouble(),
+                                      );
+                                    },
                                   ),
-                                  Text(
-                                    '+${filterProvider.selectedRadius.round()} км',
-                                    style: TextStyle(
-                                      color: mainBlueColor,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                  // const SizedBox(height: 4),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: List.generate(radiusValues.length,
+                                        (idx) {
+                                      final isSelected = idx == selectedIndex;
+                                      return Expanded(
+                                        child: Center(
+                                          child: Text(
+                                            idx == 0
+                                                ? '0 км'
+                                                : '+${radiusValues[idx]} км',
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? mainBlueColor
+                                                  : mainBlueColor
+                                                      .withOpacity(0.7),
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w400,
+                                              fontSize: isSelected ? 10 : 8,
+                                              // decoration: isSelected && idx != 0
+                                              //     ? TextDecoration.underline
+                                              //     : null,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }),
                                   ),
                                 ],
                               );

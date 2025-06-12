@@ -27,6 +27,15 @@ class FilterProvider extends ChangeNotifier {
   int? slotsMax;
 
   void updateDateFilter(String filter, {DateTime? from, DateTime? to}) {
+    // Если нажали на уже выбранный фильтр - сбрасываем его
+    if (selectedDateFilter == filter) {
+      selectedDateFilter = null;
+      selectedDateFrom = null;
+      selectedDateTo = null;
+      notifyListeners();
+      return;
+    }
+
     selectedDateFilter = filter;
 
     final now = DateTime.now();
@@ -69,6 +78,15 @@ class FilterProvider extends ChangeNotifier {
   }
 
   void updateTimeFilter(String filter, {String? from, String? to}) {
+    // Если нажали на уже выбранный фильтр - сбрасываем его
+    if (selectedTimeFilter == filter) {
+      selectedTimeFilter = null;
+      selectedTimeFrom = null;
+      selectedTimeTo = null;
+      notifyListeners();
+      return;
+    }
+
     selectedTimeFilter = filter;
     selectedTimeFrom = from;
     selectedTimeTo = to;
@@ -118,6 +136,13 @@ class FilterProvider extends ChangeNotifier {
   }
 
   void updateDurationFilter(String? filter) {
+    // Если нажали на уже выбранный фильтр - сбрасываем его
+    if (selectedDurationFilter == filter) {
+      selectedDurationFilter = null;
+      notifyListeners();
+      return;
+    }
+
     selectedDurationFilter = filter;
     notifyListeners();
   }

@@ -20,7 +20,7 @@ class InputLoadingScreen extends StatefulWidget {
 class _InputLoadingScreenState extends State<InputLoadingScreen> {
   final codeController = TextEditingController();
   Timer? _timer;
-  int _remainingSeconds = 50;
+  int _remainingSeconds = 30;
 
   @override
   void initState() {
@@ -55,9 +55,10 @@ class _InputLoadingScreenState extends State<InputLoadingScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-         if(state is ActiRegisteredState){
+        if (state is ActiRegisteredState) {
           _timer!.cancel();
-          Navigator.push(context, MaterialPageRoute(builder: (context)=>InitialScreen()));
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => InitialScreen()));
         }
       },
       child: Scaffold(

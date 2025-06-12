@@ -115,8 +115,7 @@ class NotificationTile extends StatelessWidget {
     }
 
     return ClipRRect(
-      borderRadius:
-          BorderRadiusGeometry.all(Radius.circular(isEvent ? 10 : 100)),
+      borderRadius: BorderRadius.all(Radius.circular(isEvent ? 10 : 100)),
       child: CachedNetworkImage(
         imageUrl: url,
         width: radius * 2,

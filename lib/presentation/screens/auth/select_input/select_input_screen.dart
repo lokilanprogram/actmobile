@@ -7,6 +7,7 @@ import 'package:acti_mobile/presentation/screens/auth/screens/social_auth_webvie
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/gestures.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:developer' as developer;
@@ -99,6 +100,7 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
                   email: authResult['email'] as String?,
                   phone: authResult['phone'] as String?,
                 ),
+                context,
               ),
             );
       } else if (provider == 'yandex') {
@@ -112,6 +114,7 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
                 YandexLoginRequest(
                   token: token,
                 ),
+                context,
               ),
             );
       }
@@ -146,7 +149,10 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
             // Основной контент
             SingleChildScrollView(
               padding: const EdgeInsets.only(
-                  top: 120, left: 45, right: 45, bottom: 30),
+                top: 120,
+                left: 45,
+                right: 45,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -255,7 +261,48 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
                     ),
                   ),
                   SizedBox(height: 20),
-                  SvgPicture.asset('assets/texts/text_confirm.svg'),
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        children: [
+                          TextSpan(
+                              text:
+                                  'При входе и регистрации, вы соглашаетесь с '),
+                          TextSpan(
+                            text: 'пользовательским соглашением',
+                            style: TextStyle(
+                              color: mainBlueColor,
+                              // decoration: TextDecoration.underline
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                // TODO: Implement navigation to User Agreement
+                                print('User Agreement tapped');
+                              },
+                          ),
+                          TextSpan(text: ' и '),
+                          TextSpan(
+                            text: 'политикой конфиденциальности',
+                            style: TextStyle(
+                              color: mainBlueColor,
+                              // decoration: TextDecoration.underline
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                // TODO: Implement navigation to Privacy Policy
+                                print('Privacy Policy tapped');
+                              },
+                          ),
+                          TextSpan(
+                              text:
+                                  ', а также подтверждаете, что вам 18 лет и более.'),
+                        ]),
+                  ),
                   SizedBox(height: 50),
                 ],
               ),
