@@ -98,14 +98,14 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
             similiarUsersModel = state.similiarUsersModel;
           });
 
-          if (!profileModel.isProfileCompleted) {
-            await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => UpdateProfileScreen(
-                          profileModel: profileModel,
-                        )));
-          }
+          // if (!profileModel.isProfileCompleted) {
+          //   await Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //           builder: (_) => UpdateProfileScreen(
+          //                 profileModel: profileModel,
+          //               )));
+          // }
           setState(() {
             isLoading = false;
           });
@@ -264,8 +264,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                                             ""
                                                     ? '${capitalize(profileModel.surname!)} ${capitalize(profileModel.name!)}'
                                                     : capitalize(profileModel
-                                                            .name!) ??
-                                                        'Неизвестное имя',
+                                                            .name ?? 'Неизвестное имя'),
                                                 style: TextStyle(
                                                   fontFamily: 'Inter',
                                                   fontSize: 32,

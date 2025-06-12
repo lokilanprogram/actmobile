@@ -30,17 +30,20 @@ class _InitialScreenState extends State<InitialScreen> {
   }
 
   initialize() async {
+    final storage = SecureStorageService();
     try {
-      final accessToken = await storage.read(key: accessStorageToken);
-      final refreshToken = await storage.read(key: refreshStorageToken);
+      final accessToken = await storage.getAccessToken();
+      final refreshToken = await storage.getRefreshToken();
       if (accessToken != null) {
         profile = await ProfileApi().getProfile();
       }
+
       print('access token ---- $accessToken');
       print('refresh token ---- $refreshToken');
       await Future.delayed(Duration(seconds: 1)).then((_) async {
         if (profile != null) {
-          await storage.write(key: userIdStorage, value: profile!.id);
+          storage.setUserId(profile!.id);
+          storage.setUserVerified(profile!.isEmailVerified);
           if (profile!.categories.isNotEmpty) {
             Navigator.push(
                 context,
@@ -57,14 +60,14 @@ class _InitialScreenState extends State<InitialScreen> {
           //await NotificationService().checkInitialNotification();
           await FirebaseApi().setupInteractedMessage();
         } else {
-          await deleteAuthTokens(false);
+          await storage.deleteAll();
           Navigator.push(
               context, MaterialPageRoute(builder: (_) => SelectInputScreen()));
         }
       });
     } catch (e) {
       print(e.toString());
-      await deleteAuthTokens(true);
+      await storage.deleteAll();
       Navigator.push(
           context, MaterialPageRoute(builder: (_) => SelectInputScreen()));
     }

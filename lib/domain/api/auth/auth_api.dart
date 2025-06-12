@@ -5,8 +5,10 @@ import 'package:acti_mobile/data/models/token_model.dart';
 import 'package:http/http.dart' as http;
 
 class AuthApi {
+  final storage = SecureStorageService();
+
   Future<TokenModel?> authRefreshToken() async {
-    final refreshToken = await storage.read(key: refreshStorageToken);
+    final refreshToken = await storage.getRefreshToken();
     if (refreshToken != null) {
       final response = await http.post(
         Uri.parse('$API/api/v1/auth/refresh-token'),
@@ -17,7 +19,7 @@ class AuthApi {
       );
       if (response.statusCode == 200) {
         final resultToken = TokenModel.fromJson(jsonDecode(response.body));
-        await writeAuthTokens(
+        await storage.writeTokens(
             resultToken.accessToken, resultToken.refreshToken);
         return resultToken;
       } else {
@@ -28,7 +30,7 @@ class AuthApi {
   }
 
   Future<bool?> sendFcmToken(String token) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.post(
         Uri.parse('$API/api/v1/auth/fcm-token'),
@@ -48,7 +50,7 @@ class AuthApi {
   }
 
   Future<bool> authLogout() async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.post(
         Uri.parse('$API/api/v1/auth/logout'),
@@ -67,7 +69,7 @@ class AuthApi {
   }
 
   Future<bool> authDelete() async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.delete(
         Uri.parse('$API/api/v1/users/profile/delete'),

@@ -18,6 +18,8 @@ part 'profile_event.dart';
 part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
+  final storage = SecureStorageService();
+
   ProfileBloc() : super(ProfileInitial()) {
     on<InitializeMapEvent>((event, emit) async {
       try {
@@ -162,7 +164,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           emit(ProfileGotListEventsState(
               profileVisitedEventsModels: visitedEvents,
               profileEventsModels: events,
-              isVerified: profile.isEmailVerified));
+              isVerified: profile.isEmailVerified,
+              isProfileCompleted: profile.isProfileCompleted));
         }
       } catch (e) {
         emit(ProfileGotListEventsErrorState());
@@ -173,7 +176,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       try {
         final isLogout = await AuthApi().authLogout();
         if (isLogout) {
-          await deleteAuthTokens(false);
+          await storage.deleteAll();
           emit(ProfileLogoutState());
         }
       } catch (e) {
@@ -185,7 +188,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       try {
         final isDelete = await AuthApi().authDelete();
         if (isDelete) {
-          await deleteAuthTokens(false);
+          await storage.deleteAll();
           emit(ProfileDeleteState());
         }
       } catch (e) {

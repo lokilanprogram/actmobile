@@ -18,12 +18,13 @@ class EventsApi {
   Dio dio = Dio();
   static DateTime? _lastSearchTime;
   static SearchedEventsModel? _lastResultCache;
+  final storage = SecureStorageService();
 
   Future<bool?> cancelActivity(String eventId, bool isRecurring) async {
     final queryParameter = {
       'cancel_recurring': isRecurring.toString(),
     };
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.post(
         Uri.parse('$API/api/v1/events/$eventId/cancel')
@@ -45,7 +46,7 @@ class EventsApi {
 
   Future<bool?> acceptUserOnActivity(
       String eventId, String userId, String status) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.post(
           Uri.parse('$API/api/v1/events/$eventId/users/$userId/status'),
@@ -66,7 +67,7 @@ class EventsApi {
 
   Future<RecommendatedUsersModel?> getProfileRecommendedUsers(
       String eventId) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.get(
         Uri.parse('$API/api/v1/events/$eventId/recommendations'),
@@ -85,7 +86,7 @@ class EventsApi {
   }
 
   Future<OrganizedEventModel?> getProfileEvent(String eventId) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.get(
         Uri.parse('$API/api/v1/events/$eventId'),
@@ -104,7 +105,7 @@ class EventsApi {
   }
 
   Future<bool?> joinEvent(String eventId) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.post(
         Uri.parse('$API/api/v1/events/$eventId/join'),
@@ -123,7 +124,7 @@ class EventsApi {
   }
 
   Future<bool?> deletePhotoEvent(String eventId, String photoUrl) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.delete(
           Uri.parse('$API/api/v1/events/$eventId/photo'),
@@ -152,7 +153,7 @@ class EventsApi {
       return _lastResultCache;
     }
 
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final Map<String, dynamic> queryParameters = {
         'latitude': latitude.toString(),
@@ -261,7 +262,7 @@ class EventsApi {
 
   Future<bool?> alterEvent(
       {required AlterEventModel alterEvent, required bool isCreated}) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     FormData formData;
     List<MultipartFile> photos = [];
     Response response;
@@ -386,9 +387,7 @@ class EventsApi {
       String? imagePath, String title, String userId) async {
     MultipartFile multipartFile;
     FormData formData;
-    final accessToken = await storage.read(
-      key: accessStorageToken,
-    );
+    final accessToken = await storage.getAccessToken();
     if (imagePath != null) {
       final file = File(imagePath);
       final bytes = file.readAsBytesSync();
@@ -423,9 +422,7 @@ class EventsApi {
       String? imagePath, String title, String? comment, String eventId) async {
     MultipartFile multipartFile;
     FormData formData;
-    final accessToken = await storage.read(
-      key: accessStorageToken,
-    );
+    final accessToken = await storage.getAccessToken();
     if (imagePath != null) {
       final file = File(imagePath);
       final bytes = file.readAsBytesSync();
@@ -459,7 +456,7 @@ class EventsApi {
   }
 
   Future<bool?> leaveEvent(String eventId) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.post(
         Uri.parse('$API/api/v1/events/$eventId/leave'),
@@ -499,7 +496,7 @@ class EventsApi {
     int offset = 0,
     int limit = 20,
   }) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       // restrictions теперь только на английском, без кириллической интерпретации
       List<String>? formattedRestrictions = restrictions;
@@ -580,7 +577,7 @@ class EventsApi {
   }
 
   Future<List<events.VoteModel>> getVotesList() async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     final url = '$API/api/v1/votes';
     final headers = {
       "Content-Type": "application/json",
@@ -604,7 +601,7 @@ class EventsApi {
   }
 
   Future<void> voteForEvent(String eventId) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken == null) throw Exception('Нет accessToken');
     final response = await http.post(
       Uri.parse('$API/api/v1/events/$eventId/votes'),
@@ -619,20 +616,91 @@ class EventsApi {
   }
 
   Future<List<events.Category>> getCategories() async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
+    developer.log('[CATEGORIES] Начало запроса категорий', name: 'CATEGORIES');
+    developer.log(
+        '[CATEGORIES] AccessToken: ${accessToken != null ? 'есть' : 'отсутствует'}',
+        name: 'CATEGORIES');
+
     if (accessToken != null) {
-      final response = await http.get(
-        Uri.parse('$API/api/v1/admin/categories'),
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': 'Bearer $accessToken'
-        },
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => events.Category.fromJson(json)).toList();
-      } else {
-        throw Exception('Error: ${response.body}');
+      final url = '$API/api/v1/onboarding';
+      developer.log('[CATEGORIES] URL запроса: $url', name: 'CATEGORIES');
+
+      try {
+        final response = await http.get(
+          Uri.parse(url),
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': 'Bearer $accessToken'
+          },
+        );
+
+        developer.log('[CATEGORIES] Статус ответа: ${response.statusCode}',
+            name: 'CATEGORIES');
+        developer.log('[CATEGORIES] Тело ответа: ${response.body}',
+            name: 'CATEGORIES');
+
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+          final List<dynamic> categoriesData = jsonResponse['categories'] ?? [];
+          developer.log(
+              '[CATEGORIES] Количество полученных категорий: ${categoriesData.length}',
+              name: 'CATEGORIES');
+          return categoriesData
+              .map((json) => events.Category.fromJson(json))
+              .toList();
+        } else {
+          developer.log('[CATEGORIES] Ошибка: ${response.body}',
+              name: 'CATEGORIES');
+          throw Exception('Error: ${response.body}');
+        }
+      } catch (e) {
+        developer.log('[CATEGORIES] Исключение при запросе: $e',
+            name: 'CATEGORIES');
+        throw Exception('Error: $e');
+      }
+    }
+    developer.log('[CATEGORIES] Возвращаем пустой список (нет accessToken)',
+        name: 'CATEGORIES');
+    return [];
+  }
+
+  Future<List<FaqModel>> getFaqs() async {
+    final accessToken = await storage.getAccessToken();
+    developer.log('[FAQ] Начало запроса FAQ', name: 'FAQ');
+    developer.log(
+        '[FAQ] AccessToken: ${accessToken != null ? 'есть' : 'отсутствует'}',
+        name: 'FAQ');
+
+    if (accessToken != null) {
+      final url = '$API/api/v1/admin/faq';
+      developer.log('[FAQ] URL запроса: $url', name: 'FAQ');
+
+      try {
+        final response = await http.get(
+          Uri.parse(url),
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': 'Bearer $accessToken'
+          },
+        );
+
+        developer.log('[FAQ] Статус ответа: ${response.statusCode}',
+            name: 'FAQ');
+        developer.log('[FAQ] Тело ответа: ${response.body}', name: 'FAQ');
+
+        if (response.statusCode == 200) {
+          final List<dynamic> data = jsonDecode(response.body);
+          developer.log('[FAQ] Количество полученных FAQ: ${data.length}',
+              name: 'FAQ');
+          return data.map((json) => FaqModel.fromJson(json)).toList();
+        } else {
+          developer.log('[FAQ] Ошибка: ${response.body}', name: 'FAQ');
+          throw Exception('Error: ${response.body}');
+        }
+      } catch (e) {
+        developer.log('[FAQ] Исключение при запросе: $e', name: 'FAQ');
+        throw Exception('Error: $e');
       }
     }
     return [];

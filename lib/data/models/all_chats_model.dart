@@ -99,16 +99,16 @@ class Chat {
     String? status,
   }) {
     return Chat(
-      id:id ?? this.id,
-      type:type ?? this.type,
-      createdAt:createdAt ?? this.createdAt,
-      creatorId:creatorId ?? this.creatorId,
-      eventId:eventId ?? this.eventId,
-      lastMessage:lastMessage ?? this.lastMessage,
-      users:users ?? this.users,
-      event:event ?? this.event,
-      unreadCount:unreadCount ?? this.unreadCount,
-      status:status ?? this.status,
+      id: id ?? this.id,
+      type: type ?? this.type,
+      createdAt: createdAt ?? this.createdAt,
+      creatorId: creatorId ?? this.creatorId,
+      eventId: eventId ?? this.eventId,
+      lastMessage: lastMessage ?? this.lastMessage,
+      users: users ?? this.users,
+      event: event ?? this.event,
+      unreadCount: unreadCount ?? this.unreadCount,
+      status: status ?? this.status,
     );
   }
 }
@@ -231,6 +231,30 @@ class LastMessage {
         "created_at": createdAt.toIso8601String(),
         "user": user.toJson(),
       };
+
+  LastMessage copyWith({
+    String? id,
+    String? chatId,
+    String? userId,
+    String? content,
+    dynamic? attachmentUrl,
+    String? status,
+    String? messageType,
+    DateTime? createdAt,
+    User? user,
+  }) {
+    return LastMessage(
+      id: id ?? this.id,
+      chatId: chatId ?? this.chatId,
+      userId: userId ?? this.userId,
+      content: content ?? this.content,
+      attachmentUrl: attachmentUrl ?? this.attachmentUrl,
+      status: status ?? this.status,
+      messageType: messageType ?? this.messageType,
+      createdAt: createdAt ?? this.createdAt,
+      user: user ?? this.user,
+    );
+  }
 }
 
 class User {

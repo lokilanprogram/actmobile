@@ -1,7 +1,7 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
-import 'package:acti_mobile/domain/models/social_login_request.dart';
+import 'package:acti_mobile/presentation/screens/chats/chat_detail/models/social_login_request.dart';
 import 'package:acti_mobile/presentation/screens/auth/input_phone/input_phone.dart';
 import 'package:acti_mobile/presentation/screens/auth/screens/social_auth_webview.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';

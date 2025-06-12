@@ -36,11 +36,13 @@ class ProfileGotListEventsState extends ProfileState {
   final ProfileEventModels? profileEventsModels;
   final ProfileEventModels? profileVisitedEventsModels;
   final bool isVerified;
+  final bool isProfileCompleted;
 
   ProfileGotListEventsState(
       {required this.profileVisitedEventsModels,
       required this.profileEventsModels,
-      required this.isVerified});
+      required this.isVerified,
+      required this.isProfileCompleted});
 }
 
 class ProfileJoinedState extends ProfileState {

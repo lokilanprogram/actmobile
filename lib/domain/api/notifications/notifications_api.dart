@@ -4,9 +4,11 @@ import 'package:acti_mobile/data/models/notifications_model.dart';
 import 'package:dio/dio.dart';
 
 class NotificationApi {
+  final storage = SecureStorageService();
+  
   Future<NotificationsResponse?> getNotifications(
       {int offset = 0, int limit = 20}) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     Dio dio = Dio();
     Response response;
 

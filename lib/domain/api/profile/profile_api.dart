@@ -14,8 +14,10 @@ import 'package:dartz/dartz.dart';
 
 class ProfileApi {
   Dio dio = Dio();
+  final storage = SecureStorageService();
+
   Future<ProfileModel?> getProfile() async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.get(
         Uri.parse('$API/api/v1/users/profile'),
@@ -34,7 +36,7 @@ class ProfileApi {
   }
 
   Future<bool?> inviteUser(String userId, String eventId) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.post(
         Uri.parse('$API/api/v1/events/$eventId/users/$userId/invite'),
@@ -54,7 +56,7 @@ class ProfileApi {
   }
 
   Future<bool?> blockUser(String userId) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.post(
         Uri.parse('$API/api/v1/users/$userId/block'),
@@ -74,7 +76,7 @@ class ProfileApi {
   }
 
   Future<ProfileEventModels?> getProfileListEvents() async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.get(
         Uri.parse('$API/api/v1/users/events/my'),
@@ -93,7 +95,7 @@ class ProfileApi {
   }
 
   Future<ProfileEventModels?> getProfileVisitedListEvents() async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.get(
         Uri.parse('$API/api/v1/users/events/visited'),
@@ -112,7 +114,7 @@ class ProfileApi {
   }
 
   Future<Either<PublicUserModel, String>> getPublicUser(String userId) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.get(
         Uri.parse('$API/api/v1/users/$userId'),
@@ -133,7 +135,7 @@ class ProfileApi {
   }
 
   Future<LocalCityModel?> searchCity(String city) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.get(
         Uri.parse(
@@ -153,7 +155,7 @@ class ProfileApi {
   }
 
   Future<List<SimiliarUsersModel>?> getSimiliarUsers() async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.get(
         Uri.parse('$API/api/v1/users/similar'),
@@ -175,7 +177,7 @@ class ProfileApi {
   }
 
   Future<ProfileModel?> updateProfile(ProfileModel profileModel) async {
-    final accessToken = await storage.read(key: accessStorageToken);
+    final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.put(Uri.parse('$API/api/v1/users/profile'),
           headers: {
@@ -205,9 +207,7 @@ class ProfileApi {
 
   Future<bool> updateProfilePicture(String imagePath) async {
     MultipartFile multipartFile;
-    final accessToken = await storage.read(
-      key: accessStorageToken,
-    );
+    final accessToken = await storage.getAccessToken();
     final file = File(imagePath);
     final bytes = file.readAsBytesSync();
     final type = file.path.split('.').last;

@@ -47,6 +47,7 @@ class EventsScreen extends StatefulWidget {
 class _EventsScreenState extends State<EventsScreen> {
   bool isLoading = false;
   bool isVerified = false;
+  bool isProfileCompleted = false;
   String selectedTab = 'all';
   all_events.AllEventsModel? eventsModel;
   final TextEditingController _searchController = TextEditingController();
@@ -433,6 +434,7 @@ class _EventsScreenState extends State<EventsScreen> {
         if (state is ProfileGotListEventsState) {
           setState(() {
             isVerified = state.isVerified;
+            isProfileCompleted = state.isProfileCompleted;
           });
         }
       },
@@ -900,7 +902,9 @@ class _EventsScreenState extends State<EventsScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              ActivityBarWidget(isVerified: isVerified),
+                              ActivityBarWidget(
+                                  isVerified: isVerified,
+                                  isProfileCompleted: isProfileCompleted),
                               const SizedBox(height: 15),
                               CustomNavBarWidget(
                                 selectedIndex: 1,

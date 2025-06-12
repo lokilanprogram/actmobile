@@ -1,11 +1,11 @@
 import 'dart:convert';
 
+import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/date_utils.dart';
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/all_chats_model.dart';
 import 'package:acti_mobile/data/models/all_chats_snapshot_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
-import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
@@ -34,22 +34,23 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   @override
   void initState() {
     initialize();
-    initWs();
     super.initState();
   }
 
-  initWs() async {
-    final accessToken = await storage.read(key: accessStorageToken);
-    webSocketService = AllChatWebSocketService(token: accessToken!);
-  }
-
   initialize() async {
-    setState(() {
-      isLoading = true;
-      isVerified = true;
-    });
-    context.read<ProfileBloc>().add(ProfileGetEvent());
-    context.read<ChatBloc>().add(GetAllChatsEvent());
+    isLoading = true;
+    isVerified = true;
+
+    final storage = SecureStorageService();
+    final verified = await storage.isUserVerified();
+    if (verified == true) {
+      context.read<ChatBloc>().add(GetAllChatsEvent());
+      final accessToken = await storage.getAccessToken();
+      webSocketService = AllChatWebSocketService(token: accessToken!);
+    } else {
+      isVerified = false;
+      isLoading = false;
+    }
   }
 
   @override
@@ -60,32 +61,16 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<ChatBloc, ChatState>(
-          listener: (context, state) {
-            if (state is GotAllChatsState) {
-              setState(() {
-                allGroupChats = state.allGroupChats;
-                allPrivateChats = state.allPrivateChats;
-                isLoading = false;
-              });
-            }
-          },
-        ),
-        BlocListener<ProfileBloc, ProfileState>(
-          listener: (context, state) {
-            if (state is ProfileGotState) {
-              if (state.profileModel.isEmailVerified = false) {
-                setState(() {
-                  isLoading = false;
-                  isVerified = false;
-                });
-              }
-            }
-          },
-        ),
-      ],
+    return BlocListener<ChatBloc, ChatState>(
+      listener: (context, state) {
+        if (state is GotAllChatsState) {
+          setState(() {
+            allGroupChats = state.allGroupChats;
+            allPrivateChats = state.allPrivateChats;
+            isLoading = false;
+          });
+        }
+      },
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -107,13 +92,17 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
         ),
         body: isLoading
             ? LoaderWidget()
-            : isVerified == false
-                ? Container(
+            : !isVerified
+                ? Center(
                     child: Text(
-                      "OK",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  )
+                    "Подтвердите почту",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: mainBlueColor,
+                        fontSize: 18.35,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Inter'),
+                  ))
                 : Padding(
                     padding: const EdgeInsets.only(right: 20, left: 20),
                     child: ListView(
@@ -137,190 +126,189 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                         SizedBox(
                           height: 20,
                         ),
-                        // StreamBuilder(
-                        //     stream: webSocketService!.stream,
-                        //     builder: (context, snapshot) {
-                        //       if (snapshot.hasData) {
-                        //         final result = AllChatsSnapshotModel.fromJson(
-                        //             jsonDecode(snapshot.data));
-                        //         if (result.timestamp != lastProcessedEventId) {
-                        //           lastProcessedEventId = result.timestamp;
-                        //           if (result.eventType == 'user_typing' &&
-                        //               result.chatId != null) {
-                        //             WidgetsBinding.instance
-                        //                 .addPostFrameCallback((_) {
-                        //               setState(() {
-                        //                 allPrivateChats.chats = allPrivateChats
-                        //                     .chats
-                        //                     .map((ch) => ch.id == result.chatId
-                        //                         ? ch.copyWith(
-                        //                             status: "Печатает")
-                        //                         : ch)
-                        //                     .toList();
+                        StreamBuilder(
+                            stream: webSocketService!.stream,
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                final data = snapshot.data!;
+                                final result = AllChatsSnapshotModel.fromJson(
+                                    jsonDecode(data));
 
-                        //                 allGroupChats.chats = allGroupChats
-                        //                     .chats
-                        //                     .map((ch) => ch.id == result.chatId
-                        //                         ? ch.copyWith(
-                        //                             status: "Печатает")
-                        //                         : ch)
-                        //                     .toList();
-                        //               });
-                        //             });
-                        //           } else if (result.eventType ==
-                        //                   'new_message' &&
-                        //               result.chatId != null) {
-                        //             WidgetsBinding.instance
-                        //                 .addPostFrameCallback((_) {
-                        //               setState(() {
-                        //                 allPrivateChats.chats = allPrivateChats
-                        //                     .chats
-                        //                     .map((ch) => ch.id == result.chatId
-                        //                         ? ch.copyWith(
-                        //                             status: result
-                        //                                 .data?.contentPreview,
-                        //                             unreadCount:
-                        //                                 ch.unreadCount! + 1)
-                        //                         : ch)
-                        //                     .toList();
+                                if (result.timestamp != lastProcessedEventId) {
+                                  lastProcessedEventId = result.timestamp;
 
-                        //                 allGroupChats.chats = allGroupChats
-                        //                     .chats
-                        //                     .map((ch) => ch.id == result.chatId
-                        //                         ? ch.copyWith(
-                        //                             status: result
-                        //                                 .data?.contentPreview,
-                        //                             unreadCount:
-                        //                                 ch.unreadCount! + 1)
-                        //                         : ch)
-                        //                     .toList();
-                        //               });
-                        //             });
-                        //           }
-                        //         }
-                        //       }
-                        isPrivateChats == true
-                            ? (allPrivateChats.chats.isEmpty
-                                ? Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      const SizedBox(height: 100),
-                                      Center(
-                                        child: Text(
-                                          'У вас пока нет чатов',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey,
+                                  if (result.eventType == "new_chat") {
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      context
+                                          .read<ChatBloc>()
+                                          .add(GetAllChatsEvent());
+                                    });
+                                  } else if (result.eventType ==
+                                      'new_message') {
+                                    allPrivateChats.chats =
+                                        allPrivateChats.chats.map((chat) {
+                                      if (chat.id == result.chatId &&
+                                          chat.lastMessage != null) {
+                                        return chat.copyWith(
+                                          unreadCount: chat.unreadCount! + 1,
+                                          lastMessage:
+                                              chat.lastMessage!.copyWith(
+                                            content:
+                                                result.data?.contentPreview ??
+                                                    "...",
                                           ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      Center(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            initialize();
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Color(0xFF4293EF),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(30),
+                                        );
+                                      }
+                                      return chat;
+                                    }).toList();
+                                    allGroupChats.chats =
+                                        allGroupChats.chats.map((chat) {
+                                      if (chat.id == result.chatId &&
+                                          chat.lastMessage != null) {
+                                        return chat.copyWith(
+                                          unreadCount:
+                                              chat.unreadCount ?? 0 + 1,
+                                          lastMessage: chat.lastMessage!
+                                              .copyWith(
+                                                  content: result.data
+                                                          ?.contentPreview ??
+                                                      "..."),
+                                        );
+                                      }
+                                      return chat;
+                                    }).toList();
+                                  } else if (result.eventType ==
+                                      "user_typing") {
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      allPrivateChats.chats =
+                                          allPrivateChats.chats.map((chat) {
+                                        if (chat.id == result.chatId &&
+                                            chat.lastMessage != null) {
+                                          return chat.copyWith(
+                                            lastMessage: chat.lastMessage!
+                                                .copyWith(
+                                                    content: 'Печатает...'),
+                                          );
+                                        }
+                                        return chat;
+                                      }).toList();
+                                      allGroupChats.chats =
+                                          allGroupChats.chats.map((chat) {
+                                        if (chat.id == result.chatId &&
+                                            chat.lastMessage != null) {
+                                          return chat.copyWith(
+                                            lastMessage: chat.lastMessage!
+                                                .copyWith(
+                                                    content: 'Печатает...'),
+                                          );
+                                        }
+                                        return chat;
+                                      }).toList();
+                                    });
+                                  }
+                                }
+                              }
+                              return isPrivateChats == true
+                                  ? (allPrivateChats.chats.isEmpty
+                                      ? Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            const SizedBox(height: 100),
+                                            Center(
+                                              child: Text(
+                                                'У вас пока нет чатов',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
                                             ),
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 14, horizontal: 32),
-                                          ),
-                                          child: Text(
-                                            'Обновить',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w500,
+                                            const SizedBox(height: 24),
+                                            Center(
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  initialize();
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Color(0xFF4293EF),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            30),
+                                                  ),
+                                                  padding: EdgeInsets.symmetric(
+                                                      vertical: 14,
+                                                      horizontal: 32),
+                                                ),
+                                                child: Text(
+                                                  'Обновить',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : Column(
-                                    children: allPrivateChats.chats.map((chat) {
-                                      return ChatListTileWidget(
-                                        onDeletedFunction: () {
-                                          setState(() {
-                                            isLoading = true;
-                                          });
-                                          context
-                                              .read<ChatBloc>()
-                                              .add(GetAllChatsEvent());
-                                        },
-                                        chat: chat,
-                                        isPrivateChats: isPrivateChats,
-                                      );
-                                    }).toList(),
-                                  ))
-                            : (allGroupChats.chats.isEmpty
-                                ? Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      const SizedBox(height: 100),
-                                      Center(
-                                        child: Text(
-                                          'У вас пока нет групповых чатов',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      // Center(
-                                      //   child: ElevatedButton(
-                                      //     onPressed: () {
-                                      //       setState(() {
-                                      //         isPrivateChats = false;
-                                      //       });
-                                      //       initialize();
-                                      //     },
-                                      //     style: ElevatedButton.styleFrom(
-                                      //       backgroundColor: Color(0xFF4293EF),
-                                      //       shape: RoundedRectangleBorder(
-                                      //         borderRadius:
-                                      //             BorderRadius.circular(30),
-                                      //       ),
-                                      //       padding: EdgeInsets.symmetric(
-                                      //           vertical: 14, horizontal: 32),
-                                      //     ),
-                                      //     child: Text(
-                                      //       'Обновить',
-                                      //       style: TextStyle(
-                                      //         fontSize: 16,
-                                      //         color: Colors.white,
-                                      //         fontWeight: FontWeight.w500,
-                                      //       ),
-                                      //     ),
-                                      //   ),
-                                      // ),
-                                    ],
-                                  )
-                                : Column(
-                                    children: allGroupChats.chats.map((chat) {
-                                      return ChatListTileWidget(
-                                        onDeletedFunction: () {
-                                          context
-                                              .read<ChatBloc>()
-                                              .add(GetAllChatsEvent());
-                                        },
-                                        chat: chat,
-                                        isPrivateChats: isPrivateChats,
-                                      );
-                                    }).toList(),
-                                  )),//;
-                        //}),
+                                          ],
+                                        )
+                                      : Column(
+                                          children:
+                                              allPrivateChats.chats.map((chat) {
+                                            return ChatListTileWidget(
+                                              onDeletedFunction: () {
+                                                context
+                                                    .read<ChatBloc>()
+                                                    .add(GetAllChatsEvent());
+                                              },
+                                              chat: chat,
+                                              isPrivateChats: isPrivateChats,
+                                            );
+                                          }).toList(),
+                                        ))
+                                  : (allGroupChats.chats.isEmpty
+                                      ? Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            const SizedBox(height: 100),
+                                            Center(
+                                              child: Text(
+                                                'У вас пока нет групповых чатов',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 24),
+                                          ],
+                                        )
+                                      : Column(
+                                          children:
+                                              allGroupChats.chats.map((chat) {
+                                            return ChatListTileWidget(
+                                              onDeletedFunction: () {
+                                                context
+                                                    .read<ChatBloc>()
+                                                    .add(GetAllChatsEvent());
+                                              },
+                                              chat: chat,
+                                              isPrivateChats: isPrivateChats,
+                                            );
+                                          }).toList(),
+                                        ));
+                            }),
                       ],
                     ),
                   ),
@@ -396,6 +384,8 @@ class ChatListTileWidget extends StatelessWidget {
         chat.status != null
             ? chat.status ?? chat.lastMessage?.content ?? '...'
             : chat.lastMessage?.content ?? '...',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
         style: TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.w500,
@@ -424,8 +414,6 @@ class ChatListTileWidget extends StatelessWidget {
                           !isPrivateChats ? null : (chat.users.first.id),
                     )));
         if (result == true) {
-          onDeletedFunction();
-        } else {
           onDeletedFunction();
         }
       },

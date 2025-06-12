@@ -7,9 +7,10 @@ import 'package:acti_mobile/data/models/list_onbording_model.dart';
 import 'package:acti_mobile/domain/api/auth/auth_api.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
 import 'package:acti_mobile/domain/api/onbording/onbording_api.dart';
-import 'package:acti_mobile/domain/models/api_error.dart';
-import 'package:acti_mobile/domain/models/auth_response.dart';
-import 'package:acti_mobile/domain/models/social_login_response.dart';
+import 'package:acti_mobile/domain/api/profile/profile_api.dart';
+import 'package:acti_mobile/presentation/screens/chats/chat_detail/models/api_error.dart';
+import 'package:acti_mobile/presentation/screens/chats/chat_detail/models/auth_response.dart';
+import 'package:acti_mobile/presentation/screens/chats/chat_detail/models/social_login_response.dart';
 import 'package:acti_mobile/domain/repositories/auth_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -23,7 +24,7 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
   String? _savedEventId;
-  final storage = const FlutterSecureStorage();
+  final storage = SecureStorageService();
 
   AuthBloc({required this.authRepository}) : super(ActiInitial()) {
     // AuthBloc() : super(ActiInitial()) {
@@ -33,7 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final normalizedphone = normalizePhone(event.phone);
         final tokenModel = await AuthApi().authRegister(normalizedphone);
         if (tokenModel != null) {
-          await writeAuthTokens(
+          await storage.writeTokens(
               tokenModel.accessToken, tokenModel.refreshToken);
           emit(ActiRegisteredState(phone: normalizedphone));
         }
@@ -50,9 +51,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final response = await authRepository.socialLogin(event.request);
 
         if (response['access_token'] != null) {
-          emit(AuthSuccess(TokenResponse.fromJson(response), null,
-              savedEventId: _savedEventId));
-          _savedEventId = null;
+          await storage.writeTokens(
+            response['access_token'],
+            response['refresh_token'],
+          );
+
+          // Эмитим ActiRegisteredState для унификации с процессом регистрации через телефон
+          emit(ActiRegisteredState(phone: ''));
+
+          // Добавляем навигацию на InitialScreen
+          await Future.delayed(Duration(seconds: 1));
+          Navigator.pushAndRemoveUntil(
+            event.context,
+            MaterialPageRoute(builder: (_) => InitialScreen()),
+            (Route<dynamic> route) => false,
+          );
         } else {
           emit(SocialAuthSuccess(SocialLoginResponse.fromJson(response)));
         }
@@ -133,7 +146,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final token =
             await AuthApi().authVerify(normalizePhone(event.phone), event.code);
         if (token != null) {
-          await writeAuthTokens(
+          await storage.writeTokens(
             token.accessToken,
             token.refreshToken,
           );

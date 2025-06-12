@@ -188,9 +188,11 @@ String utcTime(String time) {
   int hour = int.parse(parts[0]);
   int minute = int.parse(parts[1]);
 
-// 2. Создадим DateTime (например, сегодняшняя дата)
-  DateTime now = DateTime.now().toUtc();
-  DateTime dateTimeUtc = DateTime.utc(
+  // Текущее локальное время
+  DateTime now = DateTime.now();
+
+  // Собираем DateTime в локальной зоне
+  DateTime localDateTime = DateTime(
     now.year,
     now.month,
     now.day,
@@ -198,10 +200,19 @@ String utcTime(String time) {
     minute,
   );
 
-// 3. Преобразуем в ISO строку
-  String utcString = dateTimeUtc.toIso8601String();
-  String timeOnlyUtc = utcString.substring(11);
-  return timeOnlyUtc;
+  // Получаем смещение от UTC
+  final offset = localDateTime.timeZoneOffset;
+  final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
+  final offsetMinutes =
+      (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+  final sign = offset.isNegative ? '-' : '+';
+
+  // Формируем строку в нужном формате
+  final formattedTime = '${localDateTime.hour.toString().padLeft(2, '0')}:'
+      '${localDateTime.minute.toString().padLeft(2, '0')}:'
+      '00$sign$offsetHours:$offsetMinutes';
+
+  return formattedTime;
 }
 
 String? getNextDateForWeekday(String? weekdayName) {

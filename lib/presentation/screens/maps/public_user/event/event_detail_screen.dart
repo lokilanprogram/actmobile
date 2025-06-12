@@ -47,8 +47,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   Future<void> _initAsync() async {
-  userId = await storage.read(key: userIdStorage);
-}
+    final storage = SecureStorageService();
+    userId = await storage.getUserId();
+  }
 
   initialize() {
     setState(() {
@@ -446,51 +447,56 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           SizedBox(
                             height: 59,
                             width: double.infinity,
-                            child: !isPublicUser ? Container() : ElevatedButton(
-                              onPressed: () {
-                                if (profileModel!.isEmailVerified) {
-                                  setState(() {
-                                    isLoading = true;
-                                  });
-                                  isJoined
-                                      ? context.read<ProfileBloc>().add(
-                                          ProfileLeaveEvent(
-                                              eventId: organizedEvent.id))
-                                      : context.read<ProfileBloc>().add(
-                                          ProfileJoinEvent(
-                                              eventId: organizedEvent.id));
-                                } else if (!profileModel!.isEmailVerified) {
-                                  showAlertOKDialog(context, null,
-                                      isTitled: true,
-                                      title: 'Подтвердите почту');
-                                } else if (organizedEvent.freeSlots < 1) {
-                                  showAlertOKDialog(context, null,
-                                      isTitled: true,
-                                      title: 'Подтвердите почту');
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14),
-                                backgroundColor: isBlocked
-                                    ? mainBlueColor
-                                    : (isJoined
-                                        ? Colors.red
-                                        : Color.fromRGBO(98, 207, 102, 1)),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: Text(
-                                isBlocked
-                                    ? 'Написать организатору'
-                                    : (isJoined ? 'Не пойду' : 'Пойду'),
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16.46,
-                                    fontFamily: 'Gilroy'),
-                              ),
-                            ),
+                            child: !isPublicUser
+                                ? Container()
+                                : ElevatedButton(
+                                    onPressed: () {
+                                      if (profileModel!.isEmailVerified) {
+                                        setState(() {
+                                          isLoading = true;
+                                        });
+                                        isJoined
+                                            ? context.read<ProfileBloc>().add(
+                                                ProfileLeaveEvent(
+                                                    eventId: organizedEvent.id))
+                                            : context.read<ProfileBloc>().add(
+                                                ProfileJoinEvent(
+                                                    eventId:
+                                                        organizedEvent.id));
+                                      } else if (!profileModel!
+                                          .isEmailVerified) {
+                                        showAlertOKDialog(context, null,
+                                            isTitled: true,
+                                            title: 'Заполните профиль');
+                                      } else if (organizedEvent.freeSlots < 1) {
+                                        showAlertOKDialog(context, null,
+                                            isTitled: true,
+                                            title: 'Подтвердите почту');
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      backgroundColor: isBlocked
+                                          ? mainBlueColor
+                                          : (isJoined
+                                              ? Colors.red
+                                              : Color.fromRGBO(
+                                                  98, 207, 102, 1)),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      isBlocked
+                                          ? 'Написать организатору'
+                                          : (isJoined ? 'Не пойду' : 'Пойду'),
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16.46,
+                                          fontFamily: 'Gilroy'),
+                                    ),
+                                  ),
                           ),
                           const SizedBox(height: 40),
                         ],
