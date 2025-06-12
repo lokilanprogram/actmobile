@@ -76,6 +76,7 @@ dependencies:
   top_snackbar_flutter: ^3.3.0
   flutter_xlider: ^3.5.0
   dartz: ^0.10.1
+  icons_launcher: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -132,3 +133,11 @@ flutter:
         - asset: assets/fonts/inter_light.ttf
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+icons_launcher:
+  image_path: "assets/icons/acti_icon.png"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true
