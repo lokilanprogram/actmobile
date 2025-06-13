@@ -7,11 +7,12 @@ import 'package:acti_mobile/domain/firebase/firebase.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
 import 'package:acti_mobile/presentation/screens/auth/select_input/select_input_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
+import 'package:acti_mobile/presentation/screens/main/main_screen_provider.dart';
 import 'package:acti_mobile/presentation/screens/onbording/onboardings_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:developer' as developer;
+import 'package:provider/provider.dart';
 
 import '../../../domain/websocket/websocket.dart';
 
@@ -24,11 +25,6 @@ class InitialScreen extends StatefulWidget {
 
 class _InitialScreenState extends State<InitialScreen> {
   ProfileModel? profile;
-  @override
-  void initState() {
-    initialize();
-    super.initState();
-  }
 
   initialize() async {
     final storage = SecureStorageService();
@@ -43,8 +39,6 @@ class _InitialScreenState extends State<InitialScreen> {
         profile = await ProfileApi().getProfile();
       }
 
-      print('access token ---- $accessToken');
-      print('refresh token ---- $refreshToken');
       await Future.delayed(Duration(seconds: 1)).then((_) async {
         if (profile != null) {
           storage.setUserId(profile!.id);
@@ -83,7 +77,22 @@ class _InitialScreenState extends State<InitialScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    initialize();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.white, body: LoaderWidget());
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Consumer<MainScreenProvider>(
+        builder: (context, provider, child) {
+          return const Center(
+            child: LoaderWidget(),
+          );
+        },
+      ),
+    );
   }
 }

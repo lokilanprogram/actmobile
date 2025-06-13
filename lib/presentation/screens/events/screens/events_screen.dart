@@ -94,11 +94,11 @@ class _EventsScreenState extends State<EventsScreen> {
       setState(() {
         isLoading = false;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Не удалось получить геолокацию')),
-        );
-      }
+      // if (mounted) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(content: Text('Не удалось получить геолокацию')),
+      //   );
+      // }
     }
   }
 
