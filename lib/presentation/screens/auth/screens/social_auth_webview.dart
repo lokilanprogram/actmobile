@@ -168,8 +168,7 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
   Future<Map<String, String?>> _getVkUserData(String code) async {
     try {
       const clientId = '53703480';
-      const clientSecret =
-          'E7vT8Kk4MJAnZJVGi1VY'; // Нужно добавить ваш client secret
+      const clientSecret = 'E7vT8Kk4MJAnZJVGi1VY';
       const redirectUri = 'https://oauth.vk.com/blank.html';
 
       developer.log('Requesting VK access token with code: $code',
@@ -194,10 +193,13 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
         // Получаем access token
         final accessToken = data['access_token'] as String?;
         final email = data['email'] as String?;
+        final phone = data['phone'] as String?;
 
         developer.log('VK access token: $accessToken',
             name: 'SOCIAL_AUTH_WEBVIEW');
         developer.log('VK email from token response: $email',
+            name: 'SOCIAL_AUTH_WEBVIEW');
+        developer.log('VK phone from token response: $phone',
             name: 'SOCIAL_AUTH_WEBVIEW');
 
         if (accessToken == null) {
@@ -207,7 +209,7 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
         // Делаем запрос к VK API для получения данных пользователя
         final userResponse = await http.get(
           Uri.parse(
-              'https://api.vk.com/method/users.get?fields=contacts&access_token=$accessToken&v=5.131'),
+              'https://api.vk.com/method/users.get?fields=contacts,phone&access_token=$accessToken&v=5.131'),
         );
 
         developer.log('VK user data response: ${userResponse.body}',
@@ -221,7 +223,7 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
             final user = response[0] as Map<String, dynamic>;
             return {
               'email': email ?? '',
-              'phone': user['mobile_phone'] as String? ?? '',
+              'phone': phone ?? user['mobile_phone'] as String? ?? '',
             };
           }
         }
