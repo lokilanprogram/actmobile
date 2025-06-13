@@ -507,9 +507,6 @@ class _MapScreenState extends State<MapScreen> {
                       children: [
                         MapWidget(
                           onStyleLoadedListener: (styleLoadedEventData) async {
-                            setState(() {
-                              isMapLoading = false;
-                            });
                             if (currentUserPosition != null &&
                                 mapboxMap != null) {
                               await addUserIconToStyle(mapboxMap!);
@@ -542,21 +539,11 @@ class _MapScreenState extends State<MapScreen> {
                               }
                             }
                           },
-                          onMapLoadErrorListener: (error) {
-                            developer.log(
-                                'Ошибка загрузки карты: ${error.message}',
-                                name: 'MAP_SCREEN');
-                            setState(() {
-                              isMapLoading = false;
-                            });
-                            if (mapboxMap != null) {
-                              mapboxMap!.style
-                                  .setStyleURI(MapboxStyles.MAPBOX_STREETS);
-                            }
-                          },
                           onScrollListener: _onScroll,
                           onTapListener: _onTap,
                           styleUri: MapboxStyles.MAPBOX_STREETS,
+                          // styleUri:
+                          //     'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
                           cameraOptions: CameraOptions(
                             zoom: currentZoom,
                             center: Point(
@@ -569,26 +556,18 @@ class _MapScreenState extends State<MapScreen> {
                           key: const ValueKey("MapWidget"),
                           onMapCreated: _onMapCreated,
                         ),
-                        if (isMapLoading)
-                          Container(
-                            color: Colors.white,
-                            child: const Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  LoaderWidget(),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    'Загрузка карты...',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: buildMapControls(),
+                        ),
+                        if (showEvents)
+                          DraggableScrollableSheet(
+                            controller: sheetController,
+                            initialChildSize: 0.8,
+                            builder: (context, scrollController) {
+                              return EventsHomeListOnMapWidget(
+                                  scrollController: scrollController);
+                            },
                           ),
                       ],
                     ),
