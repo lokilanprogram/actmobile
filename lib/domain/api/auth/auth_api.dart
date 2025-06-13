@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/token_model.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class AuthApi {
   final storage = SecureStorageService();
@@ -71,18 +73,48 @@ class AuthApi {
   Future<bool> authDelete() async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
-      final response = await http.delete(
-        Uri.parse('$API/api/v1/users/profile/delete'),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-        },
-      );
-      if (response.statusCode == 204) {
-        return true;
-      } else {
-        throw Exception('Error: ${response.body}');
+      final url = '$API/api/v1/users/profile/delete';
+      final headers = {
+        'Authorization': 'Bearer $accessToken',
+      };
+
+      developer.log('=== Начало запроса на удаление аккаунта ===',
+          name: 'AUTH_API');
+      developer.log('URL: $url', name: 'AUTH_API');
+      developer.log('Headers: $headers', name: 'AUTH_API');
+      developer.log('Method: DELETE', name: 'AUTH_API');
+
+      try {
+        final response = await http.delete(
+          Uri.parse(url),
+          headers: headers,
+        );
+
+        developer.log('=== Ответ от сервера ===', name: 'AUTH_API');
+        developer.log('Status Code: ${response.statusCode}', name: 'AUTH_API');
+        developer.log('Response Headers: ${response.headers}',
+            name: 'AUTH_API');
+        developer.log('Response Body: ${response.body}', name: 'AUTH_API');
+
+        if (response.statusCode == 204) {
+          developer.log('Аккаунт успешно удален (204 No Content)',
+              name: 'AUTH_API');
+          return true;
+        } else {
+          developer.log('Ошибка при удалении аккаунта', name: 'AUTH_API');
+          developer.log('Код ошибки: ${response.statusCode}', name: 'AUTH_API');
+          developer.log('Тело ответа: ${response.body}', name: 'AUTH_API');
+          throw Exception('Error: ${response.body}');
+        }
+      } catch (e) {
+        developer.log('=== Ошибка при выполнении запроса ===',
+            name: 'AUTH_API');
+        developer.log('Тип ошибки: ${e.runtimeType}', name: 'AUTH_API');
+        developer.log('Сообщение об ошибке: $e', name: 'AUTH_API');
+        rethrow;
       }
     }
+    developer.log('=== Ошибка: токен доступа не найден ===', name: 'AUTH_API');
     return false;
   }
 

@@ -1,6 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:dio/dio.dart';
+import 'package:acti_mobile/configs/constants.dart';
+import 'package:acti_mobile/configs/storage.dart';
+import 'dart:developer' as developer;
+import 'package:toastification/toastification.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -12,6 +17,18 @@ class FeedbackScreen extends StatefulWidget {
 class _FeedbackScreenState extends State<FeedbackScreen> {
   final TextEditingController _controller = TextEditingController();
   XFile? _mediaFile;
+  bool _isLoading = false;
+
+  void _showMessage(String message, {bool isError = false}) {
+    toastification.show(
+      context: context,
+      title: Text(message),
+      type: isError ? ToastificationType.error : ToastificationType.success,
+      style: ToastificationStyle.fillColored,
+      autoCloseDuration: const Duration(seconds: 3),
+      alignment: Alignment.topRight,
+    );
+  }
 
   Future<void> _pickMedia() async {
     final ImagePicker picker = ImagePicker();
@@ -20,6 +37,89 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       setState(() {
         _mediaFile = file;
       });
+    }
+  }
+
+  Future<void> _sendFeedback() async {
+    if (_controller.text.isEmpty) {
+      _showMessage('Пожалуйста, введите текст отзыва', isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      developer.log('Начало отправки отзыва', name: 'FEEDBACK');
+      developer.log('Текст отзыва: ${_controller.text}', name: 'FEEDBACK');
+
+      final accessToken = await SecureStorageService().getAccessToken();
+      if (accessToken == null) {
+        throw Exception('Токен доступа не найден');
+      }
+      developer.log('Токен доступа получен', name: 'FEEDBACK');
+
+      final dio = Dio();
+      final formData = FormData();
+
+      // Добавляем текст отзыва
+      formData.fields.add(MapEntry('description', _controller.text));
+      developer.log('Текст добавлен в formData', name: 'FEEDBACK');
+
+      // Добавляем изображение, если оно есть
+      if (_mediaFile != null) {
+        developer.log('Подготовка изображения: ${_mediaFile!.path}',
+            name: 'FEEDBACK');
+        formData.files.add(MapEntry(
+          'file',
+          await MultipartFile.fromFile(
+            _mediaFile!.path,
+            filename: _mediaFile!.name,
+          ),
+        ));
+        developer.log('Изображение добавлено в formData', name: 'FEEDBACK');
+      }
+
+      developer.log('Отправка запроса на сервер...', name: 'FEEDBACK');
+      final response = await dio.post(
+        '$API/api/v1/admin/feedback',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+          },
+          validateStatus: (status) => true,
+        ),
+      );
+
+      developer.log('Получен ответ от сервера', name: 'FEEDBACK');
+      developer.log('Статус код: ${response.statusCode}', name: 'FEEDBACK');
+      developer.log('Тело ответа: ${response.data}', name: 'FEEDBACK');
+      developer.log('Заголовки ответа: ${response.headers}', name: 'FEEDBACK');
+
+      if (response.statusCode == 200) {
+        developer.log('Отзыв успешно отправлен', name: 'FEEDBACK');
+        _showMessage('Отзыв успешно отправлен');
+        Navigator.of(context).pop();
+      } else {
+        final errorMessage = response.data is Map
+            ? response.data['detail'] ?? 'Неизвестная ошибка'
+            : 'Ошибка при отправке отзыва: ${response.statusCode}';
+        developer.log('Ошибка сервера: $errorMessage', name: 'FEEDBACK');
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      developer.log('Ошибка при отправке отзыва: $e',
+          name: 'FEEDBACK', error: e);
+      if (e is DioException) {
+        developer.log('DioException details:', name: 'FEEDBACK');
+        developer.log('Type: ${e.type}', name: 'FEEDBACK');
+        developer.log('Message: ${e.message}', name: 'FEEDBACK');
+        developer.log('Response: ${e.response?.data}', name: 'FEEDBACK');
+      }
+      _showMessage(e.toString(), isError: true);
+    } finally {
+      setState(() => _isLoading = false);
+      developer.log('Завершение процесса отправки отзыва', name: 'FEEDBACK');
     }
   }
 
@@ -128,18 +228,26 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   padding: EdgeInsets.symmetric(vertical: 18),
                   elevation: 0,
                 ),
-                onPressed: () {
-                  // TODO: отправка обратной связи
-                },
-                child: Text(
-                  'Отправить',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'Gilroy',
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
+                onPressed: _isLoading ? null : _sendFeedback,
+                child: _isLoading
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Text(
+                        'Отправить',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: 'Gilroy',
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 18),

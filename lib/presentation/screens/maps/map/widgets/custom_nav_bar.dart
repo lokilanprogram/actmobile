@@ -21,17 +21,33 @@ class CustomNavBarWidget extends StatefulWidget {
 
 class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
   String? profileIcon;
+  bool _isDisposed = false;
+
   @override
   void initState() {
-    initialize();
     super.initState();
+    initialize();
   }
 
-  initialize() async {
-    final profile = await ProfileApi().getProfile();
-    setState(() {
-      profileIcon = profile?.photoUrl;
-    });
+  Future<void> initialize() async {
+    if (_isDisposed) return;
+
+    try {
+      final profile = await ProfileApi().getProfile();
+      if (!_isDisposed && mounted) {
+        setState(() {
+          profileIcon = profile?.photoUrl;
+        });
+      }
+    } catch (e) {
+      print('Error loading profile: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 
   void _handleTap(int index) {
@@ -55,7 +71,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
 
     return Material(
       elevation: 8,
-      color: Colors.transparent, 
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(50),
       child: Container(
         height: 65,
@@ -75,7 +91,8 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                         radius: 20,
                         backgroundImage: profileIcon != null
                             ? NetworkImage(profileIcon!)
-                            : AssetImage('assets/images/image_profile.png'),
+                            : AssetImage('assets/images/image_profile.png')
+                                as ImageProvider,
                         backgroundColor: Colors.transparent,
                       )
                     : SvgPicture.asset(

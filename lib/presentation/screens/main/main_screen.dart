@@ -13,10 +13,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen_provider.dart';
+import 'package:geolocator/geolocator.dart';
+import 'dart:developer' as developer;
+import 'package:toastification/toastification.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
-  const MainScreen({super.key, this.initialIndex = 1});
+  const MainScreen({super.key, this.initialIndex = 0});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -36,6 +39,75 @@ class _MainScreenState extends State<MainScreen> {
     const VotesScreen(),
   ];
 
+  Future<void> _checkLocationPermission() async {
+    developer.log('Проверка разрешений геолокации', name: 'MAIN_SCREEN');
+
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Проверяем, включена ли служба геолокации
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      developer.log('Служба геолокации отключена', name: 'MAIN_SCREEN');
+      toastification.show(
+        context: context,
+        title: Text('Для работы приложения необходимо включить геолокацию'),
+        type: ToastificationType.warning,
+        style: ToastificationStyle.fillColored,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.topRight,
+      );
+      return;
+    }
+
+    // Проверяем разрешения
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      developer.log('Запрашиваем разрешение на геолокацию',
+          name: 'MAIN_SCREEN');
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        developer.log('Разрешение на геолокацию отклонено',
+            name: 'MAIN_SCREEN');
+        toastification.show(
+          context: context,
+          title: Text('Для работы приложения необходим доступ к геолокации'),
+          type: ToastificationType.error,
+          style: ToastificationStyle.fillColored,
+          autoCloseDuration: const Duration(seconds: 3),
+          alignment: Alignment.topRight,
+        );
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      developer.log('Разрешение на геолокацию отклонено навсегда',
+          name: 'MAIN_SCREEN');
+      toastification.show(
+        context: context,
+        title: Text(
+            'Для работы приложения необходим доступ к геолокации. Пожалуйста, включите его в настройках устройства'),
+        type: ToastificationType.error,
+        style: ToastificationStyle.fillColored,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.topRight,
+      );
+      return;
+    }
+
+    developer.log('Разрешение на геолокацию получено', name: 'MAIN_SCREEN');
+    // Получаем текущую позицию
+    try {
+      final position = await Geolocator.getCurrentPosition();
+      developer.log(
+          'Текущая позиция: ${position.latitude}, ${position.longitude}',
+          name: 'MAIN_SCREEN');
+    } catch (e) {
+      developer.log('Ошибка при получении позиции: $e', name: 'MAIN_SCREEN');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +115,8 @@ class _MainScreenState extends State<MainScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MainScreenProvider>(context, listen: false)
           .setIndex(widget.initialIndex);
+      // Проверяем разрешения геолокации
+      _checkLocationPermission();
     });
   }
 

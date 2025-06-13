@@ -10,6 +10,7 @@ import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_around/events_around_screen.dart';
 import 'package:acti_mobile/presentation/screens/auth/select_input/select_input_screen.dart';
+import 'package:acti_mobile/configs/constants.dart';
 
 class SocialAuthWebView extends StatefulWidget {
   final String provider;
@@ -167,69 +168,57 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
 
   Future<Map<String, String?>> _getVkUserData(String code) async {
     try {
-      const clientId = '53703480';
-      const clientSecret = 'E7vT8Kk4MJAnZJVGi1VY';
-      const redirectUri = 'https://oauth.vk.com/blank.html';
+      // Извлекаем чистый код из формата vk2.a.xxx
+      final cleanCode = code.startsWith('vk2.a.') ? code.substring(6) : code;
 
-      developer.log('Requesting VK access token with code: $code',
+      developer.log('Sending VK auth code to backend: $cleanCode',
           name: 'SOCIAL_AUTH_WEBVIEW');
 
+      // Отправляем код на наш бэкенд
       final response = await http.post(
-        Uri.parse('https://oauth.vk.com/access_token'),
-        body: {
-          'client_id': clientId,
-          'client_secret': clientSecret,
-          'redirect_uri': redirectUri,
-          'code': code,
+        Uri.parse('$API/api/v1/auth/vk'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
+        body: jsonEncode({
+          'code': cleanCode,
+          'platform': 'mobile',
+        }),
       );
 
-      developer.log('VK access token response: ${response.body}',
+      developer.log('Backend response: ${response.body}',
           name: 'SOCIAL_AUTH_WEBVIEW');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        // Получаем access token
-        final accessToken = data['access_token'] as String?;
-        final email = data['email'] as String?;
-        final phone = data['phone'] as String?;
-
-        developer.log('VK access token: $accessToken',
-            name: 'SOCIAL_AUTH_WEBVIEW');
-        developer.log('VK email from token response: $email',
-            name: 'SOCIAL_AUTH_WEBVIEW');
-        developer.log('VK phone from token response: $phone',
-            name: 'SOCIAL_AUTH_WEBVIEW');
-
-        if (accessToken == null) {
+        // Проверяем наличие ошибки в ответе
+        if (data.containsKey('error')) {
+          developer.log('Backend error: ${data['error_description']}',
+              name: 'SOCIAL_AUTH_WEBVIEW');
           return {'email': '', 'phone': ''};
         }
 
-        // Делаем запрос к VK API для получения данных пользователя
-        final userResponse = await http.get(
-          Uri.parse(
-              'https://api.vk.com/method/users.get?fields=contacts,phone&access_token=$accessToken&v=5.131'),
-        );
+        final email = data['email'] as String?;
+        final phone = data['phone'] as String?;
 
-        developer.log('VK user data response: ${userResponse.body}',
+        developer.log('Email from backend: $email',
+            name: 'SOCIAL_AUTH_WEBVIEW');
+        developer.log('Phone from backend: $phone',
             name: 'SOCIAL_AUTH_WEBVIEW');
 
-        if (userResponse.statusCode == 200) {
-          final userData = json.decode(userResponse.body);
-
-          final response = userData['response'] as List?;
-          if (response != null && response.isNotEmpty) {
-            final user = response[0] as Map<String, dynamic>;
-            return {
-              'email': email ?? '',
-              'phone': phone ?? user['mobile_phone'] as String? ?? '',
-            };
-          }
-        }
+        return {
+          'email': email ?? '',
+          'phone': phone ?? '',
+        };
+      } else {
+        developer.log(
+            'Backend error: ${response.statusCode} - ${response.body}',
+            name: 'SOCIAL_AUTH_WEBVIEW');
       }
     } catch (e) {
-      developer.log('Ошибка при получении данных из VK API: $e',
+      developer.log('Ошибка при отправке кода на бэкенд: $e',
           name: 'SOCIAL_AUTH_WEBVIEW');
     }
     return {'email': '', 'phone': ''};

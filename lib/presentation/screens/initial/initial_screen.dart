@@ -7,8 +7,7 @@ import 'package:acti_mobile/domain/firebase/firebase.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
 import 'package:acti_mobile/presentation/screens/auth/select_input/select_input_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
-import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
-import 'package:acti_mobile/presentation/screens/onbording/events_around/events_around_screen.dart';
+import 'package:acti_mobile/presentation/screens/onbording/onboardings_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -52,24 +51,29 @@ class _InitialScreenState extends State<InitialScreen> {
               (route) => false,
             );
           } else {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => EventsAroundScreen()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const OnboardingsScreen()),
+            );
           }
           await FirebaseApi().initNotifications();
           await NotificationService().initNotification();
-          //await NotificationService().checkInitialNotification();
           await FirebaseApi().setupInteractedMessage();
         } else {
           await storage.deleteAll();
           Navigator.push(
-              context, MaterialPageRoute(builder: (_) => SelectInputScreen()));
+            context,
+            MaterialPageRoute(builder: (_) => SelectInputScreen()),
+          );
         }
       });
     } catch (e) {
       print(e.toString());
       await storage.deleteAll();
       Navigator.push(
-          context, MaterialPageRoute(builder: (_) => SelectInputScreen()));
+        context,
+        MaterialPageRoute(builder: (_) => SelectInputScreen()),
+      );
     }
   }
 
