@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
 import 'dart:developer' as developer;
-import 'dart:async';
 import 'package:acti_mobile/main.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/marker.dart';
@@ -37,8 +36,6 @@ import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:typed_data';
-import 'package:acti_mobile/presentation/screens/main/main_screen_provider.dart';
-import 'package:toastification/toastification.dart';
 
 class MapScreen extends StatefulWidget {
   // final int selectedScreenIndex;
@@ -56,13 +53,12 @@ class _MapScreenState extends State<MapScreen> {
   int selectedIndex = 0;
   MapboxMap? mapboxMap;
   late geolocator.LocationPermission currentPermission;
-  Position? currentSelectedPosition;
+  Position currentSelectedPosition = Position(37.6173, 55.7558); // Москва
   Position? currentUserPosition;
   double currentZoom = 16;
   bool isLoading = false;
   bool showEvents = false;
   bool showSettings = false;
-  bool isMapLoading = true;
   DeepLinkService? _deepLinkService;
   DraggableScrollableController sheetController =
       DraggableScrollableController();
@@ -82,14 +78,12 @@ class _MapScreenState extends State<MapScreen> {
     'museum',
   ];
 
-  bool _isSearchingLocation = false;
-
   _onScroll(
     MapContentGestureContext gestureContext,
   ) async {
     double distance = geolocator.Geolocator.distanceBetween(
-      currentSelectedPosition!.lat.toDouble(),
-      currentSelectedPosition!.lng.toDouble(),
+      currentSelectedPosition.lat.toDouble(),
+      currentSelectedPosition.lng.toDouble(),
       gestureContext.point.coordinates.lat.toDouble(),
       gestureContext.point.coordinates.lng.toDouble(),
     );
@@ -134,7 +128,6 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _isSearchingLocation = true;
     initialize();
     sheetController.addListener(() async {
       if (sheetController.size <= 0.5) {
@@ -156,228 +149,6 @@ class _MapScreenState extends State<MapScreen> {
     super.dispose();
   }
 
-  Future<void> _getCurrentLocation() async {
-    setState(() {
-      _isSearchingLocation = true;
-    });
-
-    try {
-      // Проверяем, включена ли геолокация
-      bool serviceEnabled =
-          await geolocator.Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        if (mounted) {
-          toastification.show(
-            context: context,
-            title: Text('Для работы приложения необходимо включить геолокацию'),
-            type: ToastificationType.warning,
-            style: ToastificationStyle.fillColored,
-            autoCloseDuration: const Duration(seconds: 3),
-            alignment: Alignment.topRight,
-          );
-        }
-        // Ждем 15 секунд перед тем, как использовать Москву
-        await Future.delayed(const Duration(seconds: 15));
-        if (mounted) {
-          setState(() {
-            currentSelectedPosition = Position(37.6173, 55.7558);
-            _isSearchingLocation = false;
-          });
-          if (mapboxMap != null) {
-            await mapboxMap!.setCamera(CameraOptions(
-              center: Point(
-                coordinates: Position(37.6173, 55.7558),
-              ),
-              zoom: currentZoom,
-            ));
-            await addUserIconToStyle(mapboxMap!);
-          }
-        }
-        return;
-      }
-
-      // Проверяем разрешения
-      geolocator.LocationPermission permission =
-          await geolocator.Geolocator.checkPermission();
-      if (permission == geolocator.LocationPermission.denied) {
-        permission = await geolocator.Geolocator.requestPermission();
-        if (permission == geolocator.LocationPermission.denied) {
-          if (mounted) {
-            toastification.show(
-              context: context,
-              title:
-                  Text('Для работы приложения необходим доступ к геолокации'),
-              type: ToastificationType.error,
-              style: ToastificationStyle.fillColored,
-              autoCloseDuration: const Duration(seconds: 3),
-              alignment: Alignment.topRight,
-            );
-          }
-          // Ждем 15 секунд перед тем, как использовать Москву
-          await Future.delayed(const Duration(seconds: 15));
-          if (mounted) {
-            setState(() {
-              currentSelectedPosition = Position(37.6173, 55.7558);
-              _isSearchingLocation = false;
-            });
-            if (mapboxMap != null) {
-              await mapboxMap!.setCamera(CameraOptions(
-                center: Point(
-                  coordinates: Position(37.6173, 55.7558),
-                ),
-                zoom: currentZoom,
-              ));
-              await addUserIconToStyle(mapboxMap!);
-            }
-          }
-          return;
-        }
-      }
-
-      if (permission == geolocator.LocationPermission.deniedForever) {
-        if (mounted) {
-          toastification.show(
-            context: context,
-            title: Text(
-                'Для работы приложения необходим доступ к геолокации. Пожалуйста, включите его в настройках устройства'),
-            type: ToastificationType.error,
-            style: ToastificationStyle.fillColored,
-            autoCloseDuration: const Duration(seconds: 3),
-            alignment: Alignment.topRight,
-          );
-        }
-        // Ждем 15 секунд перед тем, как использовать Москву
-        await Future.delayed(const Duration(seconds: 15));
-        if (mounted) {
-          setState(() {
-            currentSelectedPosition = Position(37.6173, 55.7558);
-            _isSearchingLocation = false;
-          });
-          if (mapboxMap != null) {
-            await mapboxMap!.setCamera(CameraOptions(
-              center: Point(
-                coordinates: Position(37.6173, 55.7558),
-              ),
-              zoom: currentZoom,
-            ));
-            await addUserIconToStyle(mapboxMap!);
-          }
-        }
-        return;
-      }
-
-      // Пробуем получить текущее местоположение с таймаутом
-      final position = await geolocator.Geolocator.getCurrentPosition(
-        timeLimit: const Duration(seconds: 15),
-      ).timeout(
-        const Duration(seconds: 15),
-        onTimeout: () async {
-          // Если не удалось получить текущее местоположение, пробуем получить последнее известное
-          final lastPosition =
-              await geolocator.Geolocator.getLastKnownPosition();
-          if (lastPosition != null && mounted) {
-            setState(() {
-              currentUserPosition =
-                  Position(lastPosition.longitude, lastPosition.latitude);
-              currentSelectedPosition =
-                  Position(lastPosition.longitude, lastPosition.latitude);
-              _isSearchingLocation = false;
-            });
-            if (mapboxMap != null) {
-              await mapboxMap!.setCamera(CameraOptions(
-                center: Point(
-                  coordinates:
-                      Position(lastPosition.longitude, lastPosition.latitude),
-                ),
-                zoom: currentZoom,
-              ));
-              await addUserIconToStyle(mapboxMap!);
-            }
-            return lastPosition;
-          } else {
-            if (mounted) {
-              setState(() {
-                currentSelectedPosition = Position(37.6173, 55.7558);
-                _isSearchingLocation = false;
-              });
-              if (mapboxMap != null) {
-                await mapboxMap!.setCamera(CameraOptions(
-                  center: Point(
-                    coordinates: Position(37.6173, 55.7558),
-                  ),
-                  zoom: currentZoom,
-                ));
-                await addUserIconToStyle(mapboxMap!);
-              }
-            }
-            throw TimeoutException('Не удалось получить местоположение');
-          }
-        },
-      );
-
-      if (mounted) {
-        setState(() {
-          currentUserPosition = Position(position.longitude, position.latitude);
-          currentSelectedPosition =
-              Position(position.longitude, position.latitude);
-          _isSearchingLocation = false;
-        });
-        if (mapboxMap != null) {
-          await mapboxMap!.setCamera(CameraOptions(
-            center: Point(
-              coordinates: Position(position.longitude, position.latitude),
-            ),
-            zoom: currentZoom,
-          ));
-          await addUserIconToStyle(mapboxMap!);
-        }
-      }
-    } catch (e) {
-      developer.log('Ошибка получения местоположения: $e', name: 'MAP_SCREEN');
-      if (mounted) {
-        setState(() {
-          currentSelectedPosition = Position(37.6173, 55.7558);
-          _isSearchingLocation = false;
-        });
-        if (mapboxMap != null) {
-          await mapboxMap!.setCamera(CameraOptions(
-            center: Point(
-              coordinates: Position(37.6173, 55.7558),
-            ),
-            zoom: currentZoom,
-          ));
-          await addUserIconToStyle(mapboxMap!);
-        }
-      }
-    }
-  }
-
-  Future<void> addUserIconToStyle(MapboxMap mapboxMap) async {
-    try {
-      // Удаляем предыдущий маркер, если он есть
-      await pointAnnotationManager.deleteAll();
-
-      // Создаем маркер текущего местоположения
-      final pointAnnotationOptions = PointAnnotationOptions(
-        geometry: Point(
-          coordinates: Position(
-            currentUserPosition!.lng,
-            currentUserPosition!.lat,
-          ),
-        ),
-        iconSize: 2.0,
-        iconImage: 'default_marker',
-        iconColor: Colors.blue.value,
-      );
-
-      // Добавляем маркер на карту
-      await pointAnnotationManager.create(pointAnnotationOptions);
-    } catch (e) {
-      developer.log('Ошибка добавления маркера местоположения: $e',
-          name: 'MAP_SCREEN');
-    }
-  }
-
   void initialize() async {
     setState(() {
       isLoading = true;
@@ -396,29 +167,41 @@ class _MapScreenState extends State<MapScreen> {
     final accessToken = futures[1] as String?;
     currentPermission = futures[2] as geolocator.LocationPermission;
 
+    // Параллельное выполнение WebSocket и геолокации
+    if (accessToken != null) {
+      connectToOnlineStatus(accessToken).catchError((e) {
+        developer.log('Ошибка при подключении к WebSocket: $e',
+            name: 'MAP_SCREEN');
+      });
+    }
+
     if (currentPermission.name == 'denied') {
       currentPermission = await geolocator.Geolocator.requestPermission();
     }
 
     if (currentPermission.name != 'denied' && await checkGeolocator()) {
-      await _getCurrentLocation();
-      if (currentUserPosition != null) {
-        delayedLocationUpdate(
-          currentUserPosition!.lat.toDouble(),
-          currentUserPosition!.lng.toDouble(),
-        ).catchError((e) {
-          developer.log('Ошибка при обновлении локации: $e',
-              name: 'MAP_SCREEN');
-        });
-      }
+      final position = await geolocator.Geolocator.getCurrentPosition();
+      delayedLocationUpdate(position.latitude, position.longitude)
+          .catchError((e) {
+        developer.log('Ошибка при обновлении локации: $e', name: 'MAP_SCREEN');
+      });
+      setState(() {
+        currentUserPosition = Position(position.longitude, position.latitude);
+        currentSelectedPosition =
+            Position(position.longitude, position.latitude);
+      });
+    } else {
+      setState(() {
+        currentUserPosition = null;
+        currentSelectedPosition =
+            Position(37.60709779391965, 55.73523399526778);
+      });
     }
 
-    // Инициализация карты только если у нас есть координаты
-    if (currentSelectedPosition != null) {
-      context.read<ProfileBloc>().add(InitializeMapEvent(
-          latitude: currentSelectedPosition!.lat.toDouble(),
-          longitude: currentSelectedPosition!.lng.toDouble()));
-    }
+    // Инициализация карты
+    context.read<ProfileBloc>().add(InitializeMapEvent(
+        latitude: currentSelectedPosition.lat.toDouble(),
+        longitude: currentSelectedPosition.lng.toDouble()));
 
     setState(() {
       isLoading = false;
@@ -467,7 +250,7 @@ class _MapScreenState extends State<MapScreen> {
           });
 
           if (mapboxMap != null) {
-            for (var event in searchedEventsModel!.events) {
+            for (var event in searchedEventsModel!.events.toList()) {
               final result = await screenshotController.captureFromWidget(
                 CategoryMarker(
                     title: event.category!.name,
@@ -494,98 +277,79 @@ class _MapScreenState extends State<MapScreen> {
         backgroundColor: Colors.white,
         resizeToAvoidBottomInset: false,
         body: WillPopScope(
-            onWillPop: () async {
-              SystemNavigator.pop();
-              return false;
-            },
-            child: isLoading
-                ? const LoaderWidget()
-                : Stack(
-                    children: [
-                      Stack(
-                        children: [
-                          MapWidget(
-                            onStyleLoadedListener:
-                                (styleLoadedEventData) async {
-                              if (currentUserPosition != null &&
-                                  mapboxMap != null) {
-                                await addUserIconToStyle(mapboxMap!);
-                              }
-                              if (searchedEventsModel != null &&
-                                  mapboxMap != null) {
-                                for (var event in searchedEventsModel!.events) {
-                                  if (event.category != null) {
-                                    final result = await screenshotController
-                                        .captureFromWidget(
-                                      CategoryMarker(
-                                          title: event.category!.name,
-                                          iconUrl: event.category!.iconPath),
-                                    );
-                                    await addEventIconFromUrl(mapboxMap!,
-                                        'pointer:${event.id}', result);
-                                    final pointAnnotationOptions =
-                                        PointAnnotationOptions(
-                                      geometry: Point(
-                                          coordinates: Position(
-                                              event.longitude ?? 0.0,
-                                              event.latitude ?? 0.0)),
-                                      iconSize: 0.75,
-                                      image: result,
-                                      iconImage: 'pointer:${event.id}',
-                                    );
-                                    await pointAnnotationManager
-                                        .create(pointAnnotationOptions);
-                                  }
-                                }
-                              }
-                            },
-                            onScrollListener: _onScroll,
-                            onTapListener: _onTap,
-                            styleUri: MapboxStyles.MAPBOX_STREETS,
-                            // styleUri:
-                            //     'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
-                            cameraOptions: CameraOptions(
-                              zoom: currentZoom,
-                              center: Point(
-                                coordinates: Position(
-                                  currentSelectedPosition!.lng,
-                                  currentSelectedPosition!.lat,
-                                ),
-                              ),
-                            ),
-                            key: const ValueKey("MapWidget"),
-                            onMapCreated: _onMapCreated,
+          onWillPop: () async {
+            SystemNavigator.pop();
+            return false;
+          },
+          child: isLoading
+              ? const LoaderWidget()
+              : Stack(
+                  children: [
+                    MapWidget(
+                      onStyleLoadedListener: (styleLoadedEventData) async {
+                        if (currentUserPosition != null && mapboxMap != null) {
+                          await addUserIconToStyle(mapboxMap!);
+                        }
+                        if (searchedEventsModel != null && mapboxMap != null) {
+                          for (var event in searchedEventsModel!.events) {
+                            if (event.category != null) {
+                              final result =
+                                  await screenshotController.captureFromWidget(
+                                CategoryMarker(
+                                    title: event.category!.name,
+                                    iconUrl: event.category!.iconPath),
+                              );
+                              await addEventIconFromUrl(
+                                  mapboxMap!, 'pointer:${event.id}', result);
+                              final pointAnnotationOptions =
+                                  PointAnnotationOptions(
+                                geometry: Point(
+                                    coordinates: Position(
+                                        event.longitude ?? 0.0,
+                                        event.latitude ?? 0.0)),
+                                iconSize: 0.75,
+                                image: result,
+                                iconImage: 'pointer:${event.id}',
+                              );
+                              await pointAnnotationManager
+                                  .create(pointAnnotationOptions);
+                            }
+                          }
+                        }
+                      },
+                      onScrollListener: _onScroll,
+                      onTapListener: _onTap,
+                      styleUri: MapboxStyles.MAPBOX_STREETS,
+                      // styleUri:
+                      //     'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
+                      cameraOptions: CameraOptions(
+                        zoom: currentZoom,
+                        center: Point(
+                          coordinates: Position(
+                            currentSelectedPosition.lng,
+                            currentSelectedPosition.lat,
                           ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: buildMapControls(),
-                          ),
-                          if (showEvents)
-                            DraggableScrollableSheet(
-                              controller: sheetController,
-                              initialChildSize: 0.8,
-                              builder: (context, scrollController) {
-                                return EventsHomeListOnMapWidget(
-                                    scrollController: scrollController);
-                              },
-                            ),
-                        ],
-                      ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: buildMapControls(),
-                      ),
-                      if (showEvents)
-                        DraggableScrollableSheet(
-                          controller: sheetController,
-                          initialChildSize: 0.8,
-                          builder: (context, scrollController) {
-                            return EventsHomeListOnMapWidget(
-                                scrollController: scrollController);
-                          },
                         ),
-                    ],
-                  )),
+                      ),
+                      key: const ValueKey("MapWidget"),
+                      onMapCreated: _onMapCreated,
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: buildMapControls(),
+                    ),
+                    if (showEvents)
+                      DraggableScrollableSheet(
+                        controller: sheetController,
+                        initialChildSize: 0.8,
+                        builder: (context, scrollController) {
+                          return EventsHomeListOnMapWidget(
+                              scrollController: scrollController);
+                        },
+                      ),
+                  ],
+                ),
+        ),
       ),
     );
   }
@@ -639,10 +403,8 @@ class _MapScreenState extends State<MapScreen> {
                       pointAnnotationManager.deleteAll();
 
                       // Определяем координаты для поиска
-                      double searchLat =
-                          currentSelectedPosition!.lat.toDouble();
-                      double searchLng =
-                          currentSelectedPosition!.lng.toDouble();
+                      double searchLat = currentSelectedPosition.lat.toDouble();
+                      double searchLng = currentSelectedPosition.lng.toDouble();
 
                       // Если выбрана точка на карте в фильтре, используем её
                       if (filterProvider.selectedMapAddressModel != null) {
