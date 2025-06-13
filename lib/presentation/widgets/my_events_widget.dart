@@ -1,6 +1,8 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class MyEventsWidget extends StatelessWidget {
@@ -14,7 +16,13 @@ class MyEventsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        if (onTap != null) {
+          onTap!();
+          // Обновляем состояние при переходе
+          context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
+        }
+      },
       child: Material(
         elevation: 1.2,
         borderRadius: BorderRadius.circular(30),

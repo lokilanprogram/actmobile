@@ -199,6 +199,10 @@ class _MainScreenState extends State<MainScreen> {
                         } else {
                           provider.setIndex(index);
                         }
+                        // Обновляем состояние при изменении индекса
+                        context
+                            .read<ProfileBloc>()
+                            .add(ProfileGetListEventsEvent());
                       },
                     ),
                   ),
