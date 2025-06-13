@@ -2,6 +2,8 @@ import 'dart:ui'; // Для ImageFilter
 import 'package:flutter/material.dart';
 
 class BlurredContainer extends StatelessWidget {
+  const BlurredContainer({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Stack(

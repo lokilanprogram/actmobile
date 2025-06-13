@@ -475,7 +475,6 @@ class _EventsScreenState extends State<EventsScreen> {
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.bold,
                               fontSize: isSmallScreen ? 16 : 18,
-                              // fontSize: 18,
                             ),
                           ),
                         ),
@@ -745,7 +744,7 @@ class _EventsScreenState extends State<EventsScreen> {
                         child: SafeArea(
                           child: Padding(
                             padding: const EdgeInsets.only(
-                                left: 20, right: 20, top: 10, bottom: 10),
+                                left: 20, right: 20, top: 10, bottom: 90),
                             child: Column(
                               children: [
                                 const SizedBox(height: 25),
@@ -868,48 +867,6 @@ class _EventsScreenState extends State<EventsScreen> {
                                 const SizedBox(height: 150),
                               ],
                             ),
-                          ),
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 60),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ActivityBarWidget(
-                                  isVerified: isVerified,
-                                  isProfileCompleted: isProfileCompleted),
-                              const SizedBox(height: 15),
-                              CustomNavBarWidget(
-                                selectedIndex: 1,
-                                onTabSelected: (index) {
-                                  if (index == 0) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            MapScreen(selectedScreenIndex: 0),
-                                      ),
-                                    );
-                                  }
-                                  if (index == 2) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            MapScreen(selectedScreenIndex: 2),
-                                      ),
-                                    );
-                                  } else if (index == 3) {
-                                    developer.log('Navigate to Profile');
-                                  } else if (index == 1) {
-                                    developer.log('Stay on Events Screen');
-                                  }
-                                },
-                              ),
-                            ],
                           ),
                         ),
                       ),

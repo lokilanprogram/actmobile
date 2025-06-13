@@ -35,8 +35,10 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 class MapScreen extends StatefulWidget {
-  final int selectedScreenIndex;
-  const MapScreen({super.key, required this.selectedScreenIndex});
+  // final int selectedScreenIndex;
+  const MapScreen({
+    super.key,
+  });
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -138,7 +140,7 @@ class _MapScreenState extends State<MapScreen> {
   void initialize() async {
     setState(() {
       isLoading = true;
-      selectedIndex = widget.selectedScreenIndex;
+      // selectedIndex = widget.selectedScreenIndex;
       _deepLinkService = DeepLinkService(navigatorKey);
     });
     if (_deepLinkService != null) {
@@ -209,58 +211,6 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> screens = [
-      MapWidget(
-        onStyleLoadedListener: (styleLoadedEventData) async {
-          if (currentUserPosition != null) {
-            await addUserIconToStyle(mapboxMap!);
-          }
-          if (searchedEventsModel != null && mapboxMap != null) {
-            for (var event in searchedEventsModel!.events) {
-              final result = await screenshotController.captureFromWidget(
-                CategoryMarker(
-                    title: event.category!.name,
-                    iconUrl: event.category!.iconPath),
-              );
-              await addEventIconFromUrl(
-                  mapboxMap!, 'pointer:${event.id}', result);
-              final pointAnnotationOptions = PointAnnotationOptions(
-                geometry: Point(
-                    coordinates: Position(event.longitude!, event.latitude!)),
-                iconSize: 0.75,
-                image: result,
-                iconImage: 'pointer:${event.id}',
-              );
-              await pointAnnotationManager.create(pointAnnotationOptions);
-            }
-          }
-        },
-        onScrollListener: _onScroll,
-        onTapListener: _onTap,
-        styleUri: 'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
-        cameraOptions: CameraOptions(
-          zoom: currentZoom,
-          center: Point(
-            coordinates: Position(
-              currentSelectedPosition.lng,
-              currentSelectedPosition.lat,
-            ),
-          ),
-        ),
-        key: const ValueKey("MapWidget"),
-        onMapCreated: _onMapCreated,
-      ),
-      const EventsScreen(),
-      ChatMainScreen(),
-      ProfileMenuScreen(
-        onSettingsChanged: (value) {
-          setState(() {
-            showSettings = value;
-          });
-        },
-      ),
-    ];
-
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) async {
         if (state is InitializeMapState) {
@@ -280,7 +230,6 @@ class _MapScreenState extends State<MapScreen> {
             searchedEventsModel?.events.addAll(newUniqueEvents);
           });
 
-          // Ensure mapboxMap and pointAnnotationManager are initialized before adding annotations
           if (mapboxMap != null) {
             for (var event in searchedEventsModel!.events.toList()) {
               final result = await screenshotController.captureFromWidget(
@@ -315,97 +264,70 @@ class _MapScreenState extends State<MapScreen> {
           },
           child: isLoading
               ? const LoaderWidget()
-              : Stack(
-                  children: [
-                    // Use IndexedStack to keep all screens alive
-                    IndexedStack(
-                      index: selectedIndex,
-                      children: screens,
-                    ),
-
-                    // Map controls should only be visible on the map screen (selectedIndex == 0)
-                    if (selectedIndex == 0)
+              : SafeArea(
+                  child: Stack(
+                    children: [
+                      MapWidget(
+                        onStyleLoadedListener: (styleLoadedEventData) async {
+                          if (currentUserPosition != null) {
+                            await addUserIconToStyle(mapboxMap!);
+                          }
+                          if (searchedEventsModel != null &&
+                              mapboxMap != null) {
+                            for (var event in searchedEventsModel!.events) {
+                              final result =
+                                  await screenshotController.captureFromWidget(
+                                CategoryMarker(
+                                    title: event.category!.name,
+                                    iconUrl: event.category!.iconPath),
+                              );
+                              await addEventIconFromUrl(
+                                  mapboxMap!, 'pointer:${event.id}', result);
+                              final pointAnnotationOptions =
+                                  PointAnnotationOptions(
+                                geometry: Point(
+                                    coordinates: Position(
+                                        event.longitude!, event.latitude!)),
+                                iconSize: 0.75,
+                                image: result,
+                                iconImage: 'pointer:${event.id}',
+                              );
+                              await pointAnnotationManager
+                                  .create(pointAnnotationOptions);
+                            }
+                          }
+                        },
+                        onScrollListener: _onScroll,
+                        onTapListener: _onTap,
+                        styleUri:
+                            'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
+                        cameraOptions: CameraOptions(
+                          zoom: currentZoom,
+                          center: Point(
+                            coordinates: Position(
+                              currentSelectedPosition.lng,
+                              currentSelectedPosition.lat,
+                            ),
+                          ),
+                        ),
+                        key: const ValueKey("MapWidget"),
+                        onMapCreated: _onMapCreated,
+                      ),
                       Align(
                         alignment: Alignment.centerRight,
                         child: buildMapControls(),
                       ),
-
-                    if (showEvents &&
-                        selectedIndex ==
-                            0) // Show events list only on map screen
-                      DraggableScrollableSheet(
-                        controller: sheetController,
-                        initialChildSize: 0.8, // стартовая высота
-                        builder: (context, scrollController) {
-                          return EventsHomeListOnMapWidget(
-                              scrollController: scrollController);
-                        },
-                      ),
-
-                    // My Events button (assuming it's part of the profile screen)
-                    // This logic might need to be moved inside ProfileMenuScreen
-                    if (selectedIndex == 3 && !showSettings)
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Padding(
-                          padding: EdgeInsets.only(bottom: 140),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => MyEventsScreen()));
-                            },
-                            child: Material(
-                              elevation: 1.2,
-                              borderRadius: BorderRadius.circular(25),
-                              child: Container(
-                                height: 59,
-                                width: MediaQuery.of(context).size.width * 0.8,
-                                decoration: BoxDecoration(
-                                  color: mainBlueColor,
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SvgPicture.asset(
-                                        'assets/icons/icon_event_bar.svg'),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Text(
-                                      'Мои события',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontFamily: 'Gilroy',
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.bold),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 60),
-                        child: CustomNavBarWidget(
-                          selectedIndex: selectedIndex,
-                          onTabSelected: (int index) async {
-                            FocusScope.of(context).unfocus();
-                            setState(() {
-                              selectedIndex = index;
-                            });
+                      if (showEvents)
+                        DraggableScrollableSheet(
+                          controller: sheetController,
+                          initialChildSize: 0.8,
+                          builder: (context, scrollController) {
+                            return EventsHomeListOnMapWidget(
+                                scrollController: scrollController);
                           },
                         ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
         ),
       ),

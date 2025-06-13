@@ -7,9 +7,10 @@ import 'package:acti_mobile/domain/bloc/notifications/notifications_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/domain/repositories/auth_repository.dart';
 import 'package:acti_mobile/domain/services/auth_service.dart';
-import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/events/providers/filter_provider.dart';
-import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
+import 'package:acti_mobile/presentation/screens/events/providers/vote_provider.dart';
+import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
+import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -19,7 +20,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
-import 'package:acti_mobile/presentation/screens/events/providers/vote_provider.dart';
 import 'package:acti_mobile/configs/constants.dart';
 
 final baseUrl = API;
@@ -47,7 +47,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     final dio = Dio();
@@ -94,8 +93,7 @@ class MyApp extends StatelessWidget {
             if (state is AuthSuccess) {
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => MapScreen(selectedScreenIndex: 0)),
+                MaterialPageRoute(builder: (_) => const MainScreen()),
                 (route) => false,
               );
             }

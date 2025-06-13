@@ -36,7 +36,12 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
 
   void _handleTap(int index) {
     FocusScope.of(context).unfocus();
-    widget.onTabSelected(index);
+    // При нажатии на иконку профиля всегда переходим на индекс 3
+    if (index == 3) {
+      widget.onTabSelected(3);
+    } else {
+      widget.onTabSelected(index);
+    }
   }
 
   @override
@@ -45,6 +50,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
       'assets/drawer/location.svg',
       'assets/drawer/events.svg',
       'assets/drawer/chats.svg',
+      'assets/drawer/profile.svg',
     ];
 
     return Material(
@@ -64,27 +70,26 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
             for (int i = 0; i < icons.length; i++)
               GestureDetector(
                 onTap: () => _handleTap(i),
-                child: SvgPicture.asset(
-                  icons[i],
-                  height: 28,
-                  colorFilter: ColorFilter.mode(
-                    widget.selectedIndex == i
-                        ? mainBlueColor
-                        : Colors.lightBlue.withOpacity(0.5),
-                    BlendMode.srcIn,
-                  ),
-                ),
+                child: i == 3
+                    ? CircleAvatar(
+                        radius: 20,
+                        backgroundImage: profileIcon != null
+                            ? NetworkImage(profileIcon!)
+                            : AssetImage('assets/images/image_profile.png'),
+                        backgroundColor: Colors.transparent,
+                      )
+                    : SvgPicture.asset(
+                        icons[i],
+                        height: 28,
+                        colorFilter: ColorFilter.mode(
+                          widget.selectedIndex == i ||
+                                  (i == 3 && widget.selectedIndex == 4)
+                              ? mainBlueColor
+                              : mainBlueColor.withAlpha(150),
+                          BlendMode.srcIn,
+                        ),
+                      ),
               ),
-            GestureDetector(
-              onTap: () => _handleTap(3),
-              child: CircleAvatar(
-                radius: 20,
-                backgroundImage: profileIcon != null
-                    ? NetworkImage(profileIcon!)
-                    : AssetImage('assets/images/image_profile.png'),
-                backgroundColor: Colors.transparent,
-              ),
-            ),
           ],
         ),
       ),

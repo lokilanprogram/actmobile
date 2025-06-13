@@ -184,7 +184,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                                   publicUserModel.surname != ""
                                               ? '${capitalize(publicUserModel.surname!)} ${capitalize(publicUserModel.name!)}'
                                               : capitalize(
-                                                  publicUserModel?.name ??
+                                                  publicUserModel.name ??
                                                       "Неизвестный"),
                                           style: TextStyle(
                                             fontFamily: 'Inter',
@@ -395,29 +395,29 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                             SizedBox(
                               height: 15,
                             ),
-                            CustomNavBarWidget(
-                                selectedIndex: 4,
-                                onTabSelected: (index) {
-                                  if (index == 0) {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => MapScreen(
-                                                  selectedScreenIndex: 0,
-                                                )));
-                                  }
-                                  if (index == 2) {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => MapScreen(
-                                                  selectedScreenIndex: 2,
-                                                )));
-                                  }
-                                  if (index == 3) {
-                                    Navigator.pop(context);
-                                  }
-                                }),
+                            // CustomNavBarWidget(
+                            //     selectedIndex: 4,
+                            //     onTabSelected: (index) {
+                            //       if (index == 0) {
+                            //         Navigator.push(
+                            //             context,
+                            //             MaterialPageRoute(
+                            //                 builder: (context) => MapScreen(
+                            //                       selectedScreenIndex: 0,
+                            //                     )));
+                            //       }
+                            //       if (index == 2) {
+                            //         Navigator.push(
+                            //             context,
+                            //             MaterialPageRoute(
+                            //                 builder: (context) => MapScreen(
+                            //                       selectedScreenIndex: 2,
+                            //                     )));
+                            //       }
+                            //       if (index == 3) {
+                            //         Navigator.pop(context);
+                            //       }
+                            //     }),
                           ],
                         ),
                       ),

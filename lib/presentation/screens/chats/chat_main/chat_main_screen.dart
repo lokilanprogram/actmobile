@@ -359,14 +359,14 @@ class ChatListTileWidget extends StatelessWidget {
             ),
             style: TextStyle(fontFamily: 'Inter', fontSize: 13),
           ),
-          chat?.unreadCount != null && chat?.unreadCount != 0
+          chat.unreadCount != null && chat.unreadCount != 0
               ? Container(
                   width: 33,
                   decoration: BoxDecoration(
                       color: Color.fromARGB(255, 66, 147, 239),
                       borderRadius: BorderRadius.all(Radius.circular(108))),
                   child: Text(
-                    chat!.unreadCount.toString(),
+                    chat.unreadCount.toString(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontFamily: 'Inter',
@@ -384,8 +384,8 @@ class ChatListTileWidget extends StatelessWidget {
         chat.status != null
             ? chat.status ?? chat.lastMessage?.content ?? '...'
             : chat.lastMessage?.content ?? '...',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.w500,

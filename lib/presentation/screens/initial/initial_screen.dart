@@ -6,6 +6,7 @@ import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/firebase/firebase.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
 import 'package:acti_mobile/presentation/screens/auth/select_input/select_input_screen.dart';
+import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_around/events_around_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
@@ -45,12 +46,11 @@ class _InitialScreenState extends State<InitialScreen> {
           storage.setUserId(profile!.id);
           storage.setUserVerified(profile!.isEmailVerified);
           if (profile!.categories.isNotEmpty) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => MapScreen(
-                          selectedScreenIndex: 0,
-                        )));
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const MainScreen()),
+              (route) => false,
+            );
           } else {
             Navigator.push(context,
                 MaterialPageRoute(builder: (_) => EventsAroundScreen()));

@@ -32,13 +32,13 @@ class ActivityBarWidget extends StatelessWidget {
       },
       child: Material(
         elevation: 1.2,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(30),
         child: Container(
           height: 59,
           width: MediaQuery.of(context).size.width * 0.8,
           decoration: BoxDecoration(
             color: Color.fromRGBO(98, 207, 102, 1),
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(30),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

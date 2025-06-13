@@ -99,14 +99,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
             similiarUsersModel = state.similiarUsersModel;
           });
 
-          // if (!profileModel.isProfileCompleted) {
-          //   await Navigator.push(
-          //       context,
-          //       MaterialPageRoute(
-          //           builder: (_) => UpdateProfileScreen(
-          //                 profileModel: profileModel,
-          //               )));
-          // }
           setState(() {
             isLoading = false;
           });
@@ -184,13 +176,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                             height: 350,
                                             fit: BoxFit.cover,
                                           ),
-                                    // Positioned(
-                                    //   top: 77,
-                                    //   right: 60,
-                                    //   child: Icon(
-                                    //       Icons.notifications_none_outlined,
-                                    //       color: Colors.white),
-                                    // ),
                                     Positioned(
                                         top: 48,
                                         right: 10,
@@ -215,7 +200,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                                     color: Colors.white),
                                               ),
                                             ),
-                                            //const SizedBox(width: 8),
                                             PopUpProfileButtons(
                                               deleteFunction: () {
                                                 setState(() {
@@ -249,23 +233,18 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                           height: 120,
                                           padding: const EdgeInsets.only(
                                               left: 20, right: 20, top: 10),
-                                          // decoration: BoxDecoration(
-                                          //   color: Colors.grey.withOpacity(
-                                          //       0.3), // Тёмный полупрозрачный фон
-                                          // ),
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                profileModel.surname !=
-                                                            null &&
-                                                        profileModel
-                                                                .surname !=
+                                                profileModel.surname != null &&
+                                                        profileModel.surname !=
                                                             ""
                                                     ? '${capitalize(profileModel.surname!)} ${capitalize(profileModel.name!)}'
-                                                    : capitalize(profileModel
-                                                            .name ?? 'Неизвестное имя'),
+                                                    : capitalize(
+                                                        profileModel.name ??
+                                                            'Неизвестное имя'),
                                                 style: TextStyle(
                                                   fontFamily: 'Inter',
                                                   fontSize: 32,
@@ -275,13 +254,13 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                               ),
                                               SizedBox(height: 4),
                                               Text(
-                                                capitalize(
-                                                    profileModel.status),
+                                                capitalize(profileModel.status),
                                                 style: TextStyle(
                                                   fontSize: 20,
                                                   fontFamily: 'Inter',
                                                   fontWeight: FontWeight.w700,
-                                                  color: Colors.white.withOpacity(0.5),
+                                                  color: Colors.white
+                                                      .withOpacity(0.5),
                                                 ),
                                               ),
                                             ],
@@ -348,13 +327,11 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                             fontFamily: 'Inter', fontSize: 12),
                                       ),
                                       const SizedBox(height: 15),
-                                      // Interests
                                       buildInterestsGrid(
                                         profileModel.categories
                                             .map((e) => e.name)
                                             .toList(),
                                       ),
-
                                       const SizedBox(height: 25),
                                       Padding(
                                         padding: const EdgeInsets.only(left: 0),
@@ -369,7 +346,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                         ),
                                       ),
                                       const SizedBox(height: 15),
-                                      // Similar users row
                                       Center(
                                           child: similiarUsersModel.isEmpty
                                               ? buildNoUsers()

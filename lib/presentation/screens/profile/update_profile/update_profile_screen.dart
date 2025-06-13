@@ -114,12 +114,12 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
           setState(() {
             isLoading = false;
           });
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => MapScreen(
-                        selectedScreenIndex: 3,
-                      )));
+          // Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //         builder: (context) => MapScreen(
+          //               selectedScreenIndex: 3,
+          //             )));
         }
         if (state is ProfileUpdatedErrorState) {
           setState(() {
@@ -140,24 +140,24 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
               ? null
               : AppBar(
                   backgroundColor: Colors.white,
-                  leading: Padding(
-                    padding: const EdgeInsets.only(left: 30),
-                    child: IconButton(
-                      onPressed: () {
-                        if (!widget.profileModel.isProfileCompleted) {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => MapScreen(
-                                        selectedScreenIndex: 0,
-                                      )));
-                        } else {
-                          Navigator.pop(context);
-                        }
-                      },
-                      icon: SvgPicture.asset('assets/icons/icon_back.svg'),
-                    ),
-                  ),
+                  // leading: Padding(
+                  //   padding: const EdgeInsets.only(left: 30),
+                  //   child: IconButton(
+                  //     onPressed: () {
+                  //       if (!widget.profileModel.isProfileCompleted) {
+                  //         Navigator.push(
+                  //             context,
+                  //             MaterialPageRoute(
+                  //                 builder: (_) => MapScreen(
+                  //                       selectedScreenIndex: 0,
+                  //                     )));
+                  //       } else {
+                  //         Navigator.pop(context);
+                  //       }
+                  //     },
+                  //     icon: SvgPicture.asset('assets/icons/icon_back.svg'),
+                  //   ),
+                  // ),
                   centerTitle: true,
                   title: Padding(
                     padding: const EdgeInsets.only(top: 5),
@@ -570,23 +570,23 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                           ),
                         ),
                       ),
-                      Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 60),
-                            child: CustomNavBarWidget(
-                                selectedIndex: 4,
-                                onTabSelected: (index) {
-                                  if (index == 0) {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => MapScreen(
-                                                  selectedScreenIndex: 0,
-                                                )));
-                                  }
-                                }),
-                          )),
+                      // Align(
+                      //     alignment: Alignment.bottomCenter,
+                      //     child: Padding(
+                      //       padding: const EdgeInsets.only(bottom: 60),
+                      //       child: CustomNavBarWidget(
+                      //           selectedIndex: 4,
+                      //           onTabSelected: (index) {
+                      //             if (index == 0) {
+                      //               Navigator.push(
+                      //                   context,
+                      //                   MaterialPageRoute(
+                      //                       builder: (context) => MapScreen(
+                      //                             selectedScreenIndex: 0,
+                      //                           )));
+                      //             }
+                      //           }),
+                      //     )),
                     ],
                   ),
                 ),

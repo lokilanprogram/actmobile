@@ -35,6 +35,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
 
   @override
   void initState() {
+    print('MyEventsScreen initState'); // Отладочная информация
     _controller = TextEditingController();
     _controller.addListener(() {
       setState(() {});
@@ -50,6 +51,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
   }
 
   void initialize() {
+    print('MyEventsScreen initialize'); // Отладочная информация
     if (!mounted) return;
     setState(() {
       isLoading = true;
@@ -59,6 +61,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('MyEventsScreen build'); // Отладочная информация
     final String query = _controller.text.trim().toLowerCase();
 
     return BlocListener<ProfileBloc, ProfileState>(
@@ -192,47 +195,47 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                       ),
                     ),
                   ),
-            Positioned(
-              bottom: 60,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ActivityBarWidget(isVerified: isVerified, isProfileCompleted: isProfileCompleted),
-                  const SizedBox(height: 15),
-                  CustomNavBarWidget(
-                    selectedIndex: 4,
-                    onTabSelected: (index) {
-                      if (index == 0) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  MapScreen(selectedScreenIndex: 0)),
-                        );
-                      }
-                      if (index == 1) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => EventsScreen()),
-                        );
-                      }
-                      if (index == 2) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  MapScreen(selectedScreenIndex: 2)),
-                        );
-                      }
-                      if (index == 3) {
-                        Navigator.pop(context);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
+            // Positioned(
+            //   bottom: 60,
+            //   child: Column(
+            //     mainAxisSize: MainAxisSize.min,
+            //     children: [
+            //       ActivityBarWidget(isVerified: isVerified, isProfileCompleted: isProfileCompleted),
+            //       const SizedBox(height: 15),
+            //       CustomNavBarWidget(
+            //         selectedIndex: 4,
+            //         onTabSelected: (index) {
+            //           if (index == 0) {
+            //             Navigator.push(
+            //               context,
+            //               MaterialPageRoute(
+            //                   builder: (context) =>
+            //                       MapScreen(selectedScreenIndex: 0)),
+            //             );
+            //           }
+            //           if (index == 1) {
+            //             Navigator.push(
+            //               context,
+            //               MaterialPageRoute(
+            //                   builder: (context) => EventsScreen()),
+            //             );
+            //           }
+            //           if (index == 2) {
+            //             Navigator.push(
+            //               context,
+            //               MaterialPageRoute(
+            //                   builder: (context) =>
+            //                       MapScreen(selectedScreenIndex: 2)),
+            //             );
+            //           }
+            //           if (index == 3) {
+            //             Navigator.pop(context);
+            //           }
+            //         },
+            //       ),
+            //     ],
+            //   ),
+            // ),
           ],
         ),
       ),
