@@ -1,6 +1,5 @@
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
-import 'package:acti_mobile/presentation/screens/onbording/widgets/pop_nav_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -46,35 +45,6 @@ class EventsStartScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SvgPicture.asset('assets/texts/text_events_start.svg'),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: PopNavButton(
-                          text: 'Назад',
-                          function: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: PopNavButton(
-                          text: 'Далее',
-                          function: () async {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => InitialScreen()));
-                          },
-                        ),
-                      ),
-                    ],
-                  )
                 ],
               ),
             ),

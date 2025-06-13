@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
@@ -134,18 +135,128 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     });
     on<ProfileUpdateEvent>((event, emit) async {
       try {
+        developer.log(
+          '=== Начало обновления профиля ===\n'
+          'Отправляемые данные:\n'
+          'ID: ${event.profileModel.id}\n'
+          'Имя: ${event.profileModel.name}\n'
+          'Фамилия: ${event.profileModel.surname}\n'
+          'Email: ${event.profileModel.email}\n'
+          'Город: ${event.profileModel.city}\n'
+          'О себе: ${event.profileModel.bio}\n'
+          'Организация: ${event.profileModel.isOrganization}\n'
+          'Категории: ${event.profileModel.categories.map((e) => e.name).toList()}\n'
+          'Скрыть мои мероприятия: ${event.profileModel.hideMyEvents}\n'
+          'Скрыть посещенные мероприятия: ${event.profileModel.hideAttendedEvents}',
+          name: 'ProfileBloc',
+        );
+
         final profile = await ProfileApi().updateProfile(
           event.profileModel,
         );
+
+        developer.log(
+          '=== Ответ сервера на обновление профиля ===\n'
+          'Статус: Успешно\n'
+          'Обновленные данные профиля:\n'
+          'ID: ${profile?.id}\n'
+          'Имя: ${profile?.name}\n'
+          'Фамилия: ${profile?.surname}\n'
+          'Email: ${profile?.email}\n'
+          'Город: ${profile?.city}\n'
+          'О себе: ${profile?.bio}\n'
+          'Организация: ${profile?.isOrganization}\n'
+          'Категории: ${profile?.categories.map((e) => e.name).toList()}\n'
+          'Скрыть мои мероприятия: ${profile?.hideMyEvents}\n'
+          'Скрыть посещенные мероприятия: ${profile?.hideAttendedEvents}',
+          name: 'ProfileBloc',
+        );
+
+        String? photoError;
         if (event.profileModel.photoUrl != null) {
-          await ProfileApi().updateProfilePicture(event.profileModel.photoUrl!);
+          try {
+            developer.log(
+              '=== Обновление фотографии профиля ===\n'
+              'Путь к файлу: ${event.profileModel.photoUrl}',
+              name: 'ProfileBloc',
+            );
+            await ProfileApi()
+                .updateProfilePicture(event.profileModel.photoUrl!);
+            developer.log('Фотография успешно обновлена', name: 'ProfileBloc');
+          } catch (e) {
+            developer.log(
+              '=== Ошибка при обновлении фотографии ===\n'
+              'Тип ошибки: ${e.runtimeType}\n'
+              'Сообщение: $e',
+              name: 'ProfileBloc',
+              error: e,
+            );
+            photoError = e.toString().replaceAll('Exception: ', '');
+          }
         }
+
+        // Получаем обновленные данные профиля
         final updatedProfile = await ProfileApi().getProfile();
-        if (profile != null && updatedProfile != null) {
-          emit(ProfileUpdatedState(profileModel: updatedProfile));
+        // Получаем обновленный список похожих пользователей
+        final similarUsers = await ProfileApi().getSimiliarUsers();
+
+        if (updatedProfile != null && similarUsers != null) {
+          developer.log(
+            '=== Финальное состояние профиля ===\n'
+            'ID: ${updatedProfile.id}\n'
+            'Имя: ${updatedProfile.name}\n'
+            'Фамилия: ${updatedProfile.surname}\n'
+            'Email: ${updatedProfile.email}\n'
+            'Город: ${updatedProfile.city}\n'
+            'О себе: ${updatedProfile.bio}\n'
+            'Организация: ${updatedProfile.isOrganization}\n'
+            'Категории: ${updatedProfile.categories.map((e) => e.name).toList()}\n'
+            'Скрыть мои мероприятия: ${updatedProfile.hideMyEvents}\n'
+            'Скрыть посещенные мероприятия: ${updatedProfile.hideAttendedEvents}\n'
+            'URL фото: ${updatedProfile.photoUrl}\n'
+            '=== Обновление профиля завершено ===',
+            name: 'ProfileBloc',
+          );
+
+          if (photoError != null) {
+            emit(ProfileUpdatedWithPhotoErrorState(
+              profileModel: updatedProfile,
+              photoError: photoError,
+            ));
+          } else {
+            emit(ProfileUpdatedState(profileModel: updatedProfile));
+          }
+
+          // Обновляем данные на обоих экранах
+          emit(ProfileGotState(
+            profileModel: updatedProfile,
+            similiarUsersModel: similarUsers,
+          ));
         }
       } catch (e) {
-        emit(ProfileUpdatedErrorState());
+        developer.log(
+          '=== Ошибка при обновлении профиля ===\n'
+          'Тип ошибки: ${e.runtimeType}\n'
+          'Сообщение об ошибке: $e',
+          name: 'ProfileBloc',
+          error: e,
+        );
+        String errorMessage = 'Произошла ошибка при обновлении профиля';
+
+        if (e.toString().contains('Connection refused')) {
+          errorMessage =
+              'Нет подключения к серверу. Проверьте интернет-соединение';
+        } else if (e.toString().contains('timeout')) {
+          errorMessage = 'Превышено время ожидания ответа от сервера';
+        } else if (e.toString().contains('401')) {
+          errorMessage = 'Сессия истекла. Пожалуйста, войдите снова';
+        } else if (e.toString().contains('403')) {
+          errorMessage = 'Нет прав для выполнения операции';
+        } else if (e.toString().contains('500')) {
+          errorMessage = 'Ошибка на сервере. Попробуйте позже';
+        }
+
+        emit(ProfileUpdatedErrorState(errorMessage: errorMessage));
       }
     });
 

@@ -19,6 +19,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:toastification/toastification.dart';
+import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 
 class UpdateProfileScreen extends StatefulWidget {
   final ProfileModel profileModel;
@@ -47,6 +49,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   bool _isLoading = false;
 
   final ScrollController _scrollController = ScrollController();
+  ListOnbordingModel? listOnbordingModel;
 
   @override
   void dispose() {
@@ -104,492 +107,586 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       _selectedHideAttendedEvents =
           widget.profileModel.hideAttendedEvents != null ? 'visited' : '';
     });
+    context.read<AuthBloc>().add(ActiGetOnbordingEvent());
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ProfileBloc, ProfileState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is ProfileUpdatedState) {
+        if (state is ActiGotOnbordingState) {
           setState(() {
-            isLoading = false;
+            listOnbordingModel = state.listOnbordingModel;
           });
-          // Navigator.push(
-          //     context,
-          //     MaterialPageRoute(
-          //         builder: (context) => MapScreen(
-          //               selectedScreenIndex: 3,
-          //             )));
-        }
-        if (state is ProfileUpdatedErrorState) {
-          setState(() {
-            isLoading = false;
-          });
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Ошибка')));
         }
       },
-      child: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus(); // скрыть клавиатуру
+      child: BlocListener<ProfileBloc, ProfileState>(
+        listener: (context, state) {
+          if (state is ProfileUpdatedState) {
+            setState(() {
+              isLoading = false;
+            });
+            toastification.show(
+              context: context,
+              title: Text('Профиль успешно обновлен'),
+              type: ToastificationType.success,
+              style: ToastificationStyle.fillColored,
+              autoCloseDuration: const Duration(seconds: 3),
+              alignment: Alignment.topRight,
+            );
+          }
+          if (state is ProfileUpdatedWithPhotoErrorState) {
+            setState(() {
+              isLoading = false;
+            });
+            toastification.show(
+              context: context,
+              title: Text('Возникла проблема с фото: ${state.photoError}'),
+              type: ToastificationType.warning,
+              style: ToastificationStyle.fillColored,
+              autoCloseDuration: const Duration(seconds: 5),
+              alignment: Alignment.topRight,
+            );
+          }
+          if (state is ProfileUpdatedErrorState) {
+            setState(() {
+              isLoading = false;
+            });
+            toastification.show(
+              context: context,
+              title: Text(state.errorMessage),
+              type: ToastificationType.error,
+              style: ToastificationStyle.fillColored,
+              autoCloseDuration: const Duration(seconds: 5),
+              alignment: Alignment.topRight,
+            );
+          }
         },
-        child: Scaffold(
-          resizeToAvoidBottomInset: false,
-          backgroundColor: Colors.white,
-          appBar: isLoading
-              ? null
-              : AppBar(
-                  backgroundColor: Colors.white,
-                  // leading: Padding(
-                  //   padding: const EdgeInsets.only(left: 30),
-                  //   child: IconButton(
-                  //     onPressed: () {
-                  //       if (!widget.profileModel.isProfileCompleted) {
-                  //         Navigator.push(
-                  //             context,
-                  //             MaterialPageRoute(
-                  //                 builder: (_) => MapScreen(
-                  //                       selectedScreenIndex: 0,
-                  //                     )));
-                  //       } else {
-                  //         Navigator.pop(context);
-                  //       }
-                  //     },
-                  //     icon: SvgPicture.asset('assets/icons/icon_back.svg'),
-                  //   ),
-                  // ),
-                  centerTitle: true,
-                  title: Padding(
-                    padding: const EdgeInsets.only(top: 5),
-                    child: SvgPicture.asset('assets/texts/text_profile.svg'),
-                  ),
-                  actions: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 20),
-                      child: IconButton(
-                        onPressed: () {
-                          if (selectedCategories.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Выберите увлечения')));
-                          } else if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            setState(() {
-                              isLoading = true;
-                            });
-                            context.read<ProfileBloc>().add(ProfileUpdateEvent(
-                                profileModel: ProfileModel(
-                                    id: widget.profileModel.id,
-                                    hideMyEvents: _selectedHideMyEvents == 'my',
-                                    hideAttendedEvents:
-                                        _selectedHideAttendedEvents ==
-                                            'visited',
-                                    name: nameController.text.trim(),
-                                    surname: surnameController.text.trim(),
-                                    email: emailController.text.trim(),
-                                    city: cityController.text.trim(),
-                                    isEmailVerified:
-                                        widget.profileModel.isEmailVerified,
-                                    isProfileCompleted:
-                                        widget.profileModel.isProfileCompleted,
-                                    bio: bioController.text.trim(),
-                                    isOrganization:
-                                        isOrganizationRepresentative,
-                                    photoUrl: image?.path,
-                                    status: widget.profileModel.status,
-                                    notificationsEnabled: widget
-                                        .profileModel.notificationsEnabled,
-                                    categories: selectedCategories)));
-                          }
-                        },
-                        icon: Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: SvgPicture.asset(
-                              'assets/icons/icon_success_edit.svg'),
-                        ),
-                      ),
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            backgroundColor: Colors.white,
+            appBar: isLoading
+                ? null
+                : AppBar(
+                    surfaceTintColor: Colors.white,
+                    backgroundColor: Colors.white,
+                    centerTitle: true,
+                    title: Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: SvgPicture.asset('assets/texts/text_profile.svg'),
                     ),
-                  ],
-                ),
-          body: isLoading
-              ? LoaderWidget()
-              : Form(
-                  key: _formKey,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: SafeArea(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                                left: 30,
-                                right: 30,
-                                top: 10,
-                                bottom:
-                                    MediaQuery.of(context).viewInsets.bottom),
-                            child: ListView(
-                              controller: _scrollController,
-                              children: [
-                                Center(
-                                  child: editableAvatar(
-                                      isUpdatedPhoto
-                                          ? image!.path
-                                          : (widget.profileModel.photoUrl ??
-                                              'assets/images/image_profile.png'),
-                                      () async {
-                                    final xfile = await ImagePicker()
-                                        .pickImage(source: ImageSource.gallery);
-                                    if (xfile != null) {
-                                      setState(() {
-                                        image = xfile;
-                                        isUpdatedPhoto = true;
-                                      });
-                                    }
-                                  }, isUpdatedPhoto),
-                                ),
-                                const SizedBox(height: 30),
-
-                                // Новые виджеты добавлены здесь:
-                                Text(
-                                  'Имя',
-                                  style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                                SizedBox(height: 4),
-                                TextInputNameWidget(
-                                    controller: nameController,
-                                    text: 'Введите имя',
-                                    validator: (val) {
-                                      if (val!.isEmpty) {
-                                        return 'Заполните имя';
-                                      }
-                                      return null;
-                                    }),
-                                SizedBox(height: 16),
-                                Text('Фамилия (необязательно)',
-                                    style: titleTextStyleEdit),
-                                SizedBox(height: 4),
-                                TextInputNameWidget(
-                                  controller: surnameController,
-                                  text: 'Введите фамилию',
-                                  validator: null,
-                                ),
-                                SizedBox(height: 16),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Представитель организации / ИП',
-                                      style: TextStyle(
-                                        fontFamily: 'Inter',
-                                        fontSize: 13,
-                                        color: mainBlueColor,
-                                      ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    OrgToggleTooltip(
-                                        scrollController: _scrollController),
-                                    Expanded(child: cupertinoSwitch()),
-                                  ],
-                                ),
-
-                                SizedBox(height: 16),
-                                Text('Ваш город (Населённый пункт)',
-                                    style: titleTextStyleEdit),
-                                SizedBox(height: 4),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    TextFormField(
-                                      controller: cityController,
-                                      onChanged: _searchLocation,
-                                      style: TextStyle(
-                                          fontSize: 11, fontFamily: 'Inter'),
-                                      decoration: InputDecoration(
-                                        hintText: 'Введите город',
-                                        hintStyle:
-                                            TextStyle(color: Colors.grey),
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                          borderSide: BorderSide.none,
-                                        ),
-                                        filled: true,
-                                        fillColor: Colors.grey[100],
-                                      ),
-                                      validator: (value) {
-                                        if (value == null ||
-                                            value.trim().isEmpty) {
-                                          return 'Заполните город';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                    const SizedBox(height: 4),
-                                    if (_isLoading)
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 8.0),
-                                        child: Center(
-                                            child: CircularProgressIndicator(
-                                          color: mainBlueColor,
-                                          strokeWidth: 1.2,
-                                        )),
-                                      )
-                                    else if (_suggestions.isNotEmpty)
-                                      Container(
-                                        constraints:
-                                            BoxConstraints(maxHeight: 160),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey[100],
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          border: Border.all(
-                                              color: Colors.grey[300]!),
-                                        ),
-                                        child: ListView.builder(
-                                          shrinkWrap: true,
-                                          itemCount: _suggestions.length,
-                                          itemBuilder: (context, index) {
-                                            final city = _suggestions[index];
-                                            return ListTile(
-                                              dense: true,
-                                              title: Text(city,
-                                                  style: TextStyle(
-                                                      fontSize: 12,
-                                                      fontFamily: 'Gilroy')),
-                                              onTap: () {
-                                                cityController.text = city;
-                                                setState(
-                                                    () => _suggestions = []);
-                                              },
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                SizedBox(height: 16),
-                                Text('Адрес эл. почты',
-                                    style: titleTextStyleEdit),
-                                SizedBox(height: 4),
-                                TextInputWidget(
-                                  controller: emailController,
-                                  text: 'E-mail',
-                                  validator: (val) {
-                                    if (val!.isEmpty) {
-                                      return 'Заполните e-mail';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: widget.profileModel.isEmailVerified
-                                      ? Text(
-                                          'Почта подтверждена ',
-                                          style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              color: Colors.green,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w400),
-                                        )
-                                      : Text(
-                                          'Почта не подтверждена ',
-                                          style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              color: Colors.red,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  'О себе',
-                                  style: titleTextStyleEdit,
-                                ),
-                                SizedBox(height: 4),
-                                TextFormField(
-                                  style: TextStyle(
-                                      fontSize: 11, fontFamily: 'Inter'),
-                                  maxLines: 3,
-                                  keyboardType: TextInputType.multiline,
-                                  controller: bioController,
-                                  //textInputAction: TextInputAction.done,
-                                  decoration: InputDecoration(
-                                    hintText: 'Напишите что-нибудь о себе...',
-                                    hintStyle: hintTextStyleEdit,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    filled: true,
-                                    fillColor: Colors.grey[100],
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  'Скрыть мероприятия:',
-                                  style: titleTextStyleEdit,
-                                ),
-                                SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          if (_selectedHideMyEvents == 'my') {
-                                            setState(() {
-                                              _selectedHideMyEvents = '';
-                                            });
-                                          } else {
-                                            setState(() {
-                                              _selectedHideMyEvents = 'my';
-                                            });
-                                          }
-                                        },
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 12, horizontal: 20),
-                                          decoration: BoxDecoration(
-                                              color:
-                                                  _selectedHideMyEvents == 'my'
-                                                      ? mainBlueColor
-                                                      : Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(25)),
-                                          child: Center(
-                                            child: Text(
-                                              'Мои',
-                                              style: TextStyle(
-                                                  color:
-                                                      _selectedHideMyEvents == 'my'
-                                                          ? Colors.white
-                                                          : Colors.black,
-                                                  fontSize: 18,
-                                                  fontWeight: _selectedHideMyEvents == 'my' ? FontWeight.w800 : FontWeight.w400,
-                                                  fontFamily: 'Gilroy'),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 25,
-                                    ),
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          if (_selectedHideAttendedEvents ==
-                                              'visited') {
-                                            setState(() {
-                                              _selectedHideAttendedEvents = '';
-                                            });
-                                          } else {
-                                            setState(() {
-                                              _selectedHideAttendedEvents =
-                                                  'visited';
-                                            });
-                                          }
-                                        },
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 12, horizontal: 20),
-                                          decoration: BoxDecoration(
-                                              color:
-                                                  _selectedHideAttendedEvents ==
-                                                          'visited'
-                                                      ? mainBlueColor
-                                                      : Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(25)),
-                                          child: Center(
-                                            child: Text(
-                                              'Учавствую',
-                                              style: TextStyle(
-                                                  color:
-                                                      _selectedHideAttendedEvents ==
-                                                              'visited'
-                                                          ? Colors.white
-                                                          : Colors.black,
-                                                  fontSize: 18,
-                                                  fontWeight: _selectedHideAttendedEvents == 'visited' ? FontWeight.w800 : FontWeight.w400,
-                                                  fontFamily: 'Gilroy'),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Ваши увлечения:',
-                                        style: titleTextStyleEdit),
-                                    TextButton(
-                                      onPressed: () async {
-                                        final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EventsSelectScreen(
-                                                      fromUpdate: true,
-                                                    )));
-                                        if (result != null &&
-                                            result is List<EventOnboarding>) {
-                                          setState(() {
-                                            selectedCategories = result;
-                                          });
-                                        }
-                                      },
-                                      child: Text(
-                                        'Изменить',
-                                        style: TextStyle(
-                                            fontFamily: 'Inter',
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: mainBlueColor),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                buildInterestsGrid(
-                                  selectedCategories
-                                      .map((e) => e.name)
-                                      .toList(),
-                                ),
-                                SizedBox(
-                                  height: 150,
-                                ),
-                              ],
-                            ),
+                    actions: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20),
+                        child: IconButton(
+                          onPressed: () {
+                            if (selectedCategories.isEmpty) {
+                              toastification.show(
+                                context: context,
+                                title: Text('Выберите хотя бы одно увлечение'),
+                                type: ToastificationType.error,
+                                style: ToastificationStyle.fillColored,
+                                autoCloseDuration: const Duration(seconds: 3),
+                                alignment: Alignment.topRight,
+                              );
+                            } else if (_formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                              setState(() {
+                                isLoading = true;
+                              });
+                              context.read<ProfileBloc>().add(
+                                  ProfileUpdateEvent(
+                                      profileModel: ProfileModel(
+                                          id: widget.profileModel.id,
+                                          hideMyEvents:
+                                              _selectedHideMyEvents == 'my',
+                                          hideAttendedEvents:
+                                              _selectedHideAttendedEvents ==
+                                                  'visited',
+                                          name: nameController.text.trim(),
+                                          surname:
+                                              surnameController.text.trim(),
+                                          email: emailController.text.trim(),
+                                          city: cityController.text.trim(),
+                                          isEmailVerified: widget
+                                              .profileModel.isEmailVerified,
+                                          isProfileCompleted: widget
+                                              .profileModel.isProfileCompleted,
+                                          bio: bioController.text.trim(),
+                                          isOrganization:
+                                              isOrganizationRepresentative,
+                                          photoUrl: image?.path,
+                                          status: widget.profileModel.status,
+                                          notificationsEnabled: widget
+                                              .profileModel
+                                              .notificationsEnabled,
+                                          categories: selectedCategories)));
+                            } else {
+                              // Проверяем каждое поле и показываем соответствующие сообщения
+                              if (nameController.text.trim().isEmpty) {
+                                toastification.show(
+                                  context: context,
+                                  title: Text('Заполните поле "Имя"'),
+                                  type: ToastificationType.error,
+                                  style: ToastificationStyle.fillColored,
+                                  autoCloseDuration: const Duration(seconds: 3),
+                                  alignment: Alignment.topRight,
+                                );
+                              }
+                              if (cityController.text.trim().isEmpty) {
+                                toastification.show(
+                                  context: context,
+                                  title: Text('Заполните поле "Город"'),
+                                  type: ToastificationType.error,
+                                  style: ToastificationStyle.fillColored,
+                                  autoCloseDuration: const Duration(seconds: 3),
+                                  alignment: Alignment.topRight,
+                                );
+                              }
+                              if (emailController.text.trim().isEmpty) {
+                                toastification.show(
+                                  context: context,
+                                  title: Text('Заполните поле "Email"'),
+                                  type: ToastificationType.error,
+                                  style: ToastificationStyle.fillColored,
+                                  autoCloseDuration: const Duration(seconds: 3),
+                                  alignment: Alignment.topRight,
+                                );
+                              }
+                              if (bioController.text.trim().isEmpty) {
+                                toastification.show(
+                                  context: context,
+                                  title: Text('Заполните поле "О себе"'),
+                                  type: ToastificationType.error,
+                                  style: ToastificationStyle.fillColored,
+                                  autoCloseDuration: const Duration(seconds: 3),
+                                  alignment: Alignment.topRight,
+                                );
+                              }
+                            }
+                          },
+                          icon: Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: SvgPicture.asset(
+                                'assets/icons/icon_success_edit.svg'),
                           ),
                         ),
                       ),
-                      // Align(
-                      //     alignment: Alignment.bottomCenter,
-                      //     child: Padding(
-                      //       padding: const EdgeInsets.only(bottom: 60),
-                      //       child: CustomNavBarWidget(
-                      //           selectedIndex: 4,
-                      //           onTabSelected: (index) {
-                      //             if (index == 0) {
-                      //               Navigator.push(
-                      //                   context,
-                      //                   MaterialPageRoute(
-                      //                       builder: (context) => MapScreen(
-                      //                             selectedScreenIndex: 0,
-                      //                           )));
-                      //             }
-                      //           }),
-                      //     )),
                     ],
                   ),
-                ),
+            body: isLoading
+                ? LoaderWidget()
+                : Form(
+                    key: _formKey,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: SafeArea(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                  left: 30,
+                                  right: 30,
+                                  top: 10,
+                                  bottom:
+                                      MediaQuery.of(context).viewInsets.bottom),
+                              child: ListView(
+                                controller: _scrollController,
+                                children: [
+                                  Center(
+                                    child: editableAvatar(
+                                        isUpdatedPhoto
+                                            ? image!.path
+                                            : (widget.profileModel.photoUrl ??
+                                                'assets/images/image_profile.png'),
+                                        () async {
+                                      final xfile = await ImagePicker()
+                                          .pickImage(
+                                              source: ImageSource.gallery);
+                                      if (xfile != null) {
+                                        setState(() {
+                                          image = xfile;
+                                          isUpdatedPhoto = true;
+                                        });
+                                      }
+                                    }, isUpdatedPhoto),
+                                  ),
+                                  const SizedBox(height: 30),
+
+                                  // Новые виджеты добавлены здесь:
+                                  Text(
+                                    'Имя',
+                                    style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w400),
+                                  ),
+                                  SizedBox(height: 4),
+                                  TextInputNameWidget(
+                                      controller: nameController,
+                                      text: 'Введите имя',
+                                      validator: (val) {
+                                        if (val!.isEmpty) {
+                                          return 'Заполните имя';
+                                        }
+                                        return null;
+                                      }),
+                                  SizedBox(height: 16),
+                                  Text('Фамилия (необязательно)',
+                                      style: titleTextStyleEdit),
+                                  SizedBox(height: 4),
+                                  TextInputNameWidget(
+                                    controller: surnameController,
+                                    text: 'Введите фамилию',
+                                    validator: null,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Представитель организации / ИП',
+                                        style: TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontSize: 13,
+                                          color: mainBlueColor,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      OrgToggleTooltip(
+                                          scrollController: _scrollController),
+                                      Expanded(child: cupertinoSwitch()),
+                                    ],
+                                  ),
+
+                                  SizedBox(height: 16),
+                                  Text('Ваш город (Населённый пункт)',
+                                      style: titleTextStyleEdit),
+                                  SizedBox(height: 4),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      TextFormField(
+                                        controller: cityController,
+                                        onChanged: _searchLocation,
+                                        style: TextStyle(
+                                            fontSize: 11, fontFamily: 'Inter'),
+                                        decoration: InputDecoration(
+                                          hintText: 'Введите город',
+                                          hintStyle:
+                                              TextStyle(color: Colors.grey),
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.grey[100],
+                                        ),
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Заполните город';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 4),
+                                      if (_isLoading)
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8.0),
+                                          child: Center(
+                                              child: CircularProgressIndicator(
+                                            color: mainBlueColor,
+                                            strokeWidth: 1.2,
+                                          )),
+                                        )
+                                      else if (_suggestions.isNotEmpty)
+                                        Container(
+                                          constraints:
+                                              BoxConstraints(maxHeight: 160),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[100],
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            border: Border.all(
+                                                color: Colors.grey[300]!),
+                                          ),
+                                          child: ListView.builder(
+                                            shrinkWrap: true,
+                                            itemCount: _suggestions.length,
+                                            itemBuilder: (context, index) {
+                                              final city = _suggestions[index];
+                                              return ListTile(
+                                                dense: true,
+                                                title: Text(city,
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontFamily: 'Gilroy')),
+                                                onTap: () {
+                                                  cityController.text = city;
+                                                  setState(
+                                                      () => _suggestions = []);
+                                                },
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text('Адрес эл. почты',
+                                      style: titleTextStyleEdit),
+                                  SizedBox(height: 4),
+                                  TextInputWidget(
+                                    controller: emailController,
+                                    text: 'E-mail',
+                                    validator: (val) {
+                                      if (val!.isEmpty) {
+                                        return 'Заполните e-mail';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: widget.profileModel.isEmailVerified
+                                        ? Text(
+                                            'Почта подтверждена ',
+                                            style: TextStyle(
+                                                fontFamily: 'Inter',
+                                                color: Colors.green,
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w400),
+                                          )
+                                        : Text(
+                                            'Почта не подтверждена ',
+                                            style: TextStyle(
+                                                fontFamily: 'Inter',
+                                                color: Colors.red,
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w400),
+                                          ),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'О себе',
+                                    style: titleTextStyleEdit,
+                                  ),
+                                  SizedBox(height: 4),
+                                  TextFormField(
+                                    style: TextStyle(
+                                        fontSize: 11, fontFamily: 'Inter'),
+                                    maxLines: 3,
+                                    keyboardType: TextInputType.multiline,
+                                    controller: bioController,
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Заполните поле "О себе"';
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      if (value.isNotEmpty) {
+                                        final formattedValue =
+                                            value[0].toUpperCase() +
+                                                value.substring(1);
+                                        if (formattedValue != value) {
+                                          bioController.value =
+                                              TextEditingValue(
+                                            text: formattedValue,
+                                            selection: TextSelection.collapsed(
+                                                offset: formattedValue.length),
+                                          );
+                                        }
+                                      }
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: 'Напишите что-нибудь о себе...',
+                                      hintStyle: hintTextStyleEdit,
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.grey[100],
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Скрыть мероприятия:',
+                                    style: titleTextStyleEdit,
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            if (_selectedHideMyEvents == 'my') {
+                                              setState(() {
+                                                _selectedHideMyEvents = '';
+                                              });
+                                            } else {
+                                              setState(() {
+                                                _selectedHideMyEvents = 'my';
+                                              });
+                                            }
+                                          },
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 12, horizontal: 20),
+                                            decoration: BoxDecoration(
+                                                color: _selectedHideMyEvents ==
+                                                        'my'
+                                                    ? mainBlueColor
+                                                    : Colors.grey[200],
+                                                borderRadius:
+                                                    BorderRadius.circular(25)),
+                                            child: Center(
+                                              child: Text(
+                                                'Мои',
+                                                style: TextStyle(
+                                                    color:
+                                                        _selectedHideMyEvents ==
+                                                                'my'
+                                                            ? Colors.white
+                                                            : Colors.black,
+                                                    fontSize: 18,
+                                                    fontWeight:
+                                                        _selectedHideMyEvents ==
+                                                                'my'
+                                                            ? FontWeight.w800
+                                                            : FontWeight.w400,
+                                                    fontFamily: 'Gilroy'),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 25,
+                                      ),
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            if (_selectedHideAttendedEvents ==
+                                                'visited') {
+                                              setState(() {
+                                                _selectedHideAttendedEvents =
+                                                    '';
+                                              });
+                                            } else {
+                                              setState(() {
+                                                _selectedHideAttendedEvents =
+                                                    'visited';
+                                              });
+                                            }
+                                          },
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 12, horizontal: 20),
+                                            decoration: BoxDecoration(
+                                                color:
+                                                    _selectedHideAttendedEvents ==
+                                                            'visited'
+                                                        ? mainBlueColor
+                                                        : Colors.grey[200],
+                                                borderRadius:
+                                                    BorderRadius.circular(25)),
+                                            child: Center(
+                                              child: Text(
+                                                'Учавствую',
+                                                style: TextStyle(
+                                                    color:
+                                                        _selectedHideAttendedEvents ==
+                                                                'visited'
+                                                            ? Colors.white
+                                                            : Colors.black,
+                                                    fontSize: 18,
+                                                    fontWeight:
+                                                        _selectedHideAttendedEvents ==
+                                                                'visited'
+                                                            ? FontWeight.w800
+                                                            : FontWeight.w400,
+                                                    fontFamily: 'Gilroy'),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Ваши увлечения:',
+                                          style: titleTextStyleEdit),
+                                      TextButton(
+                                        onPressed: listOnbordingModel == null
+                                            ? null
+                                            : () async {
+                                                final result =
+                                                    await Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                EventsSelectScreen(
+                                                                  fromUpdate:
+                                                                      true,
+                                                                  categories:
+                                                                      listOnbordingModel!
+                                                                          .categories,
+                                                                )));
+                                                if (result != null &&
+                                                    result is List<
+                                                        EventOnboarding>) {
+                                                  setState(() {
+                                                    selectedCategories = result;
+                                                  });
+                                                }
+                                              },
+                                        child: Text(
+                                          'Изменить',
+                                          style: TextStyle(
+                                              fontFamily: 'Inter',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: listOnbordingModel == null
+                                                  ? Colors.grey
+                                                  : mainBlueColor),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  buildInterestsGrid(
+                                    selectedCategories
+                                        .map((e) => e.name)
+                                        .toList(),
+                                  ),
+                                  SizedBox(
+                                    height: 150,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
         ),
       ),
     );

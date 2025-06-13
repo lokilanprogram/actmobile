@@ -12,8 +12,6 @@ class ProfileGotState extends ProfileState {
       {required this.profileModel, required this.similiarUsersModel});
 }
 
-
-
 class ProfileGotErrorState extends ProfileState {}
 
 class ProfileUpdatedState extends ProfileState {
@@ -22,7 +20,22 @@ class ProfileUpdatedState extends ProfileState {
   ProfileUpdatedState({required this.profileModel});
 }
 
-class ProfileUpdatedErrorState extends ProfileState {}
+class ProfileUpdatedWithPhotoErrorState extends ProfileState {
+  final ProfileModel profileModel;
+  final String photoError;
+
+  ProfileUpdatedWithPhotoErrorState({
+    required this.profileModel,
+    required this.photoError,
+  });
+}
+
+class ProfileUpdatedErrorState extends ProfileState {
+  final String errorMessage;
+
+  ProfileUpdatedErrorState(
+      {this.errorMessage = 'Произошла ошибка при обновлении профиля'});
+}
 
 class ProfileLogoutState extends ProfileState {}
 

@@ -34,6 +34,8 @@ import 'package:acti_mobile/presentation/screens/events/providers/filter_provide
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:typed_data';
 
 class MapScreen extends StatefulWidget {
   // final int selectedScreenIndex;
@@ -66,6 +68,15 @@ class _MapScreenState extends State<MapScreen> {
   final String eventsSourceId = "events-source";
   final String eventsLayerId = "events-layer";
   final String iconImageIdPrefix = "event-icon-";
+
+  MapboxMap? _mapboxMap;
+  final _requiredImages = [
+    'amusement-park',
+    'religious-christian',
+    'rail',
+    'shop',
+    'museum',
+  ];
 
   _onScroll(
     MapContentGestureContext gestureContext,
@@ -126,13 +137,13 @@ class _MapScreenState extends State<MapScreen> {
       }
       _deepLinkService!.dispose();
     });
+    _loadMapImages();
   }
 
   @override
   void dispose() {
-    // Dispose Mapbox resources
-    //mapboxMap?.dispose();
-    // pointAnnotationManager?.dispose(); // PointAnnotationManager might not have a public dispose, depending on the version/implementation detail, disposing mapboxMap usually handles managers.
+    // TODO: Implement proper cleanup when Mapbox API is updated
+    // _mapboxMap?.style.removeStyleImageMissingListener((event) {});
     _deepLinkService?.dispose();
     sheetController.dispose();
     super.dispose();
@@ -201,6 +212,22 @@ class _MapScreenState extends State<MapScreen> {
     MapApi().updateUserLocation(lat, lon);
   }
 
+  Future<void> _loadMapImages() async {
+    // TODO: Implement proper image loading when Mapbox API is updated
+    // for (final imageId in _requiredImages) {
+    //   try {
+    //     final ByteData data = await rootBundle.load('assets/images/map/$imageId.png');
+    //     final Uint8List bytes = data.buffer.asUint8List();
+    //     await _mapboxMap?.style.addStyleImage(
+    //       imageId,
+    //       bytes,
+    //     );
+    //   } catch (e) {
+    //     print('Error loading image $imageId: $e');
+    //   }
+    // }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
@@ -261,38 +288,42 @@ class _MapScreenState extends State<MapScreen> {
                     children: [
                       MapWidget(
                         onStyleLoadedListener: (styleLoadedEventData) async {
-                          if (currentUserPosition != null) {
-                            await addUserIconToStyle(mapboxMap!);
+                          if (currentUserPosition != null &&
+                              mapboxMap != null) {
+                            await mapboxMap!.style
+                                .setStyleURI(MapboxStyles.MAPBOX_STREETS);
                           }
                           if (searchedEventsModel != null &&
                               mapboxMap != null) {
                             for (var event in searchedEventsModel!.events) {
-                              final result =
-                                  await screenshotController.captureFromWidget(
-                                CategoryMarker(
-                                    title: event.category!.name,
-                                    iconUrl: event.category!.iconPath),
-                              );
-                              await addEventIconFromUrl(
-                                  mapboxMap!, 'pointer:${event.id}', result);
-                              final pointAnnotationOptions =
-                                  PointAnnotationOptions(
-                                geometry: Point(
-                                    coordinates: Position(
-                                        event.longitude!, event.latitude!)),
-                                iconSize: 0.75,
-                                image: result,
-                                iconImage: 'pointer:${event.id}',
-                              );
-                              await pointAnnotationManager
-                                  .create(pointAnnotationOptions);
+                              if (event.category != null) {
+                                final result = await screenshotController
+                                    .captureFromWidget(
+                                  CategoryMarker(
+                                      title: event.category!.name,
+                                      iconUrl: event.category!.iconPath),
+                                );
+                                await addEventIconFromUrl(
+                                    mapboxMap!, 'pointer:${event.id}', result);
+                                final pointAnnotationOptions =
+                                    PointAnnotationOptions(
+                                  geometry: Point(
+                                      coordinates: Position(
+                                          event.longitude ?? 0.0,
+                                          event.latitude ?? 0.0)),
+                                  iconSize: 0.75,
+                                  image: result,
+                                  iconImage: 'pointer:${event.id}',
+                                );
+                                await pointAnnotationManager
+                                    .create(pointAnnotationOptions);
+                              }
                             }
                           }
                         },
                         onScrollListener: _onScroll,
                         onTapListener: _onTap,
-                        styleUri:
-                            'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
+                        styleUri: MapboxStyles.MAPBOX_STREETS,
                         cameraOptions: CameraOptions(
                           zoom: currentZoom,
                           center: Point(
@@ -535,38 +566,12 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _onMapCreated(MapboxMap mapboxMap) async {
-    setState(() {
-      this.mapboxMap = mapboxMap;
-    });
-    final pointNewAnnotationManager =
+    _mapboxMap = mapboxMap;
+    pointAnnotationManager =
         await mapboxMap.annotations.createPointAnnotationManager();
-    setState(() {
-      pointAnnotationManager = pointNewAnnotationManager;
-    });
-    await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
-    await mapboxMap.logo.updateSettings(LogoSettings(enabled: false));
-    await mapboxMap.attribution
-        .updateSettings(AttributionSettings(enabled: false));
-    await mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
-
-    // Add existing events to the map after it's created if they are already loaded
-    if (searchedEventsModel != null) {
-      for (var event in searchedEventsModel!.events) {
-        final result = await screenshotController.captureFromWidget(
-          CategoryMarker(
-              title: event.category!.name, iconUrl: event.category!.iconPath),
-        );
-        await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}',
-            result); // Use mapboxMap directly here
-        final pointAnnotationOptions = PointAnnotationOptions(
-          geometry:
-              Point(coordinates: Position(event.longitude!, event.latitude!)),
-          iconSize: 0.75,
-          image: result,
-          iconImage: 'pointer:${event.id}',
-        );
-        await pointAnnotationManager.create(pointAnnotationOptions);
-      }
-    }
+    // TODO: Implement proper image loading when Mapbox API is updated
+    // mapboxMap.style.addStyleImageMissingListener((event) {
+    //   print('Missing image: ${event.imageId}');
+    // });
   }
 }
