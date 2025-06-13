@@ -66,6 +66,16 @@ class _MainScreenState extends State<MainScreen> {
                   index: provider.currentIndex,
                   children: _screens,
                 ),
+                if (provider.currentIndex == 4)
+                  Positioned(
+                    left: 30,
+                    right: 30,
+                    bottom: 120,
+                    child: ActivityBarWidget(
+                      isVerified: _isVerified,
+                      isProfileCompleted: _isProfileCompleted,
+                    ),
+                  ),
                 if (provider.currentIndex == 1)
                   Positioned(
                     left: 30,
