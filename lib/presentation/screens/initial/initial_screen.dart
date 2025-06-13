@@ -11,6 +11,8 @@ import 'package:acti_mobile/presentation/screens/onbording/onboardings_screen.da
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:geolocator/geolocator.dart';
+import 'dart:developer' as developer;
 
 import '../../../domain/websocket/websocket.dart';
 
@@ -24,6 +26,41 @@ class InitialScreen extends StatefulWidget {
 class _InitialScreenState extends State<InitialScreen> {
   ProfileModel? profile;
 
+  Future<void> _checkLocationPermission() async {
+    developer.log('Проверка разрешений геолокации', name: 'INITIAL_SCREEN');
+
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Проверяем, включена ли служба геолокации
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      developer.log('Служба геолокации отключена', name: 'INITIAL_SCREEN');
+      return;
+    }
+
+    // Проверяем разрешения
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      developer.log('Запрашиваем разрешение на геолокацию',
+          name: 'INITIAL_SCREEN');
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        developer.log('Разрешение на геолокацию отклонено',
+            name: 'INITIAL_SCREEN');
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      developer.log('Разрешение на геолокацию отклонено навсегда',
+          name: 'INITIAL_SCREEN');
+      return;
+    }
+
+    developer.log('Разрешение на геолокацию получено', name: 'INITIAL_SCREEN');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +70,9 @@ class _InitialScreenState extends State<InitialScreen> {
   initialize() async {
     final storage = SecureStorageService();
     try {
+      // Запрашиваем разрешение на геолокацию
+      await _checkLocationPermission();
+
       final accessToken = await storage.getAccessToken();
       final refreshToken = await storage.getRefreshToken();
       if (accessToken != null) {
