@@ -1,6 +1,7 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_main/chat_main_screen.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
+import 'package:acti_mobile/presentation/screens/events/screens/votes_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
@@ -10,6 +11,8 @@ import 'package:acti_mobile/presentation/widgets/my_events_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:acti_mobile/presentation/screens/main/main_screen_provider.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -20,7 +23,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
   final bool _showSettings = false;
   bool _isVerified = false;
   bool _isProfileCompleted = false;
@@ -31,12 +33,16 @@ class _MainScreenState extends State<MainScreen> {
     const ChatMainScreen(),
     ProfileMenuScreen(onSettingsChanged: null),
     const MyEventsScreen(),
+    const VotesScreen(),
   ];
 
-  void _onTabSelected(int index) {
-    print('Переключение на индекс: $index'); // Отладочная информация
-    setState(() {
-      _currentIndex = index;
+  @override
+  void initState() {
+    super.initState();
+    // Устанавливаем начальный индекс
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MainScreenProvider>(context, listen: false)
+          .setIndex(widget.initialIndex);
     });
   }
 
@@ -51,60 +57,72 @@ class _MainScreenState extends State<MainScreen> {
           });
         }
       },
-      child: Scaffold(
-        body: Stack(
-          children: [
-            IndexedStack(
-              index: _currentIndex,
-              children: _screens,
-            ),
-            if (_currentIndex ==
-                1) // Показываем ActivityBarWidget только для EventsScreen
-              Positioned(
-                left: 30,
-                right: 30,
-                bottom: 120, // Размещаем выше CustomNavBar
-                child: ActivityBarWidget(
-                  isVerified: _isVerified,
-                  isProfileCompleted: _isProfileCompleted,
+      child: Consumer<MainScreenProvider>(
+        builder: (context, provider, child) {
+          return Scaffold(
+            body: Stack(
+              children: [
+                IndexedStack(
+                  index: provider.currentIndex,
+                  children: _screens,
                 ),
-              ),
-            if (_currentIndex == 3)
-              Positioned(
-                left: 30,
-                right: 30,
-                bottom: 120,
-                child: MyEventsWidget(
-                  onTap: () {
-                    print('Нажатие на MyEventsWidget'); // Отладочная информация
-                    _onTabSelected(4);
-                  },
-                ),
-              ),
-            Positioned(
-              left: 30,
-              right: 30,
-              bottom: 30,
-              child: Container(
-                  height: 70,
-                  decoration: BoxDecoration(
-                    // color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: mainBlueColor.withAlpha(180),
-                        blurRadius: 100,
-                        offset: const Offset(0, 15),
-                      ),
-                    ],
+                if (provider.currentIndex == 1)
+                  Positioned(
+                    left: 30,
+                    right: 30,
+                    bottom: 120,
+                    child: ActivityBarWidget(
+                      isVerified: _isVerified,
+                      isProfileCompleted: _isProfileCompleted,
+                    ),
                   ),
-                  child: CustomNavBarWidget(
-                    selectedIndex: _currentIndex,
-                    onTabSelected: _onTabSelected,
-                  )),
+                if (provider.currentIndex == 3)
+                  Positioned(
+                    left: 30,
+                    right: 30,
+                    bottom: 120,
+                    child: MyEventsWidget(
+                      onTap: () {
+                        provider.setIndex(4);
+                      },
+                    ),
+                  ),
+                Positioned(
+                  left: 30,
+                  right: 30,
+                  bottom: 30,
+                  child: Container(
+                    height: 70,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: mainBlueColor.withAlpha(180),
+                          blurRadius: 100,
+                          offset: const Offset(0, 15),
+                        ),
+                      ],
+                    ),
+                    child: CustomNavBarWidget(
+                      selectedIndex: provider.currentIndex == 5
+                          ? 1
+                          : provider.currentIndex,
+                      onTabSelected: (index) {
+                        if (index == 1) {
+                          provider.setIndex(1);
+                        } else if (index == 5) {
+                          provider.setIndex(5);
+                        } else {
+                          provider.setIndex(index);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

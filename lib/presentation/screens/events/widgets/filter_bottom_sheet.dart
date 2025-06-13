@@ -484,7 +484,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                // const SizedBox(height: 20),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(
@@ -1164,13 +1164,15 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                                 ? '0 км'
                                                 : '+${radiusValues[idx]} км',
                                             style: TextStyle(
-                                              color: isSelected
-                                                  ? mainBlueColor
-                                                  : mainBlueColor
-                                                      .withOpacity(0.7),
+                                              color: mainBlueColor,
+
+                                              //     color: isSelected
+                                              // ? mainBlueColor
+                                              // : mainBlueColor
+                                              //     .withOpacity(0.7),
                                               fontWeight: isSelected
                                                   ? FontWeight.w700
-                                                  : FontWeight.w400,
+                                                  : FontWeight.w500,
                                               fontSize: isSelected ? 10 : 8,
                                               // decoration: isSelected && idx != 0
                                               //     ? TextDecoration.underline

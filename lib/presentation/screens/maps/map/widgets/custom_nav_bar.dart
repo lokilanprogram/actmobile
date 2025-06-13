@@ -55,7 +55,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
 
     return Material(
       elevation: 8,
-      color: Colors.transparent,
+      color: Colors.transparent, 
       borderRadius: BorderRadius.circular(50),
       child: Container(
         height: 65,

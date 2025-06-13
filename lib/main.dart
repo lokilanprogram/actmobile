@@ -11,6 +11,7 @@ import 'package:acti_mobile/presentation/screens/events/providers/filter_provide
 import 'package:acti_mobile/presentation/screens/events/providers/vote_provider.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
+import 'package:acti_mobile/presentation/screens/main/main_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -74,6 +75,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => SettingsNotificationsProvider()..loadProfile(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MainScreenProvider(),
         ),
       ],
       child: GetMaterialApp(
