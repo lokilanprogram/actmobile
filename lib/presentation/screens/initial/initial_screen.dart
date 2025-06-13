@@ -23,10 +23,11 @@ class InitialScreen extends StatefulWidget {
 
 class _InitialScreenState extends State<InitialScreen> {
   ProfileModel? profile;
+
   @override
   void initState() {
-    initialize();
     super.initState();
+    initialize();
   }
 
   initialize() async {
@@ -40,35 +41,42 @@ class _InitialScreenState extends State<InitialScreen> {
 
       print('access token ---- $accessToken');
       print('refresh token ---- $refreshToken');
-      await Future.delayed(Duration(seconds: 1)).then((_) async {
-        if (profile != null) {
-          storage.setUserId(profile!.id);
-          storage.setUserVerified(profile!.isEmailVerified);
-          if (profile!.categories.isNotEmpty) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => const MainScreen()),
-              (route) => false,
-            );
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const OnboardingsScreen()),
-            );
-          }
-          await FirebaseApi().initNotifications();
-          await NotificationService().initNotification();
-          await FirebaseApi().setupInteractedMessage();
+
+      if (!mounted) return;
+
+      await Future.delayed(Duration(seconds: 1));
+
+      if (!mounted) return;
+
+      if (profile != null) {
+        storage.setUserId(profile!.id);
+        storage.setUserVerified(profile!.isEmailVerified);
+        if (profile!.categories.isNotEmpty) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const MainScreen()),
+            (route) => false,
+          );
         } else {
-          await storage.deleteAll();
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => SelectInputScreen()),
+            MaterialPageRoute(builder: (_) => const OnboardingsScreen()),
           );
         }
-      });
+        await FirebaseApi().initNotifications();
+        await NotificationService().initNotification();
+        await FirebaseApi().setupInteractedMessage();
+      } else {
+        await storage.deleteAll();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SelectInputScreen()),
+        );
+      }
     } catch (e) {
       print(e.toString());
+      if (!mounted) return;
+
       await storage.deleteAll();
       Navigator.push(
         context,

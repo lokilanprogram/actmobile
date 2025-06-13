@@ -571,22 +571,26 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       pointAnnotationManager = pointNewAnnotationManager;
     });
-
-    // Отключаем встроенные элементы карты
     await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
-    await mapboxMap.logo.updateSettings(LogoSettings(enabled: false));
+    await mapboxMap.logo.updateSettings(LogoSettings(enabled: true));
     await mapboxMap.attribution
-        .updateSettings(AttributionSettings(enabled: false));
+        .updateSettings(AttributionSettings(enabled: true));
     await mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
 
-    // Добавляем существующие события на карту после её создания
+    // Добавляем маркер текущего местоположения сразу после создания карты
+    if (currentUserPosition != null) {
+      await addUserIconToStyle(mapboxMap);
+    }
+
+    // Add existing events to the map after it's created if they are already loaded
     if (searchedEventsModel != null) {
       for (var event in searchedEventsModel!.events) {
         final result = await screenshotController.captureFromWidget(
           CategoryMarker(
               title: event.category!.name, iconUrl: event.category!.iconPath),
         );
-        await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}', result);
+        await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}',
+            result); // Use mapboxMap directly here
         final pointAnnotationOptions = PointAnnotationOptions(
           geometry:
               Point(coordinates: Position(event.longitude!, event.latitude!)),
