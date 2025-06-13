@@ -84,8 +84,8 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                         colorFilter: ColorFilter.mode(
                           widget.selectedIndex == i ||
                                   (i == 3 && widget.selectedIndex == 4)
-                              ? mainBlueColor
-                              : mainBlueColor.withAlpha(150),
+                              ? const Color.fromARGB(255, 0, 107, 221)
+                              : mainBlueColor.withAlpha(130),
                           BlendMode.srcIn,
                         ),
                       ),
