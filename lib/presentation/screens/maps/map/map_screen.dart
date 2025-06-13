@@ -33,6 +33,7 @@ import 'package:acti_mobile/presentation/screens/events/widgets/filter_bottom_sh
 import 'package:acti_mobile/presentation/screens/events/providers/filter_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 
 class MapScreen extends StatefulWidget {
   // final int selectedScreenIndex;
@@ -140,69 +141,60 @@ class _MapScreenState extends State<MapScreen> {
   void initialize() async {
     setState(() {
       isLoading = true;
-      // selectedIndex = widget.selectedScreenIndex;
-      _deepLinkService = DeepLinkService(navigatorKey);
     });
-    if (_deepLinkService != null) {
-      await _deepLinkService!.initDeepLinks();
-    }
-    final permission = await geolocator.Geolocator.checkPermission();
-    setState(() {
-      currentPermission = permission;
-    });
-    final storage = SecureStorageService();
-    final accessToken = await storage.getAccessToken();
+
+    // Параллельное выполнение независимых операций
+    final futures = await Future.wait<dynamic>([
+      // Инициализация DeepLinks
+      Future.value(_deepLinkService = DeepLinkService(navigatorKey)),
+      // Получение токена
+      SecureStorageService().getAccessToken(),
+      // Проверка разрешения геолокации
+      geolocator.Geolocator.checkPermission(),
+    ]);
+
+    final accessToken = futures[1] as String?;
+    currentPermission = futures[2] as geolocator.LocationPermission;
+
+    // Параллельное выполнение WebSocket и геолокации
     if (accessToken != null) {
-      try {
-        connectToOnlineStatus(accessToken);
-      } catch (e) {
+      connectToOnlineStatus(accessToken).catchError((e) {
         developer.log('Ошибка при подключении к WebSocket: $e',
             name: 'MAP_SCREEN');
-      }
-    } else {
-      developer.log('Access token не найден', name: 'MAP_SCREEN');
-    }
-    if (currentPermission.name == 'denied') {
-      final permission = await geolocator.Geolocator.requestPermission();
-      setState(() {
-        currentPermission = permission;
       });
     }
-    if (currentPermission.name != 'denied') {
-      if (await checkGeolocator()) {
-        final position = await geolocator.Geolocator.getCurrentPosition();
-        delayedLocationUpdate(position.latitude, position.longitude);
-        setState(() {
-          currentUserPosition = Position(position.longitude, position.latitude);
-          currentSelectedPosition =
-              Position(position.longitude, position.latitude);
-        });
-      } else {
-        const defaultLatitude = 55.7558;
-        const defaultLongitude = 37.6173;
 
-        setState(() {
-          currentSelectedPosition = Position(defaultLongitude, defaultLatitude);
-        });
-      }
+    if (currentPermission.name == 'denied') {
+      currentPermission = await geolocator.Geolocator.requestPermission();
+    }
+
+    if (currentPermission.name != 'denied' && await checkGeolocator()) {
+      final position = await geolocator.Geolocator.getCurrentPosition();
+      delayedLocationUpdate(position.latitude, position.longitude)
+          .catchError((e) {
+        developer.log('Ошибка при обновлении локации: $e', name: 'MAP_SCREEN');
+      });
+      setState(() {
+        currentUserPosition = Position(position.longitude, position.latitude);
+        currentSelectedPosition =
+            Position(position.longitude, position.latitude);
+      });
     } else {
       setState(() {
         currentUserPosition = null;
         currentSelectedPosition =
             Position(37.60709779391965, 55.73523399526778);
-        isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          'Не удалось получить местоположение',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.red,
-      ));
     }
+
+    // Инициализация карты
     context.read<ProfileBloc>().add(InitializeMapEvent(
         latitude: currentSelectedPosition.lat.toDouble(),
         longitude: currentSelectedPosition.lng.toDouble()));
+
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Future<void> delayedLocationUpdate(double lat, double lon) async {

@@ -69,51 +69,57 @@ class _EventsScreenState extends State<EventsScreen> {
   // --- Новый флаг для отображения голосования ---
   bool showVotes = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    // Запускаем получение геолокации и профиля параллельно
+    _getCurrentLocation();
+    context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
+
+    // Ждем получения геолокации
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (_currentPosition != null) {
+      await _applyFilters();
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Не удалось получить геолокацию')),
+        );
+      }
+    }
+  }
+
   Future<void> _getCurrentLocation() async {
     try {
       bool serviceEnabled =
           await geolocator.Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Служба геолокации отключена')),
-        );
-        return;
-      }
+      if (!serviceEnabled) return;
 
       geolocator.LocationPermission permission =
           await geolocator.Geolocator.checkPermission();
       if (permission == geolocator.LocationPermission.denied) {
         permission = await geolocator.Geolocator.requestPermission();
-        if (permission == geolocator.LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Разрешение на геолокацию отклонено')),
-          );
-          return;
-        }
+        if (permission == geolocator.LocationPermission.denied) return;
       }
 
-      if (permission == geolocator.LocationPermission.deniedForever) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Разрешение на геолокацию отклонено навсегда')),
-        );
-        return;
-      }
+      if (permission == geolocator.LocationPermission.deniedForever) return;
 
       _currentPosition = await geolocator.Geolocator.getCurrentPosition();
     } catch (e) {
       developer.log('Ошибка при получении геолокации: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка при получении геолокации: $e')),
-      );
     }
-  }
-
-  @override
-  void initState() {
-    initialize();
-    context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
-    super.initState();
   }
 
   @override
@@ -121,33 +127,6 @@ class _EventsScreenState extends State<EventsScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
-  }
-
-  initialize() async {
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      await _getCurrentLocation();
-      if (_currentPosition != null) {
-        _applyFilters();
-      } else {
-        setState(() {
-          isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Не удалось получить геолокацию')),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      developer.log('Ошибка при загрузке событий: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка при загрузке событий: $e')),
-      );
-    }
   }
 
   Future<void> _applyFilters({bool reset = true}) async {
@@ -834,31 +813,32 @@ class _EventsScreenState extends State<EventsScreen> {
                                                           ),
                                                         ),
                                                       )
-                                                    : ListView(
-                                                        children: [
-                                                          ...eventsModel!.events
-                                                              .map((event) {
-                                                            return MyCardEventWidget(
-                                                              isCompletedEvent:
-                                                                  false,
-                                                              isPublicUser:
-                                                                  true,
-                                                              organizedEvent: event
-                                                                  .toOrganizedEventModel(),
-                                                            );
-                                                          }),
-                                                          if (_hasMore)
-                                                            Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .symmetric(
-                                                                      vertical:
-                                                                          16),
-                                                              child: Center(
-                                                                  child:
-                                                                      CircularProgressIndicator()),
-                                                            ),
-                                                        ],
+                                                    : ListView.builder(
+                                                        itemCount: eventsModel
+                                                                ?.events
+                                                                .length ??
+                                                            0,
+                                                        itemBuilder:
+                                                            (context, index) {
+                                                          if (index ==
+                                                                  eventsModel!
+                                                                          .events
+                                                                          .length -
+                                                                      1 &&
+                                                              _hasMore) {
+                                                            _loadMoreEvents();
+                                                          }
+                                                          return MyCardEventWidget(
+                                                            organizedEvent:
+                                                                eventsModel!
+                                                                    .events[
+                                                                        index]
+                                                                    .toOrganizedEventModel(),
+                                                            isPublicUser: true,
+                                                            isCompletedEvent:
+                                                                false,
+                                                          );
+                                                        },
                                                       ),
                                               ),
                                             )

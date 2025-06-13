@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CustomNavBarWidget extends StatelessWidget {
+class CustomNavBarWidget extends StatefulWidget {
   final int currentIndex;
   final Function(int) onTap;
 
@@ -10,10 +10,17 @@ class CustomNavBarWidget extends StatelessWidget {
     required this.onTap,
   });
 
+  @override
+  State<CustomNavBarWidget> createState() => _CustomNavBarWidgetState();
+}
+
+class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
   void _handleTap(BuildContext context, int index) {
+    if (!mounted) return;
+
     // Скрываем клавиатуру при переключении экранов
     FocusScope.of(context).unfocus();
-    onTap(index);
+    widget.onTap(index);
   }
 
   @override
@@ -25,12 +32,12 @@ class CustomNavBarWidget extends StatelessWidget {
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
-            offset: Offset(0, -5),
+            offset: const Offset(0, -5),
           ),
         ],
       ),
       child: BottomNavigationBar(
-        currentIndex: currentIndex,
+        currentIndex: widget.currentIndex,
         onTap: (index) => _handleTap(context, index),
         items: const [
           BottomNavigationBarItem(
