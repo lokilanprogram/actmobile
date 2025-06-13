@@ -28,7 +28,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   String selectedTab = 'mine';
   late AllChatsModel allPrivateChats;
   late AllChatsModel allGroupChats;
-  bool isLoading = false;
+  bool _isLoading = false;
   bool isPrivateChats = true;
   late bool isVerified;
   String? lastProcessedEventId;
@@ -42,7 +42,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   }
 
   initialize() async {
-    isLoading = true;
+    _isLoading = true;
     isVerified = true;
 
     final storage = SecureStorageService();
@@ -52,8 +52,10 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
       final accessToken = await storage.getAccessToken();
       webSocketService = AllChatWebSocketService(token: accessToken!);
     } else {
-      isVerified = false;
-      isLoading = false;
+      setState(() {
+        isVerified = false;
+        _isLoading = false;
+      });
     }
   }
 
@@ -84,7 +86,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
           setState(() {
             allGroupChats = state.allGroupChats;
             allPrivateChats = state.allPrivateChats;
-            isLoading = false;
+            _isLoading = false;
           });
         }
       },
@@ -107,7 +109,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
             ),
           ),
         ),
-        body: isLoading
+        body: _isLoading
             ? LoaderWidget()
             : !isVerified
                 ? Center(
