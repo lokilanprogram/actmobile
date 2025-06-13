@@ -62,6 +62,7 @@ class _MapScreenState extends State<MapScreen> {
   bool isLoading = false;
   bool showEvents = false;
   bool showSettings = false;
+  bool isMapLoading = true;
   DeepLinkService? _deepLinkService;
   DraggableScrollableController sheetController =
       DraggableScrollableController();
@@ -502,61 +503,94 @@ class _MapScreenState extends State<MapScreen> {
               return Stack(
                 children: [
                   if (currentSelectedPosition != null)
-                    MapWidget(
-                      onStyleLoadedListener: (styleLoadedEventData) async {
-                        if (currentUserPosition != null && mapboxMap != null) {
-                          await addUserIconToStyle(mapboxMap!);
-                        }
-                        if (searchedEventsModel != null && mapboxMap != null) {
-                          for (var event in searchedEventsModel!.events) {
-                            if (event.category != null) {
-                              final result =
-                                  await screenshotController.captureFromWidget(
-                                CategoryMarker(
-                                    title: event.category!.name,
-                                    iconUrl: event.category!.iconPath),
-                              );
-                              await addEventIconFromUrl(
-                                  mapboxMap!, 'pointer:${event.id}', result);
-                              final pointAnnotationOptions =
-                                  PointAnnotationOptions(
-                                geometry: Point(
-                                    coordinates: Position(
-                                        event.longitude ?? 0.0,
-                                        event.latitude ?? 0.0)),
-                                iconSize: 0.75,
-                                image: result,
-                                iconImage: 'pointer:${event.id}',
-                              );
-                              await pointAnnotationManager
-                                  .create(pointAnnotationOptions);
+                    Stack(
+                      children: [
+                        MapWidget(
+                          onStyleLoadedListener: (styleLoadedEventData) async {
+                            setState(() {
+                              isMapLoading = false;
+                            });
+                            if (currentUserPosition != null &&
+                                mapboxMap != null) {
+                              await addUserIconToStyle(mapboxMap!);
                             }
-                          }
-                        }
-                      },
-                      onMapLoadErrorListener: (error) {
-                        developer.log('Ошибка загрузки карты: ${error.message}',
-                            name: 'MAP_SCREEN');
-                        // Пробуем загрузить стандартный стиль при ошибке
-                        if (mapboxMap != null) {
-                          mapboxMap!.style
-                              .setStyleURI(MapboxStyles.MAPBOX_STREETS);
-                        }
-                      },
-                      onScrollListener: _onScroll,
-                      onTapListener: _onTap,
-                      styleUri: MapboxStyles.MAPBOX_STREETS,
-                      cameraOptions: CameraOptions(
-                        zoom: currentZoom,
-                        center: Point(
-                          coordinates: Position(
-                            currentSelectedPosition!.lng,
-                            currentSelectedPosition!.lat,
+                            if (searchedEventsModel != null &&
+                                mapboxMap != null) {
+                              for (var event in searchedEventsModel!.events) {
+                                if (event.category != null) {
+                                  final result = await screenshotController
+                                      .captureFromWidget(
+                                    CategoryMarker(
+                                        title: event.category!.name,
+                                        iconUrl: event.category!.iconPath),
+                                  );
+                                  await addEventIconFromUrl(mapboxMap!,
+                                      'pointer:${event.id}', result);
+                                  final pointAnnotationOptions =
+                                      PointAnnotationOptions(
+                                    geometry: Point(
+                                        coordinates: Position(
+                                            event.longitude ?? 0.0,
+                                            event.latitude ?? 0.0)),
+                                    iconSize: 0.75,
+                                    image: result,
+                                    iconImage: 'pointer:${event.id}',
+                                  );
+                                  await pointAnnotationManager
+                                      .create(pointAnnotationOptions);
+                                }
+                              }
+                            }
+                          },
+                          onMapLoadErrorListener: (error) {
+                            developer.log(
+                                'Ошибка загрузки карты: ${error.message}',
+                                name: 'MAP_SCREEN');
+                            setState(() {
+                              isMapLoading = false;
+                            });
+                            if (mapboxMap != null) {
+                              mapboxMap!.style
+                                  .setStyleURI(MapboxStyles.MAPBOX_STREETS);
+                            }
+                          },
+                          onScrollListener: _onScroll,
+                          onTapListener: _onTap,
+                          styleUri: MapboxStyles.MAPBOX_STREETS,
+                          cameraOptions: CameraOptions(
+                            zoom: currentZoom,
+                            center: Point(
+                              coordinates: Position(
+                                currentSelectedPosition!.lng,
+                                currentSelectedPosition!.lat,
+                              ),
+                            ),
                           ),
+                          key: const ValueKey("MapWidget"),
+                          onMapCreated: _onMapCreated,
                         ),
-                      ),
-                      key: const ValueKey("MapWidget"),
-                      onMapCreated: _onMapCreated,
+                        if (isMapLoading)
+                          Container(
+                            color: Colors.white,
+                            child: const Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  LoaderWidget(),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Загрузка карты...',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   if (_isSearchingLocation || currentSelectedPosition == null)
                     Container(
@@ -821,9 +855,9 @@ class _MapScreenState extends State<MapScreen> {
       pointAnnotationManager = pointNewAnnotationManager;
     });
     await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
-    await mapboxMap.logo.updateSettings(LogoSettings(enabled: false));
+    await mapboxMap.logo.updateSettings(LogoSettings(enabled: true));
     await mapboxMap.attribution
-        .updateSettings(AttributionSettings(enabled: false));
+        .updateSettings(AttributionSettings(enabled: true));
     await mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
 
     // Добавляем маркер текущего местоположения сразу после создания карты
