@@ -16,7 +16,7 @@ class AllChatsSnapshotModel {
   factory AllChatsSnapshotModel.fromJson(Map<String, dynamic> json) =>
       AllChatsSnapshotModel(
         type: json["type"],
-        data: json["message"] != null ? Data.fromJson(json["message"]) : null,
+        data: json["data"] != null ? Data.fromJson(json["data"]) : null,
         chatId: json["chat_id"],
         eventType: json["event_type"] ?? "",
         timestamp:
@@ -33,7 +33,7 @@ class Data {
   String? chatId;
   String? userId;
   String? type;
-  DateTime? eventId;
+  String? eventId;
   List<String>? participants;
   String? contentPreview;
 
