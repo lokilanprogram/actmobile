@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:acti_mobile/domain/api/chat/chat_api.dart';
 import 'package:acti_mobile/main.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
+import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/detail/event_detail_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -52,6 +54,7 @@ class NotificationService {
       final Map<String, dynamic> data = jsonDecode(notification.payload!);
       String? eventId = data['event_id'];
       String? chatId = data['chat_id'];
+      String? userId = data["user_id"];
       String? isOrganizer = data["is_organizer"];
 
       final navigator = navigatorKey.currentState;
@@ -80,14 +83,26 @@ class NotificationService {
             print("");
           }
         } else {
-          print("");
+          navigator.push(
+            MaterialPageRoute(
+              builder: (_) => EventDetailScreen(
+                eventId: eventId,
+              ),
+            ),
+          );
         }
+      } else if (userId != null) {
+        navigator.push(
+          MaterialPageRoute(
+            builder: (_) => PublicUserScreen(
+              userId: userId,
+            ),
+          ),
+        );
       } else {
         navigator.push(
           MaterialPageRoute(
-            builder: (_) => EventDetailScreen(
-              eventId: eventId!,
-            ),
+            builder: (_) => MainScreen(),
           ),
         );
       }

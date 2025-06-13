@@ -11,6 +11,7 @@ import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_de
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/message_card.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -400,31 +401,36 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         child: Row(
                           children: [
                             InkWell(
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              focusColor: Colors.transparent,
                               onTap: () {
-                                //if (chatInfo != null) {
-                                if (chatInfo?.eventId == null) {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              PublicUserScreen(
-                                                  userId: widget
+                                Future.delayed(Duration(milliseconds: 250),
+                                    () async {
+                                  if (chatInfo?.eventId == null) {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                PublicUserScreen(
+                                                    userId: widget
+                                                            .interlocutorUserId ??
+                                                        chatInfo!
+                                                            .users!.first.id)));
+                                  } else {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                EventDetailScreen(
+                                                  eventId: widget
                                                           .interlocutorUserId ??
-                                                      chatInfo!
-                                                          .users!.first.id)));
-                                } else {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              EventDetailScreen(
-                                                eventId:
-                                                    widget.interlocutorUserId ??
-                                                        chatInfo!.eventId ??
-                                                        "",
-                                              )));
-                                }
-                                //}
+                                                      chatInfo!.eventId ??
+                                                      "",
+                                                )));
+                                  }
+                                });
                               },
                               child: chatInfo == null
                                   ? CircleAvatar(
@@ -442,14 +448,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                           ))
                                       : CircleAvatar(
                                           maxRadius: 26,
-                                          backgroundImage: NetworkImage(
-                                              chatInfo?.event?.photos?.first ==
-                                                      null
-                                                  ? chatInfo!.users?.first
-                                                          .photoUrl ??
-                                                      ""
-                                                  : chatInfo!
-                                                      .event!.photos!.first)),
+                                          backgroundImage:
+                                              CachedNetworkImageProvider(
+                                            chatInfo?.event?.photos?.first ??
+                                                chatInfo!
+                                                    .users!.first.photoUrl!,
+                                          ),
+                                        ),
                             ),
                             SizedBox(
                               width: 10,
@@ -642,180 +647,109 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                                                   .width *
                                                               0.47,
                                                     ),
-                                                    child: MessageCard(
-                                                      key: key,
-                                                      isPrivateChats: widget.isPrivateChats ?? isPrivate,
-                                                      orgId: chatInfo?.creatorId ?? "",
-                                                      message: message,
-                                                      currentUserId:
-                                                          profileUserId!,
-                                                      special: isSpecial,
-                                                      highlightText: isSearching
-                                                          ? searchText
-                                                          : null,
-                                                      isHighlighted: isSearching &&
-                                                          filteredMessages
-                                                              .isNotEmpty &&
-                                                          message.id ==
-                                                              filteredMessages[
-                                                                      currentSearchIndex]
-                                                                  .id,
-                                                      isReaded: isReaded,
+                                                    child: Row(
+                                                      mainAxisAlignment: isMe
+                                                          ? MainAxisAlignment
+                                                              .end
+                                                          : MainAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        if (chatInfo?.type ==
+                                                                "group" &&
+                                                            isMe == false)
+                                                          InkWell(
+                                                            splashColor: Colors
+                                                                .transparent,
+                                                            highlightColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            hoverColor: Colors
+                                                                .transparent,
+                                                            focusColor: Colors
+                                                                .transparent,
+                                                            onTap: () {
+                                                              Future.delayed(
+                                                                  Duration(
+                                                                      milliseconds:
+                                                                          250),
+                                                                  () async {
+                                                                if (chatInfo
+                                                                        ?.eventId ==
+                                                                    null) {
+                                                                  Navigator.push(
+                                                                      context,
+                                                                      MaterialPageRoute(
+                                                                          builder: (context) =>
+                                                                              PublicUserScreen(userId: widget.interlocutorUserId ?? chatInfo!.users!.first.id)));
+                                                                } else {
+                                                                  Navigator.push(
+                                                                      context,
+                                                                      MaterialPageRoute(
+                                                                          builder: (context) => EventDetailScreen(
+                                                                                eventId: widget.interlocutorUserId ?? chatInfo!.eventId ?? "",
+                                                                              )));
+                                                                }
+                                                              });
+                                                            },
+                                                            child: chatInfo ==
+                                                                    null
+                                                                ? CircleAvatar(
+                                                                    maxRadius:
+                                                                        26,
+                                                                    backgroundImage:
+                                                                        AssetImage(
+                                                                      'assets/images/image_profile.png',
+                                                                    ))
+                                                                : chatInfo?.event?.photos?.first ==
+                                                                            null &&
+                                                                        chatInfo?.users?.first.photoUrl ==
+                                                                            null
+                                                                    ? CircleAvatar(
+                                                                        maxRadius:
+                                                                            26,
+                                                                        backgroundImage:
+                                                                            AssetImage(
+                                                                          'assets/images/image_default_event.png',
+                                                                        ))
+                                                                    : CircleAvatar(
+                                                                        maxRadius:
+                                                                            26,
+                                                                        backgroundImage:
+                                                                            CachedNetworkImageProvider(
+                                                                          chatInfo?.event?.photos?.first ??
+                                                                              chatInfo!.users!.first.photoUrl!,
+                                                                        ),
+                                                                      ),
+                                                          ),
+                                                        Expanded(
+                                                          child: MessageCard(
+                                                            key: key,
+                                                            isPrivateChats:
+                                                                widget.isPrivateChats ??
+                                                                    isPrivate,
+                                                            orgId: chatInfo
+                                                                    ?.creatorId ??
+                                                                "",
+                                                            message: message,
+                                                            currentUserId:
+                                                                profileUserId!,
+                                                            special: isSpecial,
+                                                            highlightText:
+                                                                isSearching
+                                                                    ? searchText
+                                                                    : null,
+                                                            isHighlighted: isSearching &&
+                                                                filteredMessages
+                                                                    .isNotEmpty &&
+                                                                message.id ==
+                                                                    filteredMessages[
+                                                                            currentSearchIndex]
+                                                                        .id,
+                                                            isReaded: isReaded,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                    // child: Card(
-                                                    //   elevation: 1.4,
-                                                    //   color: isMe
-                                                    //       ? mainBlueColor
-                                                    //       : Colors.white,
-                                                    //   shape:
-                                                    //       RoundedRectangleBorder(
-                                                    //     side: isMe
-                                                    //         ? BorderSide.none
-                                                    //         : BorderSide(
-                                                    //             color:
-                                                    //                 Colors.grey,
-                                                    //           ),
-                                                    //     borderRadius:
-                                                    //         BorderRadius.only(
-                                                    //       topLeft:
-                                                    //           Radius.circular(
-                                                    //               isMe ? 20 : 15),
-                                                    //       topRight:
-                                                    //           Radius.circular(
-                                                    //               isMe ? 15 : 20),
-                                                    //       bottomLeft:
-                                                    //           Radius.circular(
-                                                    //               isMe ? 20 : 15),
-                                                    //       bottomRight:
-                                                    //           Radius.circular(
-                                                    //               isMe ? 15 : 20),
-                                                    //     ),
-                                                    //   ),
-                                                    //   child: Container(
-                                                    //     padding: const EdgeInsets
-                                                    //         .symmetric(
-                                                    //         horizontal: 10,
-                                                    //         vertical: 5),
-                                                    //     child: Column(
-                                                    //       crossAxisAlignment:
-                                                    //           CrossAxisAlignment
-                                                    //               .start,
-                                                    //       children: [
-                                                    //         if (hasAttachment) ...[
-                                                    //           ClipRRect(
-                                                    //             borderRadius:
-                                                    //                 BorderRadius
-                                                    //                     .circular(
-                                                    //                         12),
-                                                    //             child: Image.network(
-                                                    //                 message
-                                                    //                     .attachmentUrl!,
-                                                    //                 fit: BoxFit
-                                                    //                     .cover,
-                                                    //                 width: double
-                                                    //                     .infinity,
-                                                    //                 height: 300,
-                                                    //                 loadingBuilder: (BuildContext
-                                                    //                         context,
-                                                    //                     Widget
-                                                    //                         child,
-                                                    //                     ImageChunkEvent?
-                                                    //                         loadingProgress) {
-                                                    //               if (loadingProgress ==
-                                                    //                   null)
-                                                    //                 return child;
-                                                    //               return SizedBox(
-                                                    //                 height: 300,
-                                                    //                 child: Center(
-                                                    //                   child:
-                                                    //                       CircularProgressIndicator(
-                                                    //                     color: Colors
-                                                    //                         .white,
-                                                    //                     value: loadingProgress.expectedTotalBytes !=
-                                                    //                             null
-                                                    //                         ? loadingProgress.cumulativeBytesLoaded /
-                                                    //                             loadingProgress.expectedTotalBytes!
-                                                    //                         : null,
-                                                    //                   ),
-                                                    //                 ),
-                                                    //               );
-                                                    //             }),
-                                                    //           ),
-                                                    //         ],
-                                                    //         if (message.content
-                                                    //             .isNotEmpty) ...[
-                                                    //           Text(
-                                                    //             message.content,
-                                                    //             style: TextStyle(
-                                                    //               height: 1.3,
-                                                    //               fontSize: 16,
-                                                    //               fontFamily:
-                                                    //                   'Jakarta',
-                                                    //               color: isMe
-                                                    //                   ? Colors
-                                                    //                       .white
-                                                    //                   : Colors
-                                                    //                       .black,
-                                                    //             ),
-                                                    //           ),
-                                                    //         ],
-                                                    //         SizedBox(
-                                                    //           height: 5,
-                                                    //         ),
-                                                    //         Row(
-                                                    //           mainAxisAlignment:
-                                                    //               MainAxisAlignment
-                                                    //                   .end,
-                                                    //           children: [
-                                                    //             Row(
-                                                    //               children: [
-                                                    //                 Text(
-                                                    //                   DateFormat(
-                                                    //                           'HH:mm')
-                                                    //                       .format(
-                                                    //                           message.createdAt),
-                                                    //                   style:
-                                                    //                       TextStyle(
-                                                    //                     fontFamily:
-                                                    //                         'Gilroy',
-                                                    //                     fontWeight:
-                                                    //                         FontWeight
-                                                    //                             .w600,
-                                                    //                     color: isMe
-                                                    //                         ? Color.fromARGB(
-                                                    //                             255,
-                                                    //                             233,
-                                                    //                             237,
-                                                    //                             239)
-                                                    //                         : Color.fromARGB(
-                                                    //                             255,
-                                                    //                             158,
-                                                    //                             157,
-                                                    //                             159),
-                                                    //                     fontSize:
-                                                    //                         14,
-                                                    //                   ),
-                                                    //                 ),
-                                                    //                 SizedBox(
-                                                    //                   width: 5,
-                                                    //                 ),
-                                                    //                 isMe == true &&
-                                                    //                         isReaded ==
-                                                    //                             true
-                                                    //                     ? SvgPicture
-                                                    //                         .asset(
-                                                    //                         'assets/icons/icon_readed.svg',
-                                                    //                       )
-                                                    //                     : const SizedBox
-                                                    //                         .shrink(),
-                                                    //               ],
-                                                    //             ),
-                                                    //           ],
-                                                    //         ),
-                                                    //       ],
-                                                    //     ),
-                                                    //   ),
-                                                    // ),
                                                   ),
                                                 ),
                                               ],

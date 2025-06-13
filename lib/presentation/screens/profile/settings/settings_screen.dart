@@ -122,168 +122,174 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       },
       child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          scrolledUnderElevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new),
+            onPressed: widget.onBack,
+          ),
+          title: Text('Настройки',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w500)),
+        ),
         backgroundColor: Colors.white,
         body: SafeArea(
           child: Material(
             color: Colors.white,
             child: Stack(
               children: [
-                SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 45),
-                        Center(
-                          child: Text('Настройки',
-                              style: TextStyle(
-                                  fontSize: 28, fontWeight: FontWeight.w500)),
-                        ),
-                        const SizedBox(height: 24),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Row(
-                            children: [
-                              CupertinoSwitch(
-                                activeTrackColor: Colors.blue,
-                                value: provider.notificationsEnabled,
-                                onChanged: (v) {
-                                  provider.changeNotificationSettings(
-                                      enabled: v);
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              const Text('Уведомления',
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w300,
-                                      fontFamily: "Inter")),
-                            ],
-                          ),
-                        ),
-                        const Divider(indent: 24, endIndent: 24),
-                        _buildSettingsTile('Пользовательское соглашение',
-                            () => _showAgreement()),
-                        _buildSettingsTile('Политика конфиденциальности',
-                            () => _showAgreement()),
-                        _buildSettingsTile(
-                            'Согласие на обработку ПД', () => _showAgreement()),
-                        _buildSettingsTile('Часто задаваемые вопросы и ответы',
-                            () => _showFaq()),
-                        _buildSettingsTile('О нас', () => _showAgreement()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 22, horizontal: 24),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                    color: Colors.black, width: 1),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(40),
-                                ),
-                                backgroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 18),
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => FeedbackScreen()),
-                                );
-                              },
-                              child: const Text(
-                                'Обратная связь',
+                Positioned.fill(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 45),
+                          Center(
+                            child: Text('Настройки',
                                 style: TextStyle(
-                                  color: Colors.black,
-                                  fontFamily: 'Inter',
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w400,
+                                    fontSize: 28, fontWeight: FontWeight.w500)),
+                          ),
+                          const SizedBox(height: 24),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              children: [
+                                CupertinoSwitch(
+                                  activeTrackColor: Colors.blue,
+                                  value: provider.notificationsEnabled,
+                                  onChanged: (v) {
+                                    provider.changeNotificationSettings(
+                                        enabled: v);
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                const Text('Уведомления',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w300,
+                                        fontFamily: "Inter")),
+                              ],
+                            ),
+                          ),
+                          const Divider(indent: 24, endIndent: 24),
+                          _buildSettingsTile('Пользовательское соглашение',
+                              () => _showAgreement()),
+                          _buildSettingsTile('Политика конфиденциальности',
+                              () => _showAgreement()),
+                          _buildSettingsTile('Согласие на обработку ПД',
+                              () => _showAgreement()),
+                          _buildSettingsTile(
+                              'Часто задаваемые вопросы и ответы',
+                              () => _showFaq()),
+                          _buildSettingsTile('О нас', () => _showAgreement()),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 22, horizontal: 24),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(
+                                      color: Colors.black, width: 1),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(40),
+                                  ),
+                                  backgroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 18),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => FeedbackScreen()),
+                                  );
+                                },
+                                child: const Text(
+                                  'Обратная связь',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontFamily: 'Inter',
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: GestureDetector(
-                            onTap: () {
-                              context
-                                  .read<ProfileBloc>()
-                                  .add(ProfileLogoutEvent());
-                            },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SvgPicture.asset('assets/icons/log-out.svg'),
-                                SizedBox(width: 8),
-                                Text('Выйти',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter_Light',
-                                      fontSize: 19,
-                                      fontWeight: FontWeight.w300,
-                                    )),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: GestureDetector(
-                            onTap: () {
-                              _showBlockDialog(context, 'Удалить профиль',
-                                  'Вы точно хотите удалить профиль без\nвозможности восстановления?',
-                                  () {
-                                developer.log(
-                                    'Начало процесса удаления аккаунта',
-                                    name: 'ACCOUNT_DELETE');
+                          const SizedBox(height: 24),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: GestureDetector(
+                              onTap: () {
                                 context
-                                    .read<AuthBloc>()
-                                    .add(AuthDeleteAccountEvent());
-                              });
-                            },
-                            child: Row(
-                              children: [
-                                SvgPicture.asset('assets/icons/trash.svg'),
-                                SizedBox(width: 8),
-                                Text('Удалить профиль',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter_Light',
-                                      fontSize: 19,
-                                      fontWeight: FontWeight.w300,
-                                      color: Colors.red,
-                                    )),
-                              ],
+                                    .read<ProfileBloc>()
+                                    .add(ProfileLogoutEvent());
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SvgPicture.asset('assets/icons/log-out.svg'),
+                                  SizedBox(width: 8),
+                                  Text('Выйти',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter_Light',
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.w300,
+                                      )),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        Center(
-                          child: Text('Версия 1.1.1.0',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontFamily: 'Inter_Light',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w300,
-                              )),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: GestureDetector(
+                              onTap: () {
+                                _showBlockDialog(context, 'Удалить профиль',
+                                    'Вы точно хотите удалить профиль без\nвозможности восстановления?',
+                                    () {
+                                  developer.log(
+                                      'Начало процесса удаления аккаунта',
+                                      name: 'ACCOUNT_DELETE');
+                                  context
+                                      .read<AuthBloc>()
+                                      .add(AuthDeleteAccountEvent());
+                                });
+                              },
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset('assets/icons/trash.svg'),
+                                  SizedBox(width: 8),
+                                  Text('Удалить профиль',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter_Light',
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.w300,
+                                        color: Colors.red,
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Center(
+                            child: Text('Версия 1.1.1.0',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontFamily: 'Inter_Light',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w300,
+                                )),
+                          ),
+                          const SizedBox(height: 200),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-                Positioned(
-                  top: 40,
-                  left: 16,
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back_ios_new),
-                    onPressed: widget.onBack,
                   ),
                 ),
               ],

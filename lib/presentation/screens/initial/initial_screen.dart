@@ -11,6 +11,7 @@ import 'package:acti_mobile/presentation/screens/onbording/onboardings_screen.da
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:developer' as developer;
 
 import '../../../domain/websocket/websocket.dart';
 
@@ -35,6 +36,10 @@ class _InitialScreenState extends State<InitialScreen> {
       final accessToken = await storage.getAccessToken();
       final refreshToken = await storage.getRefreshToken();
       if (accessToken != null) {
+        await connectToOnlineStatus(accessToken).catchError((e) {
+          developer.log('Ошибка при подключении к WebSocket: $e',
+              name: 'MAP_SCREEN');
+        });
         profile = await ProfileApi().getProfile();
       }
 

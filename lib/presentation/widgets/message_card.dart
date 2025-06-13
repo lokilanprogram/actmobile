@@ -217,6 +217,7 @@ class _MessageCardState extends State<MessageCard>
                               ),
                             ),
                           SelectableText.rich(
+                            maxLines: null,
                             TextSpan(
                               children: [
                                 ..._highlightOccurrences(

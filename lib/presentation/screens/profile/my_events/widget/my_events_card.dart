@@ -145,7 +145,9 @@ class MyCardEventWidget extends StatelessWidget {
                                       ? SvgPicture.asset(
                                           'assets/icons/icon_adult.svg')
                                       : Container(),
-                                  DropDownIcon(isPublicUser: isPublicUser, organizedEvent: organizedEvent),
+                                  DropDownIcon(
+                                      isPublicUser: isPublicUser,
+                                      organizedEvent: organizedEvent),
                                 ],
                               )
                             ],
@@ -157,9 +159,10 @@ class MyCardEventWidget extends StatelessWidget {
                               ? Row(
                                   children: [
                                     Text(
-                                      custom_date.DateUtils.formatEventDate(
+                                      custom_date.DateUtils.formatEventTime(
                                         organizedEvent.dateStart,
                                         organizedEvent.timeStart,
+                                        organizedEvent.timeEnd,
                                         organizedEvent.type == 'online',
                                       ),
                                       style: TextStyle(

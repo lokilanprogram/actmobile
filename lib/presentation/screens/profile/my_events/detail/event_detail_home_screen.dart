@@ -6,9 +6,11 @@ import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/status_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
+import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/widgets.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/map_picker/map_picker_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/requests/event_request_screen.dart';
 import 'package:acti_mobile/presentation/widgets/error_widget.dart';
 import 'package:acti_mobile/presentation/widgets/popup_event_buttons.dart';
@@ -85,10 +87,10 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
         }
 
         if (state is ProfileGotEventDetailErrorState) {
-          setState(() {
-            isLoading = false;
-            isError = true;
-          });
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(state.message)));
+          Navigator.push(
+              context, MaterialPageRoute(builder: (_) => MyEventsScreen()));
         }
       },
       child: Scaffold(
@@ -419,7 +421,9 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                               .spaceAround,
                                                       children: [
                                                         Text(
-                                                          completedStatus.contains(organizedEvent.status)
+                                                          completedStatus.contains(
+                                                                  organizedEvent
+                                                                      .status)
                                                               ? 'Участники'
                                                               : 'Заявки',
                                                           style: TextStyle(
