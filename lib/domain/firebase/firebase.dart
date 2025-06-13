@@ -5,7 +5,10 @@ import 'package:acti_mobile/domain/api/chat/chat_api.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
 import 'package:acti_mobile/main.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
+import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/detail/event_detail_home_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -66,21 +69,57 @@ class FirebaseApi {
     final decoded = message.data;
     String? eventId = decoded['event_id'];
     String? chatId = decoded["chat_id"];
-    if (eventId != null) {
-      navigatorKey.currentState?.push(
+    String? userId = decoded["user_id"];
+    String? isOrganizer = decoded["is_organizer"];
+
+    final navigator = navigatorKey.currentState;
+
+    if (navigator == null) return;
+
+    if (chatId != null) {
+      navigator.push(
         MaterialPageRoute(
-          builder: (context) => EventDetailScreen(
-            eventId: decoded['event_id'],
+          builder: (_) => ChatDetailScreen(
+            interlocutorChatId: chatId,
           ),
         ),
       );
-    }
-    if (chatId != null) {
-      navigatorKey.currentState?.push(MaterialPageRoute(
-        builder: (_) => ChatDetailScreen(
-          interlocutorChatId: chatId,
+    } else if (eventId != null) {
+      if (isOrganizer == "true") {
+        try {
+          navigator.push(
+            MaterialPageRoute(
+              builder: (_) => EventDetailHomeScreen(
+                eventId: eventId,
+              ),
+            ),
+          );
+        } on Exception catch (e) {
+          print("");
+        }
+      } else {
+        navigator.push(
+          MaterialPageRoute(
+            builder: (_) => EventDetailScreen(
+              eventId: eventId,
+            ),
+          ),
+        );
+      }
+    } else if (userId != null) {
+      navigator.push(
+        MaterialPageRoute(
+          builder: (_) => PublicUserScreen(
+            userId: userId,
+          ),
         ),
-      ));
+      );
+    } else {
+      navigator.push(
+        MaterialPageRoute(
+          builder: (_) => MainScreen(),
+        ),
+      );
     }
   }
 }

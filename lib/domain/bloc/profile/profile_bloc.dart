@@ -229,7 +229,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
               eventModel: eventDetail, profileModel: profile));
         }
       } catch (e) {
-        emit(ProfileGotEventDetailErrorState());
+        emit(ProfileGotEventDetailErrorState(e.toString()));
       }
     });
 

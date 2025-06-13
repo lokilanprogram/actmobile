@@ -86,7 +86,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) async {
-        if (state is ProfileLogoutState) {
+        if (state is ProfileLogoutState || state is ProfileDeleteState) {
           setState(() {
             isLoading = false;
           });
@@ -103,7 +103,8 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
             isLoading = false;
           });
         }
-        if (state is ProfileLogoutErrorState) {
+        if (state is ProfileLogoutErrorState ||
+            state is ProfileDeleteErrorState) {
           setState(() {
             isLoading = false;
           });

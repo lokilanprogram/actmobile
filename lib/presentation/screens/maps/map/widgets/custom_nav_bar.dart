@@ -1,9 +1,11 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/unread_message_provider.dart';
 import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 class CustomNavBarWidget extends StatefulWidget {
   final int selectedIndex;
@@ -53,6 +55,9 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
       'assets/drawer/profile.svg',
     ];
 
+    final unreadProvider = Provider.of<UnreadMessageProvider>(context);
+    final _count = unreadProvider.unreadCount;
+
     return Material(
       elevation: 8,
       color: Colors.transparent,
@@ -78,15 +83,46 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                             : AssetImage('assets/images/image_profile.png'),
                         backgroundColor: Colors.transparent,
                       )
-                    : SvgPicture.asset(
-                        icons[i],
-                        height: 28,
-                        colorFilter: ColorFilter.mode(
-                          widget.selectedIndex == i ||
-                                  (i == 3 && widget.selectedIndex == 4)
-                              ? const Color.fromARGB(255, 0, 107, 221)
-                              : mainBlueColor.withAlpha(130),
-                          BlendMode.srcIn,
+                    : SizedBox(
+                        height: 31.5,
+                        width: 31.5,
+                        child: Stack(
+                          children: [
+                            SvgPicture.asset(
+                              icons[i],
+                              height: 28,
+                              colorFilter: ColorFilter.mode(
+                                widget.selectedIndex == i ||
+                                        (i == 3 && widget.selectedIndex == 4)
+                                    ? const Color.fromARGB(255, 0, 107, 221)
+                                    : mainBlueColor.withAlpha(130),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            if (i == 2 && _count > 0)
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Container(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 2),
+                                  constraints: BoxConstraints(
+                                      maxHeight: 15, minWidth: 15),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                  child: Text(
+                                    _count.toString(),
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w600,
+                                        fontFamily: 'Inter'),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
               ),

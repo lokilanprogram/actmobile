@@ -12,8 +12,6 @@ class ProfileGotState extends ProfileState {
       {required this.profileModel, required this.similiarUsersModel});
 }
 
-
-
 class ProfileGotErrorState extends ProfileState {}
 
 class ProfileUpdatedState extends ProfileState {
@@ -101,7 +99,11 @@ class ProfileGotEventDetailState extends ProfileState {
       {required this.eventModel, required this.profileModel});
 }
 
-class ProfileGotEventDetailErrorState extends ProfileState {}
+class ProfileGotEventDetailErrorState extends ProfileState {
+  final String message;
+
+  ProfileGotEventDetailErrorState(this.message);
+}
 
 class ProfileGotPublicUserState extends ProfileState {
   final PublicUserModel publicUserModel;

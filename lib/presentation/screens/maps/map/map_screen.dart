@@ -156,14 +156,6 @@ class _MapScreenState extends State<MapScreen> {
     final accessToken = futures[1] as String?;
     currentPermission = futures[2] as geolocator.LocationPermission;
 
-    // Параллельное выполнение WebSocket и геолокации
-    if (accessToken != null) {
-      connectToOnlineStatus(accessToken).catchError((e) {
-        developer.log('Ошибка при подключении к WebSocket: $e',
-            name: 'MAP_SCREEN');
-      });
-    }
-
     if (currentPermission.name == 'denied') {
       currentPermission = await geolocator.Geolocator.requestPermission();
     }
@@ -256,70 +248,67 @@ class _MapScreenState extends State<MapScreen> {
           },
           child: isLoading
               ? const LoaderWidget()
-              : SafeArea(
-                  child: Stack(
-                    children: [
-                      MapWidget(
-                        onStyleLoadedListener: (styleLoadedEventData) async {
-                          if (currentUserPosition != null) {
-                            await addUserIconToStyle(mapboxMap!);
+              : Stack(
+                  children: [
+                    MapWidget(
+                      onStyleLoadedListener: (styleLoadedEventData) async {
+                        if (currentUserPosition != null) {
+                          await addUserIconToStyle(mapboxMap!);
+                        }
+                        if (searchedEventsModel != null && mapboxMap != null) {
+                          for (var event in searchedEventsModel!.events) {
+                            final result =
+                                await screenshotController.captureFromWidget(
+                              CategoryMarker(
+                                  title: event.category!.name,
+                                  iconUrl: event.category!.iconPath),
+                            );
+                            await addEventIconFromUrl(
+                                mapboxMap!, 'pointer:${event.id}', result);
+                            final pointAnnotationOptions =
+                                PointAnnotationOptions(
+                              geometry: Point(
+                                  coordinates: Position(
+                                      event.longitude!, event.latitude!)),
+                              iconSize: 0.75,
+                              image: result,
+                              iconImage: 'pointer:${event.id}',
+                            );
+                            await pointAnnotationManager
+                                .create(pointAnnotationOptions);
                           }
-                          if (searchedEventsModel != null &&
-                              mapboxMap != null) {
-                            for (var event in searchedEventsModel!.events) {
-                              final result =
-                                  await screenshotController.captureFromWidget(
-                                CategoryMarker(
-                                    title: event.category!.name,
-                                    iconUrl: event.category!.iconPath),
-                              );
-                              await addEventIconFromUrl(
-                                  mapboxMap!, 'pointer:${event.id}', result);
-                              final pointAnnotationOptions =
-                                  PointAnnotationOptions(
-                                geometry: Point(
-                                    coordinates: Position(
-                                        event.longitude!, event.latitude!)),
-                                iconSize: 0.75,
-                                image: result,
-                                iconImage: 'pointer:${event.id}',
-                              );
-                              await pointAnnotationManager
-                                  .create(pointAnnotationOptions);
-                            }
-                          }
-                        },
-                        onScrollListener: _onScroll,
-                        onTapListener: _onTap,
-                        styleUri:
-                            'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
-                        cameraOptions: CameraOptions(
-                          zoom: currentZoom,
-                          center: Point(
-                            coordinates: Position(
-                              currentSelectedPosition.lng,
-                              currentSelectedPosition.lat,
-                            ),
+                        }
+                      },
+                      onScrollListener: _onScroll,
+                      onTapListener: _onTap,
+                      styleUri:
+                          'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
+                      cameraOptions: CameraOptions(
+                        zoom: currentZoom,
+                        center: Point(
+                          coordinates: Position(
+                            currentSelectedPosition.lng,
+                            currentSelectedPosition.lat,
                           ),
                         ),
-                        key: const ValueKey("MapWidget"),
-                        onMapCreated: _onMapCreated,
                       ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: buildMapControls(),
+                      key: const ValueKey("MapWidget"),
+                      onMapCreated: _onMapCreated,
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: buildMapControls(),
+                    ),
+                    if (showEvents)
+                      DraggableScrollableSheet(
+                        controller: sheetController,
+                        initialChildSize: 0.8,
+                        builder: (context, scrollController) {
+                          return EventsHomeListOnMapWidget(
+                              scrollController: scrollController);
+                        },
                       ),
-                      if (showEvents)
-                        DraggableScrollableSheet(
-                          controller: sheetController,
-                          initialChildSize: 0.8,
-                          builder: (context, scrollController) {
-                            return EventsHomeListOnMapWidget(
-                                scrollController: scrollController);
-                          },
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
         ),
       ),
