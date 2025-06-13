@@ -498,61 +498,78 @@ class _MapScreenState extends State<MapScreen> {
               SystemNavigator.pop();
               return false;
             },
-            child: Stack(
-              children: [
-                if (currentSelectedPosition != null)
-                  Stack(
+            child: isLoading
+                ? const LoaderWidget()
+                : Stack(
                     children: [
-                      MapWidget(
-                        onStyleLoadedListener: (styleLoadedEventData) async {
-                          if (currentUserPosition != null &&
-                              mapboxMap != null) {
-                            await addUserIconToStyle(mapboxMap!);
-                          }
-                          if (searchedEventsModel != null &&
-                              mapboxMap != null) {
-                            for (var event in searchedEventsModel!.events) {
-                              if (event.category != null) {
-                                final result = await screenshotController
-                                    .captureFromWidget(
-                                  CategoryMarker(
-                                      title: event.category!.name,
-                                      iconUrl: event.category!.iconPath),
-                                );
-                                await addEventIconFromUrl(
-                                    mapboxMap!, 'pointer:${event.id}', result);
-                                final pointAnnotationOptions =
-                                    PointAnnotationOptions(
-                                  geometry: Point(
-                                      coordinates: Position(
-                                          event.longitude ?? 0.0,
-                                          event.latitude ?? 0.0)),
-                                  iconSize: 0.75,
-                                  image: result,
-                                  iconImage: 'pointer:${event.id}',
-                                );
-                                await pointAnnotationManager
-                                    .create(pointAnnotationOptions);
+                      Stack(
+                        children: [
+                          MapWidget(
+                            onStyleLoadedListener:
+                                (styleLoadedEventData) async {
+                              if (currentUserPosition != null &&
+                                  mapboxMap != null) {
+                                await addUserIconToStyle(mapboxMap!);
                               }
-                            }
-                          }
-                        },
-                        onScrollListener: _onScroll,
-                        onTapListener: _onTap,
-                        styleUri: MapboxStyles.MAPBOX_STREETS,
-                        // styleUri:
-                        //     'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
-                        cameraOptions: CameraOptions(
-                          zoom: currentZoom,
-                          center: Point(
-                            coordinates: Position(
-                              currentSelectedPosition!.lng,
-                              currentSelectedPosition!.lat,
+                              if (searchedEventsModel != null &&
+                                  mapboxMap != null) {
+                                for (var event in searchedEventsModel!.events) {
+                                  if (event.category != null) {
+                                    final result = await screenshotController
+                                        .captureFromWidget(
+                                      CategoryMarker(
+                                          title: event.category!.name,
+                                          iconUrl: event.category!.iconPath),
+                                    );
+                                    await addEventIconFromUrl(mapboxMap!,
+                                        'pointer:${event.id}', result);
+                                    final pointAnnotationOptions =
+                                        PointAnnotationOptions(
+                                      geometry: Point(
+                                          coordinates: Position(
+                                              event.longitude ?? 0.0,
+                                              event.latitude ?? 0.0)),
+                                      iconSize: 0.75,
+                                      image: result,
+                                      iconImage: 'pointer:${event.id}',
+                                    );
+                                    await pointAnnotationManager
+                                        .create(pointAnnotationOptions);
+                                  }
+                                }
+                              }
+                            },
+                            onScrollListener: _onScroll,
+                            onTapListener: _onTap,
+                            styleUri: MapboxStyles.MAPBOX_STREETS,
+                            // styleUri:
+                            //     'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
+                            cameraOptions: CameraOptions(
+                              zoom: currentZoom,
+                              center: Point(
+                                coordinates: Position(
+                                  currentSelectedPosition!.lng,
+                                  currentSelectedPosition!.lat,
+                                ),
+                              ),
                             ),
+                            key: const ValueKey("MapWidget"),
+                            onMapCreated: _onMapCreated,
                           ),
-                        ),
-                        key: const ValueKey("MapWidget"),
-                        onMapCreated: _onMapCreated,
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: buildMapControls(),
+                          ),
+                          if (showEvents)
+                            DraggableScrollableSheet(
+                              controller: sheetController,
+                              initialChildSize: 0.8,
+                              builder: (context, scrollController) {
+                                return EventsHomeListOnMapWidget(
+                                    scrollController: scrollController);
+                              },
+                            ),
+                        ],
                       ),
                       Align(
                         alignment: Alignment.centerRight,
@@ -568,43 +585,7 @@ class _MapScreenState extends State<MapScreen> {
                           },
                         ),
                     ],
-                  ),
-                if (_isSearchingLocation || currentSelectedPosition == null)
-                  Container(
-                    color: Colors.transparent,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const LoaderWidget(),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Определяем ваше местоположение...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: buildMapControls(),
-                ),
-                if (showEvents)
-                  DraggableScrollableSheet(
-                    controller: sheetController,
-                    initialChildSize: 0.8,
-                    builder: (context, scrollController) {
-                      return EventsHomeListOnMapWidget(
-                          scrollController: scrollController);
-                    },
-                  ),
-              ],
-            )),
+                  )),
       ),
     );
   }
