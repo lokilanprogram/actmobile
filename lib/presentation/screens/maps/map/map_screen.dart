@@ -290,8 +290,7 @@ class _MapScreenState extends State<MapScreen> {
                         onStyleLoadedListener: (styleLoadedEventData) async {
                           if (currentUserPosition != null &&
                               mapboxMap != null) {
-                            await mapboxMap!.style
-                                .setStyleURI(MapboxStyles.MAPBOX_STREETS);
+                            await addUserIconToStyle(mapboxMap!);
                           }
                           if (searchedEventsModel != null &&
                               mapboxMap != null) {
@@ -323,7 +322,8 @@ class _MapScreenState extends State<MapScreen> {
                         },
                         onScrollListener: _onScroll,
                         onTapListener: _onTap,
-                        styleUri: MapboxStyles.MAPBOX_STREETS,
+                        styleUri:
+                            'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
                         cameraOptions: CameraOptions(
                           zoom: currentZoom,
                           center: Point(
@@ -566,12 +566,39 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _onMapCreated(MapboxMap mapboxMap) async {
-    _mapboxMap = mapboxMap;
-    pointAnnotationManager =
+    setState(() {
+      this.mapboxMap = mapboxMap;
+    });
+    final pointNewAnnotationManager =
         await mapboxMap.annotations.createPointAnnotationManager();
-    // TODO: Implement proper image loading when Mapbox API is updated
-    // mapboxMap.style.addStyleImageMissingListener((event) {
-    //   print('Missing image: ${event.imageId}');
-    // });
+    setState(() {
+      pointAnnotationManager = pointNewAnnotationManager;
+    });
+
+    // Отключаем встроенные элементы карты
+    await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+    await mapboxMap.logo.updateSettings(LogoSettings(enabled: false));
+    await mapboxMap.attribution
+        .updateSettings(AttributionSettings(enabled: false));
+    await mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
+
+    // Добавляем существующие события на карту после её создания
+    if (searchedEventsModel != null) {
+      for (var event in searchedEventsModel!.events) {
+        final result = await screenshotController.captureFromWidget(
+          CategoryMarker(
+              title: event.category!.name, iconUrl: event.category!.iconPath),
+        );
+        await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}', result);
+        final pointAnnotationOptions = PointAnnotationOptions(
+          geometry:
+              Point(coordinates: Position(event.longitude!, event.latitude!)),
+          iconSize: 0.75,
+          image: result,
+          iconImage: 'pointer:${event.id}',
+        );
+        await pointAnnotationManager.create(pointAnnotationOptions);
+      }
+    }
   }
 }
