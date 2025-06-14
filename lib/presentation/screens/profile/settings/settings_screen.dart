@@ -147,13 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 45),
-                          Center(
-                            child: Text('Настройки',
-                                style: TextStyle(
-                                    fontSize: 28, fontWeight: FontWeight.w500)),
-                          ),
-                          const SizedBox(height: 24),
+                          // const SizedBox(height: 45),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: Row(

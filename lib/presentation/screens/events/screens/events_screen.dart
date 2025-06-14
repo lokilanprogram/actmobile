@@ -42,7 +42,8 @@ class TimeRange {
 }
 
 class EventsScreen extends StatefulWidget {
-  const EventsScreen({super.key});
+  final all_events.AllEventsModel? initialEvents;
+  const EventsScreen({super.key, this.initialEvents});
 
   @override
   State<EventsScreen> createState() => _EventsScreenState();
@@ -56,6 +57,7 @@ class _EventsScreenState extends State<EventsScreen> {
   all_events.AllEventsModel? eventsModel;
   final TextEditingController _searchController = TextEditingController();
   geolocator.Position? _currentPosition;
+  bool _isInitialized = false;
 
   // Параметры пагинации
   int _offset = 0;
@@ -73,7 +75,33 @@ class _EventsScreenState extends State<EventsScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeData();
+    _getCurrentLocation();
+    _applyFilters();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _isInitialized = true;
+      if (widget.initialEvents != null) {
+        setState(() {
+          eventsModel = widget.initialEvents;
+        });
+      } else {
+        _applyFilters();
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(EventsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialEvents != oldWidget.initialEvents) {
+      setState(() {
+        eventsModel = widget.initialEvents;
+      });
+    }
   }
 
   Future<void> _initializeData() async {
@@ -85,20 +113,54 @@ class _EventsScreenState extends State<EventsScreen> {
     _getCurrentLocation();
     context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
 
-    // Ждем получения геолокации
-    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      developer.log('Загрузка событий в EventsScreen:', name: 'EVENTS_SCREEN');
+      developer.log(
+          'Координаты: ${_currentPosition?.latitude ?? 55.751244}, ${_currentPosition?.longitude ?? 37.618423}',
+          name: 'EVENTS_SCREEN');
 
-    if (_currentPosition != null) {
-      await _applyFilters();
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      // if (mounted) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(content: Text('Не удалось получить геолокацию')),
-      //   );
-      // }
+      final events = await EventsApi().searchEvents(
+        latitude: _currentPosition?.latitude ?? 55.751244,
+        longitude: _currentPosition?.longitude ?? 37.618423,
+        radius: 50, // Уменьшаем радиус до 50 км
+        limit: 20, // Уменьшаем лимит до 20
+        offset: 0, // Добавляем offset
+      );
+
+      developer.log('Получено событий: ${events?.events.length ?? 0}',
+          name: 'EVENTS_SCREEN');
+
+      if (mounted) {
+        setState(() {
+          eventsModel = events;
+          isLoading = false;
+        });
+
+        if (events == null || events.events.isEmpty) {
+          developer.log('Для EventsScreen: События не найдены',
+              name: 'EventsScreen');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ничего не нашлось'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e, stackTrace) {
+      developer.log('Для EventsScreen: Ошибка при загрузке событий: $e',
+          name: 'EventsScreen', error: e, stackTrace: stackTrace);
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка при загрузке событий: $e'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -407,8 +469,6 @@ class _EventsScreenState extends State<EventsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 400 &&
-        MediaQuery.of(context).size.width > 250;
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
         if (state is ProfileGotListEventsState) {
@@ -668,22 +728,14 @@ class _EventsScreenState extends State<EventsScreen> {
                                                     ),
                                                   )
                                                 : ListView.builder(
-                                                    itemCount: eventsModel
-                                                            ?.events.length ??
-                                                        0,
+                                                    itemCount: eventsModel!
+                                                        .events.length,
                                                     itemBuilder:
                                                         (context, index) {
-                                                      if (index ==
-                                                              eventsModel!
-                                                                      .events
-                                                                      .length -
-                                                                  1 &&
-                                                          _hasMore) {
-                                                        _loadMoreEvents();
-                                                      }
+                                                      final event = eventsModel!
+                                                          .events[index];
                                                       return MyCardEventWidget(
-                                                        organizedEvent: eventsModel!
-                                                            .events[index]
+                                                        organizedEvent: event
                                                             .toOrganizedEventModel(),
                                                         isPublicUser: true,
                                                         isCompletedEvent: false,
@@ -692,7 +744,16 @@ class _EventsScreenState extends State<EventsScreen> {
                                                   ),
                                           ),
                                         )
-                                      : Container(),
+                                      : Center(
+                                          child: Text(
+                                            'Загрузка событий...',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
                                 ),
                                 const SizedBox(height: 150),
                               ],
