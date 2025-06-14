@@ -32,6 +32,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   bool isPrivateChats = true;
   late bool isVerified;
   String? lastProcessedEventId;
+  String? userId;
 
   int _count = 0;
 
@@ -42,11 +43,19 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   }
 
   initialize() async {
-    _isLoading = true;
-    isVerified = true;
+    setState(() {
+      _isLoading = true;
+      isVerified = true;
+    });
 
     final storage = SecureStorageService();
+    final id = await storage.getUserId();
     final verified = await storage.isUserVerified();
+
+    setState(() {
+      userId = id;
+    });
+
     if (verified == true) {
       context.read<ChatBloc>().add(GetAllChatsEvent());
       final accessToken = await storage.getAccessToken();
@@ -117,7 +126,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                     "Подтвердите почту",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: mainBlueColor,
+                        color: Colors.black,
                         fontSize: 18.35,
                         fontWeight: FontWeight.w700,
                         fontFamily: 'Inter'),
@@ -166,14 +175,11 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                         allPrivateChats.chats.map((chat) {
                                       if (chat.id == result.chatId &&
                                           chat.lastMessage != null) {
-                                        if (chat.unreadCount == 0) {
-                                          WidgetsBinding.instance
-                                              .addPostFrameCallback((_) {
-                                            _unreadProvider.increment();
-                                          });
-                                        }
                                         return chat.copyWith(
-                                          unreadCount: chat.unreadCount! + 1,
+                                          unreadCount:
+                                              result.data?.senderId != userId
+                                                  ? chat.unreadCount! + 1
+                                                  : 0,
                                           lastMessage:
                                               chat.lastMessage!.copyWith(
                                             content:
@@ -201,7 +207,8 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                       return chat;
                                     }).toList();
                                   } else if (result.eventType ==
-                                      "user_typing") {
+                                          "user_typing" &&
+                                      result.data?.userId != userId) {
                                     allPrivateChats.chats =
                                         allPrivateChats.chats.map((chat) {
                                       if (chat.id == result.chatId &&

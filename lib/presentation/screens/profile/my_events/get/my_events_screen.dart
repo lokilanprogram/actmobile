@@ -337,14 +337,14 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
       children: [
         ...activeEvents.map((event) => MyCardEventWidget(
               isCompletedEvent: false,
-              isPublicUser: false,
+              isPublicUser: true,
               organizedEvent: event,
             )),
         if (hasCompletedVisited && completedEvents.isNotEmpty) ...[
           DashedLineWithText(),
           ...completedEvents.map((event) => MyCardEventWidget(
                 isCompletedEvent: true,
-                isPublicUser: false,
+                isPublicUser: true,
                 organizedEvent: event,
               )),
         ]

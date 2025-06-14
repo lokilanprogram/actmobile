@@ -444,8 +444,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                                 //       localAddressModel;
                                                 // });
                                                 setState(() {
-                                                  addressController.text = localAddressModel.properties?.fullAddress ?? "";
-                                                  selectedAddressModel = localAddressModel;
+                                                  addressController.text =
+                                                      localAddressModel
+                                                              .properties
+                                                              ?.fullAddress ??
+                                                          "";
+                                                  selectedAddressModel =
+                                                      localAddressModel;
                                                 });
                                               }
                                             },
@@ -1053,22 +1058,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 setState(() {
                   isLoading = true;
                 });
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Выберите категорию')));
-              }
-            } else {
-              if (selectedCategory != null) {
-                setState(() {
-                  isLoading = true;
-                });
-                context.read<AuthBloc>().add(widget.organizedEventModel != null
-                    ? ActiUpdateActivityEvent(
-                        alterEventModel:
-                            eventmodel(dateStart, timeStart, timeEnd))
-                    : ActiCreateActivityEvent(
-                        createEventModel:
-                            eventmodel(dateStart, timeStart, timeEnd)));
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Выберите категорию')));

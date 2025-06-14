@@ -36,6 +36,7 @@ class Data {
   String? eventId;
   List<String>? participants;
   String? contentPreview;
+  String? senderId;
 
   Data(
       {this.chatId,
@@ -43,17 +44,20 @@ class Data {
       this.eventId,
       this.participants,
       this.userId,
-      this.contentPreview});
+      this.contentPreview,
+      this.senderId});
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-      chatId: json['chat_id'] ?? "",
-      type: json['type'] ?? "",
-      eventId: json['event_id'] ?? "",
-      participants: json['participants'] != null
-          ? List<String>.from(json['participants'])
-          : null,
-      userId: json["user_id"] ?? "",
-      contentPreview: json["content_preview"] ?? "");
+        chatId: json['chat_id'] ?? "",
+        type: json['type'] ?? "",
+        eventId: json['event_id'] ?? "",
+        participants: json['participants'] != null
+            ? List<String>.from(json['participants'])
+            : null,
+        userId: json["user_id"] ?? "",
+        contentPreview: json["content_preview"] ?? "",
+        senderId: json["sender_id"] ?? "",
+      );
 
   Map<String, dynamic> toJson() {
     return {

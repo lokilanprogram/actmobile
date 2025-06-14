@@ -15,16 +15,53 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ChatBloc() : super(ChatInitial()) {
     on<GetChatHistoryEvent>((event, emit) async {
       try {
-        final chatInfoModel = await ChatApi().getChatInfo(event.chatId);
-        final chatModel = await ChatApi().getChatHistory(chatInfoModel!.id);
+        final chatInfo = await ChatApi().getChatInfo(event.chatId);
+        if (chatInfo == null) {
+          emit(GotChatHistoryErrorState());
+          return;
+        }
+
+        int offset = 0;
+        List<MessageModel> previousMessages = [];
+
+        if (event.isLoadMore && state is GotChatHistoryState) {
+          final currentState = state as GotChatHistoryState;
+          offset = currentState.chatModel.messages.length;
+          previousMessages = List.from(currentState.chatModel.messages);
+        }
+
+        final chatModel = await ChatApi().getChatHistory(
+          chatId: chatInfo.id,
+          offset: offset,
+          limit: 50,
+        );
+
         if (chatModel != null) {
+          final combinedMessages = [
+            ...chatModel.messages.reversed,
+            ...previousMessages,
+          ];
+
+          final updatedChatModel = chatModel.copyWith(
+            messages: combinedMessages,
+            total: chatModel.total,
+            offset: offset,
+            limit: chatModel.limit,
+          );
+
           emit(GotChatHistoryState(
-              chatModel: chatModel, chatInfoModel: chatInfoModel));
+            chatModel: updatedChatModel,
+            chatInfoModel: chatInfo,
+            isLoadMore: event.isLoadMore,
+          ));
+        } else {
+          emit(GotChatHistoryErrorState());
         }
       } catch (e) {
         emit(GotChatHistoryErrorState());
       }
     });
+
     on<GetAllChatsEvent>((event, emit) async {
       try {
         final allPrivateChats = await ChatApi().getAllChats('private');
@@ -45,7 +82,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             return bDate.compareTo(aDate);
           });
         }
-        
+
         if (allPrivateChats != null && allGroupChats != null) {
           emit(GotAllChatsState(
               allGroupChats: allGroupChats, allPrivateChats: allPrivateChats));
@@ -69,7 +106,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
                 createdChat.id, event.message, event.imagePath!);
           }
           if (isSent != null) {
-            final chatModel = await ChatApi().getChatHistory(createdChat.id);
+            final chatModel = await ChatApi()
+                .getChatHistory(chatId: createdChat.id, offset: 0);
             emit(StartedChatMessageState(
                 chatModel: chatModel!,
                 chatId: createdChat.id,
@@ -105,7 +143,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
         if (isSent != null && isSent == true) {
           if (event.isEmptyChat) {
-            chatModel = await ChatApi().getChatHistory(event.chatId);
+            chatModel =
+                await ChatApi().getChatHistory(chatId: event.chatId, offset: 0);
           }
           emit(SentMessageState(
             chatModel: chatModel,

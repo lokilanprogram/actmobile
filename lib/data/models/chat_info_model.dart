@@ -10,50 +10,44 @@ ChatInfoModel welcomeFromJson(String str) =>
 String welcomeToJson(ChatInfoModel data) => json.encode(data.toJson());
 
 class ChatInfoModel {
-  String id;
-  String type;
-  DateTime createdAt;
-  String creatorId;
-  String? eventId;
-  int unreadCount;
-  LastMessage? lastMessage;
-  List<User>? users;
-  Event? event;
+  final String id;
+  final String? type;
+  final String? creatorId;
+  final String? eventId;
+  final List<User>? users;
+  final Event? event;
+  final int total;
 
   ChatInfoModel({
     required this.id,
-    required this.type,
-    required this.createdAt,
-    required this.creatorId,
-    required this.eventId,
-    required this.unreadCount,
-    required this.lastMessage,
-    required this.users,
-    required this.event,
+    this.type,
+    this.creatorId,
+    this.eventId,
+    this.users,
+    this.event,
+    this.total = 0,
   });
 
   factory ChatInfoModel.fromJson(Map<String, dynamic> json) => ChatInfoModel(
         id: json["id"],
         type: json["type"],
-        createdAt: DateTime.parse(json["created_at"]),
         creatorId: json["creator_id"],
-        eventId: json["event_id"] != null ? json["event_id"] : null,
-        unreadCount: json["unread_count"],
-        lastMessage: json['lastMessage'] != null ? LastMessage.fromJson(json['lastMessage']) : null,
-        users: json["users"] != null ? List<User>.from(json["users"].map((x) => User.fromJson(x))) : null,
-        event: json["event"] != null ? Event.fromJson(json["event"]) : null,
+        eventId: json["event_id"],
+        users: json["users"] == null
+            ? null
+            : List<User>.from(json["users"].map((x) => User.fromJson(x))),
+        event: json["event"] == null ? null : Event.fromJson(json["event"]),
+        total: json["total"] ?? 0,
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "type": type,
-        "created_at": createdAt.toIso8601String(),
         "creator_id": creatorId,
         "event_id": eventId,
-        "unread_count": unreadCount,
-        "last_message": lastMessage!.toJson(),
-        "users": List<dynamic>.from(users!.map((x) => x.toJson())),
+        "users": users?.map((x) => x.toJson()).toList(),
         "event": event?.toJson(),
+        "total": total,
       };
 }
 
