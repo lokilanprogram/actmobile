@@ -59,6 +59,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   String? profileUserId;
 
   List<MessageModel> messages = [];
+  int total = 0;
   String? interlocutorName;
   String? interlocutorAvatar;
   String? trailing;
@@ -75,10 +76,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   ChatInfoModel? chatInfo;
   bool isOk = false;
+  bool isLoad = true;
 
   @override
   void initState() {
     super.initState();
+    scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       initialize();
     });
@@ -144,9 +147,24 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     super.dispose();
   }
 
+  void _onScroll() {
+    if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 200 &&
+        !isLoading &&
+        messages.length < (total ?? 0) &&
+        isLoad) {
+      setState(() {
+        isLoad = false;
+      });
+      context.read<ChatBloc>().add(
+            GetChatHistoryEvent(chatId: chatId!, isLoadMore: true),
+          );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (!isScroll)
+    if (!isScroll && messages.isNotEmpty)
       WidgetsBinding.instance.addPostFrameCallback((_) => scrollToEnd());
 
     return BlocListener<ChatBloc, ChatState>(
@@ -157,6 +175,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               messages = state.chatModel!.messages;
               isScroll = false;
             });
+            scrollToEnd();
           } else {
             setState(() {
               isScroll = false;
@@ -172,20 +191,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             messages = state.chatModel.messages;
             chatId = state.chatId;
           });
+          scrollToEnd();
         }
         if (state is GotChatHistoryState) {
           setState(() {
-            isLoading = true;
-          });
-          setState(() {
+            isLoading = false;
             chatInfo = state.chatInfoModel;
             messages = state.chatModel.messages;
-            isPrivate = state.chatInfoModel!.users?.length == null
-                ? false
-                : state.chatInfoModel!.users!.length == 1;
-            isLoading = false;
+            isPrivate = state.chatInfoModel.users?.length == 1;
             isOk = true;
+            total = state.chatModel.total;
+            isLoad = true;
           });
+          // if (!state.chatModel.messages.isEmpty && !state.isLoadMore) {
+          //   scrollToEnd();
+          // }
         }
 
         if (state is DeletedChatState) {
@@ -203,6 +223,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               token: state.accessToken,
             );
             messages = state.chatModel.messages;
+            total = state.chatModel.total;
             isLoading = false;
           });
           chatId = state.chatId;
@@ -234,14 +255,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     scrolledUnderElevation: 0,
                     automaticallyImplyLeading: false,
                     backgroundColor: Colors.white,
-                    // leading: Padding(
-                    //   padding: const EdgeInsets.only(left: 15),
-                    //   child: IconButton(
-                    //       onPressed: () {
-                    //         Navigator.pop(context, false);
-                    //       },
-                    //       icon: Icon(Icons.arrow_back_ios)),
-                    // ),
                     title: Padding(
                         padding: const EdgeInsets.only(right: 20, left: 20),
                         child: Container(
@@ -277,16 +290,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                     disabledBorder: InputBorder.none,
                                     contentPadding: EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 12),
-                                    // enabledBorder: OutlineInputBorder(
-                                    //   borderRadius: BorderRadius.circular(10),
-                                    //   borderSide:
-                                    //       BorderSide(width: 1.2, color: Colors.blue),
-                                    // ),
-                                    // focusedBorder: OutlineInputBorder(
-                                    //   borderRadius: BorderRadius.circular(10),
-                                    //   borderSide:
-                                    //       BorderSide(width: 1.2, color: Colors.blue),
-                                    // ),
                                   ),
                                 ),
                               ),
@@ -521,19 +524,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             body: isLoading || isOk == false
                 ? LoaderWidget()
                 : SafeArea(
-                    child: Padding(
-                      padding:
-                          const EdgeInsets.only(left: 15, right: 15, top: 15),
-                      child: Column(
-                        children: [
-                          messages.isEmpty
-                              ? Expanded(
-                                  child: Column(
-                                    children: [],
-                                  ),
-                                )
-                              : Expanded(
-                                  child: StreamBuilder(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 15, right: 15, top: 15),
+                            child: messages.isEmpty
+                                ? const SizedBox()
+                                : StreamBuilder(
                                     stream: webSocketService!.stream,
                                     builder: (context, snapshot) {
                                       if (snapshot.hasData) {
@@ -599,10 +598,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                       return ListView.builder(
                                         shrinkWrap: true,
                                         primary: false,
-                                        itemCount: messages.length,
+                                        physics:
+                                            const AlwaysScrollableScrollPhysics(),
+                                        reverse: true,
+                                        itemCount: messages.length +
+                                            (isLoading ? 1 : 0),
                                         controller: scrollController,
                                         itemBuilder: (context, index) {
-                                          final message = messages[index];
+                                          if (index == messages.length) {
+                                            return const Center(
+                                                child:
+                                                    CircularProgressIndicator());
+                                          }
+
+                                          final message = messages[
+                                              messages.length - 1 - index];
                                           final isMe =
                                               message.userId == profileUserId;
                                           final hasAttachment =
@@ -610,11 +620,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                           final isLongText =
                                               message.content.length > 40;
 
-                                          final isFirstMsg =
-                                              index == messages.length - 1;
+                                          final isFirstMsg = index == 0;
                                           final isSpecial = isFirstMsg ||
-                                              messages[index].userId !=
-                                                  messages[index + 1].userId;
+                                              (index > 0 &&
+                                                  messages[messages.length -
+                                                              1 -
+                                                              index]
+                                                          .userId !=
+                                                      messages[messages.length -
+                                                              1 -
+                                                              (index - 1)]
+                                                          .userId);
 
                                           final key =
                                               _messageKeys[message.id] ??=
@@ -759,10 +775,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                       );
                                     },
                                   ),
-                                ),
-                          if (!isSearched) inputMessage(context),
-                        ],
-                      ),
+                          ),
+                        ),
+                        if (!isSearched) inputMessage(context),
+                      ],
                     ),
                   )),
       ),
@@ -907,6 +923,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   });
 
                                   webSocketService?.sendOnline();
+                                  scrollToEnd();
                                 },
                               ),
                             ],
@@ -923,9 +940,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   void scrollToEnd() {
-    if (scrollController.hasClients) {
-      scrollController.animateTo(scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 1), curve: Curves.easeOut);
+    if (scrollController.hasClients && messages.isNotEmpty) {
+      scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
       isScroll = true;
     }
   }
@@ -978,6 +998,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (key != null && key.currentContext != null) {
       Scrollable.ensureVisible(
         key.currentContext!,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
       );
     }
   }

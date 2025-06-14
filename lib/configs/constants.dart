@@ -173,14 +173,24 @@ String capitalize(String input) {
 }
 
 String utcDate(String date) {
-  // Указываем формат входной строки
-  DateFormat inputFormat = DateFormat('dd.MM.yyyy');
-  DateTime dateTime = inputFormat.parse(date);
+  // Парсим входную дату в формате dd.MM.yyyy
+  List<String> parts = date.split('.');
+  int day = int.parse(parts[0]);
+  int month = int.parse(parts[1]);
+  int year = int.parse(parts[2]);
 
-  // Выводим в формате "yyyy-MM-dd"
-  DateFormat outputFormat = DateFormat('yyyy-MM-dd');
-  String formatted = outputFormat.format(dateTime);
-  return formatted;
+  // Создаем DateTime в локальной зоне
+  DateTime localDateTime = DateTime(year, month, day);
+
+  // Конвертируем в UTC
+  DateTime utcDateTime = localDateTime.toUtc();
+
+  // Форматируем дату в формат yyyy-MM-dd
+  String formattedDate = '${utcDateTime.year.toString().padLeft(4, '0')}-'
+      '${utcDateTime.month.toString().padLeft(2, '0')}-'
+      '${utcDateTime.day.toString().padLeft(2, '0')}';
+
+  return formattedDate;
 }
 
 String utcTime(String time) {
@@ -188,29 +198,21 @@ String utcTime(String time) {
   int hour = int.parse(parts[0]);
   int minute = int.parse(parts[1]);
 
-  // Текущее локальное время
-  DateTime now = DateTime.now();
-
-  // Собираем DateTime в локальной зоне
+  // Создаем DateTime в локальной зоне
   DateTime localDateTime = DateTime(
-    now.year,
-    now.month,
-    now.day,
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
     hour,
     minute,
   );
 
-  // Получаем смещение от UTC
-  final offset = localDateTime.timeZoneOffset;
-  final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
-  final offsetMinutes =
-      (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
-  final sign = offset.isNegative ? '-' : '+';
+  // Конвертируем в UTC
+  DateTime utcDateTime = localDateTime.toUtc();
 
-  // Формируем строку в нужном формате
-  final formattedTime = '${localDateTime.hour.toString().padLeft(2, '0')}:'
-      '${localDateTime.minute.toString().padLeft(2, '0')}:'
-      '00$sign$offsetHours:$offsetMinutes';
+  // Форматируем время в формат HH:mm:ss
+  String formattedTime = '${utcDateTime.hour.toString().padLeft(2, '0')}:'
+      '${utcDateTime.minute.toString().padLeft(2, '0')}:00';
 
   return formattedTime;
 }

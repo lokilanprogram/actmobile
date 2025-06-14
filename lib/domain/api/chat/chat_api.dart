@@ -163,23 +163,29 @@ class ChatApi {
     return null;
   }
 
-  Future<ChatMessagesModel?> getChatHistory(String chatId) async {
+  Future<ChatMessagesModel?> getChatHistory({
+    required String chatId,
+    required int offset,
+    int limit = 50,
+  }) async {
     final accessToken = await storage.getAccessToken();
-    if (accessToken != null) {
-      final response = await http.get(
-        Uri.parse('$API/api/v1/chats/$chatId/history')
-            .replace(queryParameters: {'limit': 1000.toString()}),
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': 'Bearer $accessToken'
-        },
-      );
-      if (response.statusCode == 200) {
-        return ChatMessagesModel.fromJson(jsonDecode(response.body));
-      } else {
-        throw Exception('Error: ${response.body}');
-      }
+    if (accessToken == null) return null;
+
+    final uri = Uri.parse('$API/api/v1/chats/$chatId/history')
+        .replace(queryParameters: {
+      'offset': offset.toString(),
+      'limit': limit.toString(),
+    });
+
+    final response = await http.get(uri, headers: {
+      "Content-Type": "application/json",
+      'Authorization': 'Bearer $accessToken',
+    });
+
+    if (response.statusCode == 200) {
+      return ChatMessagesModel.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Error: ${response.body}');
     }
-    return null;
   }
 }
