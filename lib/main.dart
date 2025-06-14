@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:acti_mobile/configs/settings_notifier.dart';
+import 'package:acti_mobile/configs/unread_message_provider.dart';
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
 import 'package:acti_mobile/domain/bloc/notifications/notifications_bloc.dart';
@@ -78,6 +79,10 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => MainScreenProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => UnreadMessageProvider(),
+          child: MyApp(),
         ),
       ],
       child: GetMaterialApp(

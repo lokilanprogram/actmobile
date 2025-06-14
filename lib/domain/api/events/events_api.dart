@@ -99,7 +99,7 @@ class EventsApi {
       if (response.statusCode == 200) {
         return OrganizedEventModel.fromJson(jsonDecode(response.body));
       } else {
-        throw Exception('Error: ${response.body}');
+        throw Exception('Error: ${jsonDecode(response.body)["detail"]}');
       }
     }
     return null;

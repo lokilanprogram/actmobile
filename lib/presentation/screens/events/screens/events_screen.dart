@@ -431,7 +431,7 @@ class _EventsScreenState extends State<EventsScreen> {
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(width: 10),
+                        // Container(width: 10),
                         SizedBox(
                           child: Text(
                             'События',
@@ -492,7 +492,7 @@ class _EventsScreenState extends State<EventsScreen> {
                         Container(
                           height: 32,
                           width: 115,
-                          margin: EdgeInsets.only(right: 16.0),
+                          margin: EdgeInsets.only(right: 8.0),
                           decoration: BoxDecoration(
                             color: mainBlueColor,
                             borderRadius: BorderRadius.circular(30),

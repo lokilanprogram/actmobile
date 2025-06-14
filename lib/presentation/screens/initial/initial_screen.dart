@@ -7,12 +7,13 @@ import 'package:acti_mobile/domain/firebase/firebase.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
 import 'package:acti_mobile/presentation/screens/auth/select_input/select_input_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
+import 'package:acti_mobile/presentation/screens/main/main_screen_provider.dart';
 import 'package:acti_mobile/presentation/screens/onbording/onboardings_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:geolocator/geolocator.dart';
 import 'dart:developer' as developer;
+import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../../domain/websocket/websocket.dart';
 
@@ -26,35 +27,92 @@ class InitialScreen extends StatefulWidget {
 class _InitialScreenState extends State<InitialScreen> {
   ProfileModel? profile;
 
-  Future<void> _checkLocationPermission() async {
-    developer.log('Проверка разрешений геолокации', name: 'INITIAL_SCREEN');
-
-    bool serviceEnabled;
-    LocationPermission permission;
+  Future<void> _requestLocationPermission() async {
+    developer.log('Запрос разрешения геолокации', name: 'INITIAL_SCREEN');
 
     // Проверяем, включена ли служба геолокации
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      developer.log('Служба геолокации отключена', name: 'INITIAL_SCREEN');
+      if (!mounted) return;
+
+      // Показываем диалог с просьбой включить геолокацию
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Геолокация отключена'),
+            content: const Text(
+                'Для работы приложения необходимо включить геолокацию в настройках устройства.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
       return;
     }
 
-    // Проверяем разрешения
-    permission = await Geolocator.checkPermission();
+    // Проверяем текущие разрешения
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
-      developer.log('Запрашиваем разрешение на геолокацию',
-          name: 'INITIAL_SCREEN');
+      // Запрашиваем разрешение
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        developer.log('Разрешение на геолокацию отклонено',
-            name: 'INITIAL_SCREEN');
+        if (!mounted) return;
+
+        // Показываем диалог о том, что разрешение отклонено
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Доступ к геолокации отклонен'),
+              content: const Text(
+                  'Для корректной работы приложения необходим доступ к геолокации.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      developer.log('Разрешение на геолокацию отклонено навсегда',
-          name: 'INITIAL_SCREEN');
+      if (!mounted) return;
+
+      // Показываем диалог о том, что разрешение отклонено навсегда
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Доступ к геолокации отклонен'),
+            content: const Text(
+                'Для корректной работы приложения необходим доступ к геолокации. Пожалуйста, включите его в настройках устройства.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
       return;
     }
 
@@ -71,16 +129,17 @@ class _InitialScreenState extends State<InitialScreen> {
     final storage = SecureStorageService();
     try {
       // Запрашиваем разрешение на геолокацию
-      await _checkLocationPermission();
+      await _requestLocationPermission();
 
       final accessToken = await storage.getAccessToken();
       final refreshToken = await storage.getRefreshToken();
       if (accessToken != null) {
+        await connectToOnlineStatus(accessToken).catchError((e) {
+          developer.log('Ошибка при подключении к WebSocket: $e',
+              name: 'INITIAL_SCREEN');
+        });
         profile = await ProfileApi().getProfile();
       }
-
-      print('access token ---- $accessToken');
-      print('refresh token ---- $refreshToken');
 
       if (!mounted) return;
 
@@ -114,7 +173,7 @@ class _InitialScreenState extends State<InitialScreen> {
         );
       }
     } catch (e) {
-      print(e.toString());
+      developer.log('Ошибка инициализации: $e', name: 'INITIAL_SCREEN');
       if (!mounted) return;
 
       await storage.deleteAll();
@@ -127,6 +186,15 @@ class _InitialScreenState extends State<InitialScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.white, body: LoaderWidget());
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Consumer<MainScreenProvider>(
+        builder: (context, provider, child) {
+          return const Center(
+            child: LoaderWidget(),
+          );
+        },
+      ),
+    );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/date_utils.dart';
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/configs/unread_message_provider.dart';
 import 'package:acti_mobile/data/models/all_chats_model.dart';
 import 'package:acti_mobile/data/models/all_chats_snapshot_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
@@ -13,6 +14,7 @@ import 'package:acti_mobile/presentation/widgets/tab_bar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class ChatMainScreen extends StatefulWidget {
   const ChatMainScreen({super.key});
@@ -26,10 +28,12 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   String selectedTab = 'mine';
   late AllChatsModel allPrivateChats;
   late AllChatsModel allGroupChats;
-  bool isLoading = false;
+  bool _isLoading = false;
   bool isPrivateChats = true;
   late bool isVerified;
   String? lastProcessedEventId;
+
+  int _count = 0;
 
   @override
   void initState() {
@@ -38,7 +42,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   }
 
   initialize() async {
-    isLoading = true;
+    _isLoading = true;
     isVerified = true;
 
     final storage = SecureStorageService();
@@ -48,8 +52,10 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
       final accessToken = await storage.getAccessToken();
       webSocketService = AllChatWebSocketService(token: accessToken!);
     } else {
-      isVerified = false;
-      isLoading = false;
+      setState(() {
+        isVerified = false;
+        _isLoading = false;
+      });
     }
   }
 
@@ -61,13 +67,26 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final _unreadProvider = Provider.of<UnreadMessageProvider>(context);
     return BlocListener<ChatBloc, ChatState>(
       listener: (context, state) {
         if (state is GotAllChatsState) {
+          _count = 0;
+          state.allGroupChats.chats.forEach(
+            (element) => element.unreadCount != null && element.unreadCount != 0
+                ? ++_count
+                : null,
+          );
+          state.allPrivateChats.chats.forEach(
+            (element) => element.unreadCount != null && element.unreadCount != 0
+                ? ++_count
+                : null,
+          );
+          _unreadProvider.setUnreadCount(_count);
           setState(() {
             allGroupChats = state.allGroupChats;
             allPrivateChats = state.allPrivateChats;
-            isLoading = false;
+            _isLoading = false;
           });
         }
       },
@@ -90,7 +109,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
             ),
           ),
         ),
-        body: isLoading
+        body: _isLoading
             ? LoaderWidget()
             : !isVerified
                 ? Center(
@@ -138,18 +157,21 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                   lastProcessedEventId = result.timestamp;
 
                                   if (result.eventType == "new_chat") {
-                                    WidgetsBinding.instance
-                                        .addPostFrameCallback((_) {
-                                      context
-                                          .read<ChatBloc>()
-                                          .add(GetAllChatsEvent());
-                                    });
+                                    context
+                                        .read<ChatBloc>()
+                                        .add(GetAllChatsEvent());
                                   } else if (result.eventType ==
                                       'new_message') {
                                     allPrivateChats.chats =
                                         allPrivateChats.chats.map((chat) {
                                       if (chat.id == result.chatId &&
                                           chat.lastMessage != null) {
+                                        if (chat.unreadCount == 0) {
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                            _unreadProvider.increment();
+                                          });
+                                        }
                                         return chat.copyWith(
                                           unreadCount: chat.unreadCount! + 1,
                                           lastMessage:
@@ -180,33 +202,28 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                     }).toList();
                                   } else if (result.eventType ==
                                       "user_typing") {
-                                    WidgetsBinding.instance
-                                        .addPostFrameCallback((_) {
-                                      allPrivateChats.chats =
-                                          allPrivateChats.chats.map((chat) {
-                                        if (chat.id == result.chatId &&
-                                            chat.lastMessage != null) {
-                                          return chat.copyWith(
-                                            lastMessage: chat.lastMessage!
-                                                .copyWith(
-                                                    content: 'Печатает...'),
-                                          );
-                                        }
-                                        return chat;
-                                      }).toList();
-                                      allGroupChats.chats =
-                                          allGroupChats.chats.map((chat) {
-                                        if (chat.id == result.chatId &&
-                                            chat.lastMessage != null) {
-                                          return chat.copyWith(
-                                            lastMessage: chat.lastMessage!
-                                                .copyWith(
-                                                    content: 'Печатает...'),
-                                          );
-                                        }
-                                        return chat;
-                                      }).toList();
-                                    });
+                                    allPrivateChats.chats =
+                                        allPrivateChats.chats.map((chat) {
+                                      if (chat.id == result.chatId &&
+                                          chat.lastMessage != null) {
+                                        return chat.copyWith(
+                                          lastMessage: chat.lastMessage!
+                                              .copyWith(content: 'Печатает...'),
+                                        );
+                                      }
+                                      return chat;
+                                    }).toList();
+                                    allGroupChats.chats =
+                                        allGroupChats.chats.map((chat) {
+                                      if (chat.id == result.chatId &&
+                                          chat.lastMessage != null) {
+                                        return chat.copyWith(
+                                          lastMessage: chat.lastMessage!
+                                              .copyWith(content: 'Печатает...'),
+                                        );
+                                      }
+                                      return chat;
+                                    }).toList();
                                   }
                                 }
                               }
@@ -263,6 +280,11 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                           children:
                                               allPrivateChats.chats.map((chat) {
                                             return ChatListTileWidget(
+                                              onTapFunction: () {
+                                                context
+                                                    .read<ChatBloc>()
+                                                    .add(GetAllChatsEvent());
+                                              },
                                               onDeletedFunction: () {
                                                 context
                                                     .read<ChatBloc>()
@@ -298,6 +320,11 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                           children:
                                               allGroupChats.chats.map((chat) {
                                             return ChatListTileWidget(
+                                              onTapFunction: () {
+                                                context
+                                                    .read<ChatBloc>()
+                                                    .add(GetAllChatsEvent());
+                                              },
                                               onDeletedFunction: () {
                                                 context
                                                     .read<ChatBloc>()
@@ -320,12 +347,14 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
 class ChatListTileWidget extends StatelessWidget {
   final Chat chat;
   final Function onDeletedFunction;
+  final Function onTapFunction;
   final bool isPrivateChats;
   const ChatListTileWidget(
       {required this.onDeletedFunction,
       super.key,
       required this.chat,
-      required this.isPrivateChats});
+      required this.isPrivateChats,
+      required this.onTapFunction});
 
   @override
   Widget build(BuildContext context) {
@@ -393,29 +422,37 @@ class ChatListTileWidget extends StatelessWidget {
             color: Color.fromRGBO(102, 102, 102, 1)),
       ),
       onTap: () async {
-        final result = await Navigator.push(
+        Future.delayed(Duration(milliseconds: 250), () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ChatDetailScreen(
-                      isPrivateChats: isPrivateChats,
-                      trailingText: !isPrivateChats
-                          ? '${DateFormat('dd.MM.yyyy').format(chat.event!.dateStart)} | ${chat.event!.timeStart.substring(0, 5)} – ${chat.event!.timeEnd.substring(0, 5)}'
-                          : null,
-                      interlocutorAvatar: !isPrivateChats
-                          ? chat.event!.photos.isNotEmpty
-                              ? chat.event!.photos.first
-                              : null
-                          : chat.users.first.photoUrl,
-                      interlocutorName: !isPrivateChats
-                          ? chat.event!.title
-                          : (chat.users.first.name ?? 'not defined'),
-                      interlocutorChatId: chat.id,
-                      interlocutorUserId:
-                          !isPrivateChats ? null : (chat.users.first.id),
-                    )));
-        if (result == true) {
-          onDeletedFunction();
-        }
+              builder: (context) => ChatDetailScreen(
+                isPrivateChats: isPrivateChats,
+                trailingText: !isPrivateChats
+                    ? '${DateFormat('dd.MM.yyyy').format(chat.event!.dateStart)} | ${chat.event!.timeStart.substring(0, 5)} – ${chat.event!.timeEnd.substring(0, 5)}'
+                    : null,
+                interlocutorAvatar: !isPrivateChats
+                    ? chat.event!.photos.isNotEmpty
+                        ? chat.event!.photos.first
+                        : null
+                    : chat.users.first.photoUrl,
+                interlocutorName: !isPrivateChats
+                    ? chat.event!.title
+                    : (chat.users.first.name ?? 'not defined'),
+                interlocutorChatId: chat.id,
+                interlocutorUserId:
+                    !isPrivateChats ? null : (chat.users.first.id),
+              ),
+            ),
+          );
+
+          if (chat.unreadCount != 0 && chat.unreadCount != null) {
+            onTapFunction();
+          }
+          if (result == true) {
+            onDeletedFunction();
+          }
+        });
       },
     );
   }
