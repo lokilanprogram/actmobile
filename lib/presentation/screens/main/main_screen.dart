@@ -1,4 +1,5 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/domain/api/events/events_api.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_main/chat_main_screen.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/votes_screen.dart';
@@ -13,9 +14,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen_provider.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:geolocator/geolocator.dart' as geolocator;
 import 'dart:developer' as developer;
 import 'package:toastification/toastification.dart';
+
+import 'package:acti_mobile/data/models/all_events_model.dart' as all_events;
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -29,6 +32,8 @@ class _MainScreenState extends State<MainScreen> {
   final bool _showSettings = false;
   bool _isVerified = false;
   bool _isProfileCompleted = false;
+  all_events.AllEventsModel? _eventsModel;
+  geolocator.Position? _currentPosition;
 
   final List<Widget> _screens = [
     MapScreen(),
@@ -43,10 +48,10 @@ class _MainScreenState extends State<MainScreen> {
     developer.log('Проверка разрешений геолокации', name: 'MAIN_SCREEN');
 
     bool serviceEnabled;
-    LocationPermission permission;
+    geolocator.LocationPermission permission;
 
     // Проверяем, включена ли служба геолокации
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    serviceEnabled = await geolocator.Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       developer.log('Служба геолокации отключена', name: 'MAIN_SCREEN');
       toastification.show(
@@ -61,12 +66,12 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     // Проверяем разрешения
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
+    permission = await geolocator.Geolocator.checkPermission();
+    if (permission == geolocator.LocationPermission.denied) {
       developer.log('Запрашиваем разрешение на геолокацию',
           name: 'MAIN_SCREEN');
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
+      permission = await geolocator.Geolocator.requestPermission();
+      if (permission == geolocator.LocationPermission.denied) {
         developer.log('Разрешение на геолокацию отклонено',
             name: 'MAIN_SCREEN');
         toastification.show(
@@ -81,7 +86,7 @@ class _MainScreenState extends State<MainScreen> {
       }
     }
 
-    if (permission == LocationPermission.deniedForever) {
+    if (permission == geolocator.LocationPermission.deniedForever) {
       developer.log('Разрешение на геолокацию отклонено навсегда',
           name: 'MAIN_SCREEN');
       toastification.show(
@@ -99,12 +104,45 @@ class _MainScreenState extends State<MainScreen> {
     developer.log('Разрешение на геолокацию получено', name: 'MAIN_SCREEN');
     // Получаем текущую позицию
     try {
-      final position = await Geolocator.getCurrentPosition();
+      _currentPosition = await geolocator.Geolocator.getCurrentPosition();
       developer.log(
-          'Текущая позиция: ${position.latitude}, ${position.longitude}',
+          'Текущая позиция: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
           name: 'MAIN_SCREEN');
+
+      // Загружаем события после получения геолокации
+      await _loadEvents();
     } catch (e) {
       developer.log('Ошибка при получении позиции: $e', name: 'MAIN_SCREEN');
+    }
+  }
+
+  Future<void> _loadEvents() async {
+    if (_currentPosition != null) {
+      try {
+        developer.log('Загрузка событий в MainScreen:', name: 'MAIN_SCREEN');
+        developer.log(
+            'Координаты: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
+            name: 'MAIN_SCREEN');
+
+        final events = await EventsApi().searchEvents(
+          latitude: _currentPosition!.latitude,
+          longitude: _currentPosition!.longitude,
+          radius: 50, // Уменьшаем радиус до 50 км
+          limit: 20, // Уменьшаем лимит до 20
+          offset: 0, // Добавляем offset
+        );
+
+        developer.log('Получено событий: ${events?.events.length ?? 0}',
+            name: 'MAIN_SCREEN');
+
+        if (mounted) {
+          setState(() {
+            _eventsModel = events;
+          });
+        }
+      } catch (e) {
+        developer.log('Ошибка при загрузке событий: $e', name: 'MAIN_SCREEN');
+      }
     }
   }
 
@@ -133,12 +171,22 @@ class _MainScreenState extends State<MainScreen> {
       },
       child: Consumer<MainScreenProvider>(
         builder: (context, provider, child) {
+          // Обновляем список экранов с учетом полученных данных
+          final screens = [
+            MapScreen(),
+            EventsScreen(initialEvents: _eventsModel),
+            const ChatMainScreen(),
+            ProfileMenuScreen(onSettingsChanged: null),
+            const MyEventsScreen(),
+            const VotesScreen(),
+          ];
+
           return Scaffold(
             body: Stack(
               children: [
                 IndexedStack(
                   index: provider.currentIndex,
-                  children: _screens,
+                  children: screens,
                 ),
                 if (provider.currentIndex == 4)
                   Positioned(
