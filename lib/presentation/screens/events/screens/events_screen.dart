@@ -689,7 +689,7 @@ class _EventsScreenState extends State<EventsScreen> {
                         child: SafeArea(
                           child: Padding(
                             padding: const EdgeInsets.only(
-                                left: 20, right: 20, top: 10, bottom: 90),
+                                left: 20, right: 20, top: 0, bottom: 0),
                             child: Column(
                               children: [
                                 const SizedBox(height: 25),

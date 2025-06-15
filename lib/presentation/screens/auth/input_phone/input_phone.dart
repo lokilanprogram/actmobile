@@ -156,34 +156,66 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                         SizedBox(
                           height: 15,
                         ),
-                        InkWell(
-                          onTap: () {
-                            if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => InputLoadingScreen(
-                                          phone: phoneController.text.trim())));
-                            }
-                          },
-                          child: Container(
-                            height: 59,
-                            width: MediaQuery.of(context).size.width,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(25),
-                                color: mainBlueColor),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 30, vertical: 14),
-                              child: Center(
-                                  child: Text(
-                                'Далее',
-                                style: TextStyle(
-                                    color: Colors.white, fontFamily: 'Inter'),
-                              )),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: Container(
+                                height: 59,
+                                width: 140,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(28),
+                                    color: Colors.white,
+                                    border: Border.all(color: mainBlueColor)),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 30, vertical: 14),
+                                  child: Center(
+                                      child: Text(
+                                    'Назад',
+                                    style: TextStyle(
+                                        color: mainBlueColor,
+                                        fontFamily: 'Inter'),
+                                  )),
+                                ),
+                              ),
                             ),
-                          ),
+                            InkWell(
+                              onTap: () {
+                                if (_formKey.currentState!.validate()) {
+                                  _formKey.currentState!.save();
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              InputLoadingScreen(
+                                                  phone: phoneController.text
+                                                      .trim())));
+                                }
+                              },
+                              child: Container(
+                                height: 59,
+                                width: 140,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(28),
+                                    color: mainBlueColor),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 30, vertical: 14),
+                                  child: Center(
+                                      child: Text(
+                                    'Далее',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: 'Inter'),
+                                  )),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         SizedBox(
                           height: 20,
