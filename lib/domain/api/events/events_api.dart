@@ -125,6 +125,26 @@ class EventsApi {
     throw Exception('Ошибка');
   }
 
+  Future<bool?> postReviewEvent(ReviewPost reviewPost, String eventId) async {
+    final accessToken = await storage.getAccessToken();
+    if (accessToken != null) {
+      final response = await http.post(
+        Uri.parse('$API/api/v1/events/$eventId/reviews'),
+        body: jsonEncode(reviewPost.toJson()),
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': 'Bearer $accessToken'
+        },
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('${jsonDecode(response.body)["detail"]}');
+      }
+    }
+    throw Exception('Ошибка');
+  }
+
   Future<bool?> joinEvent(String eventId) async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {

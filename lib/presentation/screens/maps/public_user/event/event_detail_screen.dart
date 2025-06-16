@@ -12,6 +12,8 @@ import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/map_picker/map_picker_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/widget/drop_down_icon.dart';
+import 'package:acti_mobile/presentation/widgets/add_reviews.dart';
+import 'package:acti_mobile/presentation/widgets/gradient_text.dart';
 import 'package:acti_mobile/presentation/widgets/image_widget.dart';
 import 'package:acti_mobile/presentation/widgets/popup_event_buttons.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
@@ -44,6 +46,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   final FocusNode _dateFocusNode = FocusNode();
   final FocusNode _locationFocusNode = FocusNode();
   late ReviewsModel rewiewsModel;
+  bool isOpenAddReviews = false;
 
   @override
   void initState() {
@@ -124,6 +127,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               );
             }
           });
+          if (state.eventModel.status == 'completed' &&
+              isOpenAddReviews == false) {
+            if (!rewiewsModel.reviews
+                .any((review) => review.user.id == userId)) {
+              showAddReviewsBottomSheet(context, userId, state.eventModel);
+            }
+          }
           if (isBlocked) {
             showAlertOKDialog(context,
                 'Мест нет, но вы можете написать организатору, возможно, он добавит вас в это мероприятие.');
@@ -532,6 +542,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
                                     Wrap(
                                       alignment: WrapAlignment.start,
+                                      runSpacing: 5,
                                       spacing: 10,
                                       children: [
                                         organizedEvent.price == 0
@@ -637,240 +648,408 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     // Добавляем TabBar
                                     if (completedStatus
                                         .contains(organizedEvent.status))
-                                      DefaultTabController(
-                                        length: 2,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Transform.translate(
-                                              offset: Offset(00, 0),
-                                              child: TabBar(
-                                                tabAlignment:
-                                                    TabAlignment.start,
-                                                labelPadding:
-                                                    EdgeInsets.only(right: 20),
-                                                isScrollable: true,
-                                                dividerColor:
-                                                    Colors.transparent,
-                                                unselectedLabelStyle: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 22,
-                                                  fontWeight: FontWeight.w400,
-                                                  fontFamily: 'Gilroy',
-                                                ),
-                                                labelStyle: TextStyle(
-                                                  color: Color.fromARGB(
-                                                      255, 66, 147, 239),
-                                                  fontFamily: 'Gilroy',
-                                                  fontSize: 22,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                                indicatorColor:
-                                                    Colors.transparent,
-                                                tabs: [
-                                                  Tab(text: 'Обзор'),
-                                                  Tab(text: 'Отзывы'),
-                                                ],
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.4,
-                                              child: TabBarView(
-                                                children: [
-                                                  // Вкладка "Обзор"
-                                                  Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      // Дата и время
-                                                      infoRow(
-                                                        organizedEvent,
-                                                        'assets/icons/icon_time.svg',
-                                                        false,
-                                                        'Дата и время',
-                                                        custom_date.DateUtils
-                                                            .formatEventTime(
-                                                                organizedEvent
-                                                                    .dateStart,
-                                                                organizedEvent
-                                                                    .timeStart,
-                                                                organizedEvent
-                                                                    .timeEnd,
-                                                                organizedEvent
-                                                                        .type ==
-                                                                    'online'),
-                                                        trailing: custom_date
-                                                                .DateUtils
-                                                            .formatDuration(
-                                                                organizedEvent
-                                                                    .timeStart,
-                                                                organizedEvent
-                                                                    .timeEnd),
-                                                      ),
-
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .only(
-                                                                top: 5,
-                                                                bottom: 5),
-                                                        child: Divider(),
-                                                      ),
-
-                                                      // Место
-                                                      infoRow(
-                                                        organizedEvent,
-                                                        'assets/icons/icon_location.svg',
-                                                        true,
-                                                        'Место',
-                                                        organizedEvent.address,
-                                                      ),
-
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .only(
-                                                                top: 5,
-                                                                bottom: 5),
-                                                        child: Divider(),
-                                                      ),
-
-                                                      // Места
-                                                      infoRow(
-                                                        organizedEvent,
-                                                        'assets/icons/icon_people.svg',
-                                                        false,
-                                                        organizedEvent
-                                                                    .restrictions !=
-                                                                null
-                                                            ? (organizedEvent
-                                                                    .restrictions
-                                                                    .any((restrict) =>
-                                                                        restrict ==
-                                                                        'isUnlimited')
-                                                                ? 'Неограниченно'
-                                                                : 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест')
-                                                            : 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
-                                                        '',
-                                                      ),
-
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .only(
-                                                                top: 5,
-                                                                bottom: 5),
-                                                        child: Divider(),
-                                                      ),
-                                                      // Описание
-                                                      Text(
-                                                        organizedEvent
-                                                            .description,
-                                                        style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontFamily:
-                                                                'Gilroy',
-                                                            height: 1),
-                                                      ),
-                                                    ],
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _currentPage = 0;
+                                                  });
+                                                },
+                                                child: Container(
+                                                  padding: EdgeInsets.only(
+                                                      right: 20,
+                                                      top: 10,
+                                                      bottom: 10),
+                                                  child: Text(
+                                                    'Обзор',
+                                                    style: TextStyle(
+                                                      color: _currentPage == 0
+                                                          ? mainBlueColor
+                                                          : Colors.black,
+                                                      fontSize: 22,
+                                                      fontWeight:
+                                                          _currentPage == 0
+                                                              ? FontWeight.w600
+                                                              : FontWeight.w400,
+                                                      fontFamily: 'Gilroy',
+                                                    ),
                                                   ),
-                                                  // Вкладка "Отзывы"
-                                                  Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
+                                                ),
+                                              ),
+                                              SizedBox(width: 20),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _currentPage = 1;
+                                                  });
+                                                },
+                                                child: Container(
+                                                  padding: EdgeInsets.only(
+                                                      right: 20,
+                                                      top: 10,
+                                                      bottom: 10),
+                                                  child: Row(
                                                     children: [
+                                                      Text(
+                                                        'Отзывы',
+                                                        style: TextStyle(
+                                                          color: _currentPage ==
+                                                                  1
+                                                              ? mainBlueColor
+                                                              : Colors.black,
+                                                          fontSize: 22,
+                                                          fontWeight:
+                                                              _currentPage == 1
+                                                                  ? FontWeight
+                                                                      .w600
+                                                                  : FontWeight
+                                                                      .w400,
+                                                          fontFamily: 'Gilroy',
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 5),
                                                       if (rewiewsModel
                                                                   .reviews !=
                                                               null &&
                                                           rewiewsModel
                                                                   .reviews !=
-                                                              []) ...[
-                                                        Icon(
-                                                          Icons
-                                                              .chat_bubble_outline,
-                                                          size: 48,
-                                                          color: Colors.grey,
-                                                        ),
-                                                        SizedBox(height: 16),
-                                                        Text(
-                                                          'Пока нет отзывов',
-                                                          style: TextStyle(
-                                                            fontSize: 16,
-                                                            color: Colors.grey,
-                                                            fontFamily:
-                                                                'Gilroy',
+                                                              [])
+                                                        Container(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                            horizontal: 2,
                                                           ),
-                                                        ),
-                                                      ],
-                                                      if (rewiewsModel
-                                                                  .reviews !=
-                                                              null &&
-                                                          rewiewsModel
-                                                                  .reviews !=
-                                                              []) ...[
-                                                        ListView.builder(
-                                                          itemBuilder:
-                                                              (context, index) {
-                                                            return Column(
-                                                              children: [
-                                                                Row(
-                                                                  children: [
-                                                                    CircleAvatar(
-                                                                      radius:
-                                                                          20,
-                                                                      backgroundImage: rewiewsModel.reviews[index].user.photoUrl !=
-                                                                              null
-                                                                          ? NetworkImage(rewiewsModel
-                                                                              .reviews[index]
-                                                                              .user
-                                                                              .photoUrl)
-                                                                          : AssetImage('assets/images/image_profile.png'), // Заменить на нужную
-                                                                    ),
-                                                                    const SizedBox(
-                                                                        width:
-                                                                            10),
-                                                                    Column(
-                                                                      children: [
-                                                                        Text(
-                                                                          rewiewsModel
-                                                                              .reviews[index]
-                                                                              .user
-                                                                              .name,
-                                                                        ),
-                                                                        Text(
-                                                                          rewiewsModel
-                                                                              .reviews[index]
-                                                                              .rating
-                                                                              .toString(),
-                                                                        ),
-                                                                      ],
-                                                                    )
-                                                                  ],
-                                                                ),
-                                                              ],
-                                                            );
-                                                          },
-                                                          // separatorBuilder:
-                                                          //     separatorBuilder,
-                                                          itemCount:
+                                                          constraints:
+                                                              BoxConstraints(
+                                                                  maxHeight: 18,
+                                                                  minWidth: 18),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color:
+                                                                mainBlueColor,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        100),
+                                                          ),
+                                                          child: Center(
+                                                            child: Text(
                                                               rewiewsModel
                                                                   .reviews
-                                                                  .length,
-                                                        )
-                                                      ],
+                                                                  .length
+                                                                  .toString(),
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 9,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontFamily:
+                                                                      'Inter'),
+                                                            ),
+                                                          ),
+                                                        ),
                                                     ],
                                                   ),
-                                                ],
+                                                ),
                                               ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.5,
+                                            child: IndexedStack(
+                                              index: _currentPage,
+                                              children: [
+                                                // Вкладка "Обзор"
+                                                SingleChildScrollView(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 0),
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        // Дата и время
+                                                        infoRow(
+                                                          organizedEvent,
+                                                          'assets/icons/icon_time.svg',
+                                                          false,
+                                                          'Дата и время',
+                                                          custom_date.DateUtils
+                                                              .formatEventTime(
+                                                                  organizedEvent
+                                                                      .dateStart,
+                                                                  organizedEvent
+                                                                      .timeStart,
+                                                                  organizedEvent
+                                                                      .timeEnd,
+                                                                  organizedEvent
+                                                                          .type ==
+                                                                      'online'),
+                                                          trailing: custom_date
+                                                                  .DateUtils
+                                                              .formatDuration(
+                                                                  organizedEvent
+                                                                      .timeStart,
+                                                                  organizedEvent
+                                                                      .timeEnd),
+                                                        ),
+
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  top: 5,
+                                                                  bottom: 5),
+                                                          child: Divider(),
+                                                        ),
+
+                                                        // Место
+                                                        infoRow(
+                                                          organizedEvent,
+                                                          'assets/icons/icon_location.svg',
+                                                          true,
+                                                          'Место',
+                                                          organizedEvent
+                                                              .address,
+                                                        ),
+
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  top: 5,
+                                                                  bottom: 5),
+                                                          child: Divider(),
+                                                        ),
+
+                                                        // Места
+                                                        infoRow(
+                                                          organizedEvent,
+                                                          'assets/icons/icon_people.svg',
+                                                          false,
+                                                          organizedEvent
+                                                                      .restrictions !=
+                                                                  null
+                                                              ? (organizedEvent
+                                                                      .restrictions
+                                                                      .any((restrict) =>
+                                                                          restrict ==
+                                                                          'isUnlimited')
+                                                                  ? 'Неограниченно'
+                                                                  : 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест')
+                                                              : 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
+                                                          '',
+                                                        ),
+
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  top: 5,
+                                                                  bottom: 5),
+                                                          child: Divider(),
+                                                        ),
+                                                        // Описание
+                                                        Text(
+                                                          organizedEvent
+                                                              .description,
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontFamily:
+                                                                  'Gilroy',
+                                                              height: 1),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                // Вкладка "Отзывы"
+                                                SingleChildScrollView(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 0),
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        if (rewiewsModel
+                                                                    .reviews ==
+                                                                null ||
+                                                            rewiewsModel
+                                                                    .reviews ==
+                                                                []) ...[
+                                                          Icon(
+                                                            Icons
+                                                                .chat_bubble_outline,
+                                                            size: 48,
+                                                            color: Colors.grey,
+                                                          ),
+                                                          SizedBox(height: 16),
+                                                          Text(
+                                                            'Пока нет отзывов',
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              color:
+                                                                  Colors.grey,
+                                                              fontFamily:
+                                                                  'Gilroy',
+                                                            ),
+                                                          ),
+                                                        ],
+                                                        if (rewiewsModel
+                                                                    .reviews !=
+                                                                null &&
+                                                            rewiewsModel
+                                                                    .reviews !=
+                                                                []) ...[
+                                                          ListView.separated(
+                                                            shrinkWrap: true,
+                                                            physics:
+                                                                NeverScrollableScrollPhysics(),
+                                                            itemBuilder:
+                                                                (context,
+                                                                    index) {
+                                                              return Column(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .start,
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  Row(
+                                                                    children: [
+                                                                      CircleAvatar(
+                                                                        radius:
+                                                                            21,
+                                                                        backgroundImage: rewiewsModel.reviews[index].user.photoUrl != "" &&
+                                                                                rewiewsModel.reviews[index].user.photoUrl != null
+                                                                            ? NetworkImage(rewiewsModel.reviews[index].user.photoUrl!)
+                                                                            : AssetImage('assets/images/image_profile.png'),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              10),
+                                                                      Column(
+                                                                        crossAxisAlignment:
+                                                                            CrossAxisAlignment.start,
+                                                                        children: [
+                                                                          Text(
+                                                                            rewiewsModel.reviews[index].user.name,
+                                                                            style:
+                                                                                TextStyle(
+                                                                              fontSize: 16,
+                                                                              fontWeight: FontWeight.w500,
+                                                                            ),
+                                                                          ),
+                                                                          Row(
+                                                                            children: [
+                                                                              SvgPicture.asset(
+                                                                                'assets/icons/icon_star.svg',
+                                                                                width: 23,
+                                                                                height: 23,
+                                                                              ),
+                                                                              SizedBox(width: 4),
+                                                                              GradientText(
+                                                                                rewiewsModel.reviews[index].rating.toInt().toString(),
+                                                                                gradient: LinearGradient(
+                                                                                  colors: [
+                                                                                    Color.fromRGBO(23, 132, 255, 1),
+                                                                                    Color.fromRGBO(42, 244, 72, 1),
+                                                                                  ],
+                                                                                ),
+                                                                                style: TextStyle(
+                                                                                  fontFamily: 'Inter',
+                                                                                  fontSize: 16,
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ],
+                                                                      )
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height:
+                                                                          10),
+                                                                  Text(
+                                                                    rewiewsModel
+                                                                        .reviews[
+                                                                            index]
+                                                                        .comment,
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontFamily:
+                                                                          'Gilroy',
+                                                                      fontSize:
+                                                                          14,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w400,
+                                                                      color: Colors
+                                                                          .black,
+                                                                    ),
+                                                                  )
+                                                                ],
+                                                              );
+                                                            },
+                                                            itemCount:
+                                                                rewiewsModel
+                                                                    .reviews
+                                                                    .length,
+                                                            separatorBuilder:
+                                                                (BuildContext
+                                                                        context,
+                                                                    int index) {
+                                                              return Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .only(
+                                                                        left:
+                                                                            20,
+                                                                        right:
+                                                                            20,
+                                                                        top: 5),
+                                                                child:
+                                                                    Divider(),
+                                                              );
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                   ],
                                 ),
@@ -940,7 +1119,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                           ),
                                         ),
                                 ),
-                                const SizedBox(height: 40),
                               ],
                             ),
                     ),
@@ -980,6 +1158,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 5),
@@ -989,8 +1168,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             Text(title,
                 style: const TextStyle(
                     color: Colors.blue,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Gilroy',
                     fontSize: 17.8)),
           ],
         ),
@@ -1104,17 +1283,23 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   )
                 : Row(
                     children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.8,
-                        child: Text(
-                          subtitle,
-                          maxLines: 2,
-                          style: TextStyle(
-                              fontFamily: 'Gilroy',
-                              fontSize: 16,
-                              color: isLocation ? Colors.blue : Colors.black),
-                        ),
+                      Text(
+                        subtitle,
+                        maxLines: 2,
+                        style: TextStyle(
+                            fontFamily: 'Gilroy',
+                            fontSize: 16,
+                            color: isLocation ? Colors.blue : Colors.black),
                       ),
+                      Spacer(),
+                      Text(
+                        trailing != null ? formatDuration(
+                            organizedEvent.timeStart, organizedEvent.timeEnd) : "",
+                        style: TextStyle(
+                            fontFamily: 'Gilroy',
+                            fontSize: 16,
+                            color: Colors.grey),
+                      )
                     ],
                   ),
           ),
