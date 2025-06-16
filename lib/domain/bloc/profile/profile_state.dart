@@ -180,3 +180,11 @@ class ProfileRecommentedUsersErrorState extends ProfileState {
 
   ProfileRecommentedUsersErrorState({required this.errorText});
 }
+
+class ProfilePostedReviewState extends ProfileState {}
+
+class ProfilePostedReviewErrorState extends ProfileState {
+  final String errorText;
+
+  ProfilePostedReviewErrorState({required this.errorText});
+}

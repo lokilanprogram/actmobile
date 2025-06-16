@@ -121,3 +121,13 @@ class ProfileCancelActivityEvent extends ProfileEvent {
 class ProfileLogoutEvent extends ProfileEvent {}
 
 class ProfileDeleteEvent extends ProfileEvent {}
+
+class ProfilePostReviewEvent extends ProfileEvent {
+  final ReviewPost reviewPost;
+  final String eventId;
+
+  ProfilePostReviewEvent({
+    required this.reviewPost,
+    required this.eventId,
+  });
+}

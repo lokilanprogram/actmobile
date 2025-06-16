@@ -36,7 +36,7 @@ class ReviewsModel {
 
 class Review {
   final String id;
-  final int rating;
+  final double rating;
   final String comment;
   final DateTime createdAt;
   final ReviewUser user;
@@ -54,7 +54,7 @@ class Review {
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
       id: json['id'] as String,
-      rating: json['rating'] as int,
+      rating: json['rating'] as double,
       comment: json['comment'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       user: ReviewUser.fromJson(json['user'] as Map<String, dynamic>),
@@ -82,8 +82,8 @@ class ReviewUser {
   final String bio;
   final String email;
   final String status;
-  final int rating;
-  final String photoUrl;
+  final double rating;
+  final String? photoUrl;
   final DateTime? blockShownUntil;
   final bool hasRecentBan;
 
@@ -110,12 +110,12 @@ class ReviewUser {
       bio: json['bio'] as String,
       email: json['email'] as String,
       status: json['status'] as String,
-      rating: json['rating'] as int,
-      photoUrl: json['photo_url'] as String,
+      rating: json['rating'] as double,
+      photoUrl: json['photo_url'] ?? "",
       blockShownUntil: json['block_shown_until'] != null
           ? DateTime.parse(json['block_shown_until'] as String)
           : null,
-      hasRecentBan: json['has_recent_ban'] as bool,
+      hasRecentBan: json['has_recent_ban'] ?? false,
     );
   }
 
@@ -132,6 +132,27 @@ class ReviewUser {
       'photo_url': photoUrl,
       'block_shown_until': blockShownUntil?.toIso8601String(),
       'has_recent_ban': hasRecentBan,
+    };
+  }
+}
+
+class ReviewPost {
+  final int rating;
+  final String comment;
+
+  ReviewPost({required this.rating, required this.comment});
+
+  factory ReviewPost.fromJson(Map<String, dynamic> json) {
+    return ReviewPost(
+      rating: json['rating'] as int,
+      comment: json['comment'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'rating': rating,
+      'comment': comment,
     };
   }
 }

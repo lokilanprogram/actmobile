@@ -36,9 +36,32 @@ class CardEventOnMap extends StatelessWidget {
                 Expanded(child: buildHeader(organizedEvent.title)),
               ],
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 15),
+            Wrap(
+              alignment: WrapAlignment.start,
+              spacing: 10,
+              runSpacing: 5,
+              children: [
+                organizedEvent.price == 0
+                    ? buildTagBig('Бесплатное')
+                    : buildTagBig(organizedEvent.price.toString() + " ₽"),
+                // if (organizedEvent.status == 'completed')
+                //   buildTagBig('Завершено'),
+                if (organizedEvent.restrictions.contains("withKids"))
+                  buildTagBig('Можно с детьми'),
+                if (organizedEvent.creator.isOrganization ?? false)
+                  buildTagBig('Компания'),
+                if (organizedEvent.type == 'online') buildTagBig('Онлайн'),
+                if (organizedEvent.restrictions.contains("withAnimals"))
+                  buildTagBig('Можно с животными'),
+                if (organizedEvent.restrictions.contains("isKidsNotAllowed"))
+                  buildTagBig('18+'),
+              ],
+            ),
+            SizedBox(height: 15),
+
             ClipRRect(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(10),
                 child: Stack(
                   children: [
                     Image.network(
@@ -63,20 +86,6 @@ class CardEventOnMap extends StatelessWidget {
                         );
                       },
                     ),
-                    organizedEvent.price == 0
-                        ? Positioned(
-                            left: 10,
-                            top: 5,
-                            child: RestrictionContainer(text: 'Бесплатное'))
-                        : Container(),
-                    organizedEvent.restrictions
-                            .any((element) => element == 'isAdults')
-                        ? Positioned(
-                            right: 10,
-                            top: 5,
-                            child: SvgPicture.asset(
-                                'assets/icons/icon_adult_white.svg'))
-                        : Container(),
                   ],
                 )),
             const SizedBox(height: 16),
@@ -135,4 +144,23 @@ class CardEventOnMap extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget buildTagBig(String label) {
+  return Container(
+    padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 13),
+    decoration: BoxDecoration(
+      border: Border.all(color: mainBlueColor, width: 1),
+      borderRadius: BorderRadius.circular(76),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 12.46,
+        fontFamily: 'Montserrat',
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+  );
 }

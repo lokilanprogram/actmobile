@@ -135,21 +135,9 @@ class MyCardEventWidget extends StatelessWidget {
                                       fontFamily: 'Gilroy'),
                                 ),
                               ),
-                              SizedBox(
-                                width: 5,
-                              ),
-                              Row(
-                                children: [
-                                  organizedEvent.restrictions.any(
-                                          (restrict) => restrict == 'isAdults')
-                                      ? SvgPicture.asset(
-                                          'assets/icons/icon_adult.svg')
-                                      : Container(),
-                                  DropDownIcon(
-                                      isPublicUser: isPublicUser,
-                                      organizedEvent: organizedEvent),
-                                ],
-                              )
+                              DropDownIcon(
+                                  isPublicUser: isPublicUser,
+                                  organizedEvent: organizedEvent),
                             ],
                           ),
                           SizedBox(
@@ -260,6 +248,7 @@ class MyCardEventWidget extends StatelessWidget {
                             height: 10,
                           ),
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               SvgPicture.asset('assets/icons/icon_people.svg'),
                               SizedBox(width: 10),
@@ -268,8 +257,10 @@ class MyCardEventWidget extends StatelessWidget {
                                         (restrict) => restrict == 'isUnlimited')
                                     ? 'Неограниченно'
                                     : 'Свободно ${organizedEvent.freeSlots} из ${organizedEvent.slots} мест',
+                                textAlign: TextAlign.end,
                                 style: TextStyle(
                                   fontSize: 11,
+                                  fontFamily: 'Gilroy',
                                   color: mainBlueColor,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -277,19 +268,33 @@ class MyCardEventWidget extends StatelessWidget {
                             ],
                           ),
                           SizedBox(height: 10),
-                          Row(
+                          Wrap(
+                            alignment: WrapAlignment.start,
+                            spacing: 5,
+                            runSpacing: 5,
                             children: [
                               organizedEvent.price == 0
-                                  ? RestrictionContainer(text: 'Бесплатное')
-                                  : Container(),
-                              SizedBox(
-                                width: organizedEvent.price == 0 ? 10 : 0,
-                              ),
-                              organizedEvent.creator.isOrganization!
-                                  ? RestrictionContainer(text: 'Компания')
-                                  : Container()
+                                  ? buildTag('Бесплатное')
+                                  : buildTag(
+                                      organizedEvent.price.toString() + " ₽"),
+                              // if (organizedEvent.status == 'completed')
+                              //   buildTag('Завершено'),
+                              // if (organizedEvent.restrictions
+                              //     .contains("withKids"))
+                              //   buildTag('Можно с детьми'),
+                              if (organizedEvent.creator.isOrganization ??
+                                  false)
+                                buildTag('Компания'),
+                              if (organizedEvent.type == 'online')
+                                buildTag('Онлайн'),
+                              if (organizedEvent.restrictions
+                                  .contains("withAnimals"))
+                                buildTag('Можно с животными'),
+                              if (organizedEvent.restrictions
+                                  .contains("isKidsNotAllowed"))
+                                buildTag('18+'),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -304,26 +309,21 @@ class MyCardEventWidget extends StatelessWidget {
   }
 }
 
-class RestrictionContainer extends StatelessWidget {
-  final String text;
-  const RestrictionContainer({
-    super.key,
-    required this.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25), color: mainBlueColor),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        child: Text(
-          text,
-          style: TextStyle(
-              color: Colors.white, fontFamily: 'Gilroy', fontSize: 9.87),
-        ),
+Widget buildTag(String label) {
+  return Container(
+    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 7),
+    decoration: BoxDecoration(
+      border: Border.all(color: mainBlueColor, width: 1),
+      borderRadius: BorderRadius.circular(76),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 10,
+        fontFamily: 'Montserrat',
+        fontWeight: FontWeight.w500,
       ),
-    );
-  }
+    ),
+  );
 }

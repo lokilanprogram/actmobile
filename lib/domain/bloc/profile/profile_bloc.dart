@@ -404,5 +404,50 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         emit(ProfileReportedUserErrorState(errorText: 'Произошла ошибка'));
       }
     });
+
+    on<ProfilePostReviewEvent>((event, emit) async {
+      try {
+        developer.log(
+          '=== Начало отправки отзыва ===\n'
+          'ID мероприятия: ${event.eventId}\n'
+          'Данные отзыва: ${event.reviewPost.toJson()}',
+          name: 'ProfileBloc',
+        );
+
+        final isPosted = await EventsApi().postReviewEvent(
+          event.reviewPost,
+          event.eventId,
+        );
+
+        if (isPosted != null) {
+          developer.log('Отзыв успешно отправлен', name: 'ProfileBloc');
+          emit(ProfilePostedReviewState());
+        }
+      } catch (e) {
+        developer.log(
+          '=== Ошибка при отправке отзыва ===\n'
+          'Тип ошибки: ${e.runtimeType}\n'
+          'Сообщение: $e',
+          name: 'ProfileBloc',
+          error: e,
+        );
+
+        String errorMessage = 'Произошла ошибка при отправке отзыва';
+        if (e.toString().contains('Connection refused')) {
+          errorMessage =
+              'Нет подключения к серверу. Проверьте интернет-соединение';
+        } else if (e.toString().contains('timeout')) {
+          errorMessage = 'Превышено время ожидания ответа от сервера';
+        } else if (e.toString().contains('401')) {
+          errorMessage = 'Сессия истекла. Пожалуйста, войдите снова';
+        } else if (e.toString().contains('403')) {
+          errorMessage = 'Нет прав для выполнения операции';
+        } else if (e.toString().contains('500')) {
+          errorMessage = 'Ошибка на сервере. Попробуйте позже';
+        }
+
+        emit(ProfilePostedReviewErrorState(errorText: errorMessage));
+      }
+    });
   }
 }
