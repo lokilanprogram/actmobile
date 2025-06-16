@@ -73,7 +73,7 @@ class AuthApi {
   Future<bool> authDelete() async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
-      final url = '$API/api/v1/users/profile/delete';
+      final url = '$API/api/v1/users/profile';
       final headers = {
         'Authorization': 'Bearer $accessToken',
       };

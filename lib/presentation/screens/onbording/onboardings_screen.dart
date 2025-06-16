@@ -1,5 +1,6 @@
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
+import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_around/events_around_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_create/events_create_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_list/events_list_screen.dart';
@@ -123,9 +124,10 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
           setState(() {
             isLoading = false;
           });
-          _pageController.nextPage(
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const MainScreen()),
+            (route) => false,
           );
         }
         if (state is ActiSavedOnbordingErrorState) {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:acti_mobile/presentation/screens/profile/update_profile/update_hobbies.dart';
 import 'package:acti_mobile/presentation/widgets/rotating_icon.dart';
 import 'package:http/http.dart' as http;
 import 'package:acti_mobile/configs/colors.dart';
@@ -645,7 +646,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                         context,
                                                         MaterialPageRoute(
                                                             builder: (context) =>
-                                                                EventsSelectScreen(
+                                                                UpdateHobbiesScreen(
                                                                   fromUpdate:
                                                                       true,
                                                                   categories:
