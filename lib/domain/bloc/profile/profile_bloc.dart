@@ -7,6 +7,7 @@ import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/data/models/public_user_model.dart';
 import 'package:acti_mobile/data/models/recommendated_user_model.dart';
+import 'package:acti_mobile/data/models/reviews_model.dart';
 import 'package:acti_mobile/data/models/searched_events_model.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
 import 'package:acti_mobile/domain/api/auth/auth_api.dart';
@@ -335,9 +336,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       try {
         final eventDetail = await EventsApi().getProfileEvent(event.eventId);
         final profile = await ProfileApi().getProfile();
+        final rewiews = await EventsApi().getReviewEvent(event.eventId);
         if (eventDetail != null && profile != null) {
           emit(ProfileGotEventDetailState(
-              eventModel: eventDetail, profileModel: profile));
+              eventModel: eventDetail,
+              profileModel: profile,
+              rewiews: rewiews));
         }
       } catch (e) {
         emit(ProfileGotEventDetailErrorState(e.toString()));

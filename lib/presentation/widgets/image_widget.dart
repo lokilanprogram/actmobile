@@ -9,7 +9,7 @@ class OverlappingAvatars extends StatelessWidget {
     super.key,
     required this.imageUrls,
     this.maxVisible = 4,
-    this.radius = 15,
+    this.radius = 16,
   });
 
   @override
@@ -37,8 +37,8 @@ class OverlappingAvatars extends StatelessWidget {
     }
 
     if (extraCount > 0) {
-    avatars.add(Positioned(
-        left: maxVisible * radius ,
+      avatars.add(Positioned(
+        left: maxVisible * radius,
         child: CircleAvatar(
           radius: radius,
           backgroundColor: Colors.white,
@@ -68,10 +68,6 @@ class OverlappingAvatars extends StatelessWidget {
   }
 }
 
-
-
-
-
 class OverlappingFixedAvatars extends StatelessWidget {
   final List<String?> imageUrls;
   final double size;
@@ -86,9 +82,8 @@ class OverlappingFixedAvatars extends StatelessWidget {
   Widget build(BuildContext context) {
     final total = imageUrls.length;
     final maxVisible = 4;
-    final displayList = total <= maxVisible
-        ? imageUrls
-        : imageUrls.sublist(total - maxVisible);
+    final displayList =
+        total <= maxVisible ? imageUrls : imageUrls.sublist(total - maxVisible);
 
     return SizedBox(
       height: size,
@@ -109,7 +104,8 @@ class OverlappingFixedAvatars extends StatelessWidget {
                   image: DecorationImage(
                     image: imageUrl != null
                         ? NetworkImage(imageUrl)
-                        : const AssetImage('assets/images/image_profile.png') as ImageProvider,
+                        : const AssetImage('assets/images/image_profile.png')
+                            as ImageProvider,
                     fit: BoxFit.cover,
                   ),
                 ),

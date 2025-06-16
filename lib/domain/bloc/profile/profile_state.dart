@@ -109,9 +109,12 @@ class ProfileGotListEventsErrorState extends ProfileState {}
 class ProfileGotEventDetailState extends ProfileState {
   final OrganizedEventModel eventModel;
   final ProfileModel profileModel;
+  final ReviewsModel rewiews;
 
   ProfileGotEventDetailState(
-      {required this.eventModel, required this.profileModel});
+      {required this.eventModel,
+      required this.profileModel,
+      required this.rewiews});
 }
 
 class ProfileGotEventDetailErrorState extends ProfileState {

@@ -56,7 +56,7 @@ dependencies:
   get_it: ^8.0.3
   get: ^4.7.2
   firebase_core: ^3.13.1
-  app_links: ^6.4.0
+  app_links: ^3.4.1
   firebase_messaging: ^15.2.6
   flutter_local_notifications: ^19.2.1
   calendar_date_picker2: ^2.0.1
@@ -132,6 +132,9 @@ flutter:
     - family: Inter_Light
       fonts:
         - asset: assets/fonts/inter_light.ttf
+    - family: Montserrat
+      fonts:
+        - asset: assets/fonts/Montserrat-Regular.ttf
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 

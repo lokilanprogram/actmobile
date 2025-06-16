@@ -437,12 +437,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                                                 address: null,
                                                               )));
                                               if (localAddressModel != null) {
-                                                // setState(() {
-                                                //   addressController.text =
-                                                //       'г. ${localAddressModel.properties!.fullAddress.split(', ')[2]}, ${localAddressModel.address}';
-                                                //   selectedAddressModel =
-                                                //       localAddressModel;
-                                                // });
                                                 setState(() {
                                                   addressController.text =
                                                       localAddressModel
@@ -1047,6 +1041,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   final defaultImage = await getImageFileFromAssets(
                       'assets/images/image_default_event.png');
                   _images.add(defaultImage.path);
+                }
+                if (isOnline) {
+                  addressController.text = '';
                 }
                 context.read<AuthBloc>().add(widget.organizedEventModel != null
                     ? ActiUpdateActivityEvent(

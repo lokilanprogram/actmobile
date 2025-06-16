@@ -4,6 +4,7 @@ import 'package:acti_mobile/domain/api/chat/chat_api.dart';
 import 'package:acti_mobile/main.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/detail/event_detail_home_screen.dart';
@@ -29,9 +30,9 @@ class NotificationService {
         AndroidInitializationSettings('@mipmap/icon_acti');
 
     final initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
     );
 
     final InitializationSettings initializationSettings =
@@ -62,48 +63,73 @@ class NotificationService {
       if (navigator == null) return;
 
       if (chatId != null) {
-        navigator.push(
+        navigator.pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => ChatDetailScreen(
               interlocutorChatId: chatId,
             ),
           ),
+          (route) => false,
+        );
+        navigator.push(
+          MaterialPageRoute(
+            builder: (_) => MainScreen(initialIndex: 0),
+          ),
         );
       } else if (eventId != null) {
         if (isOrganizer == "true") {
           try {
-            navigator.push(
+            navigator.pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (_) => EventDetailHomeScreen(
                   eventId: eventId,
                 ),
+              ),
+              (route) => false,
+            );
+            navigator.push(
+              MaterialPageRoute(
+                builder: (_) => MainScreen(initialIndex: 0),
               ),
             );
           } on Exception catch (e) {
             print("");
           }
         } else {
-          navigator.push(
+          navigator.pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (_) => EventDetailScreen(
                 eventId: eventId,
               ),
             ),
+            (route) => false,
+          );
+          navigator.push(
+            MaterialPageRoute(
+              builder: (_) => MainScreen(initialIndex: 0),
+            ),
           );
         }
       } else if (userId != null) {
-        navigator.push(
+        navigator.pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => PublicUserScreen(
               userId: userId,
             ),
           ),
+          (route) => false,
         );
-      } else {
         navigator.push(
           MaterialPageRoute(
-            builder: (_) => MainScreen(),
+            builder: (_) => MainScreen(initialIndex: 0),
           ),
+        );
+      } else {
+        navigator.pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => MainScreen(initialIndex: 0),
+          ),
+          (route) => false,
         );
       }
     }

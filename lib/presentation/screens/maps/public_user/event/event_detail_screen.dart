@@ -6,6 +6,7 @@ import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
+import 'package:acti_mobile/data/models/reviews_model.dart';
 import 'package:acti_mobile/data/models/status_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
@@ -40,6 +41,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   late final bool isPublicUser;
   late final userId;
   late ScrollController _participantsScrollController;
+  final FocusNode _dateFocusNode = FocusNode();
+  final FocusNode _locationFocusNode = FocusNode();
+  late ReviewsModel rewiewsModel;
 
   @override
   void initState() {
@@ -68,6 +72,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   void dispose() {
     _pageController.dispose();
     _participantsScrollController.dispose();
+    _dateFocusNode.dispose();
+    _locationFocusNode.dispose();
     super.dispose();
   }
 
@@ -99,6 +105,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         if (state is ProfileGotEventDetailState) {
           setState(() {
             profileModel = state.profileModel;
+            rewiewsModel = state.rewiews;
             isLoading = false;
             organizedEvent = state.eventModel;
             isPublicUser = userId != state.eventModel.creatorId;
@@ -290,67 +297,60 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                         icon: SvgPicture.asset(
                                             'assets/icons/icon_back_blue.svg')),
                                     SizedBox(
-                                      width: 25,
+                                      width: 5,
                                     ),
-                                    organizedEvent.price == 0
-                                        ? buildTag('Бесплатное')
-                                        : Container(),
-                                    const SizedBox(width: 8),
-                                    buildTag('Компания'),
-                                    Spacer(),
-                                    SvgPicture.asset(
-                                      'assets/icons/icon_adult.svg',
-                                      width: 34,
-                                    )
-                                  ],
-                                ),
-                                const SizedBox(height: 15),
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                PublicUserScreen(
-                                                    userId: organizedEvent
-                                                        .creator.id!)));
-                                  },
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 20,
-                                        backgroundImage: organizedEvent
-                                                    .creator.photoUrl !=
-                                                null
-                                            ? NetworkImage(organizedEvent
-                                                .creator.photoUrl!)
-                                            : AssetImage(
-                                                'assets/images/image_profile.png'), // Заменить на нужную
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    PublicUserScreen(
+                                                        userId: organizedEvent
+                                                            .creator.id!)));
+                                      },
+                                      child: Row(
                                         children: [
-                                          Text(
-                                              organizedEvent.creator.name ??
-                                                  '...',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 17.8,
-                                                  fontFamily: 'Inter',
-                                                  color: mainBlueColor)),
-                                          Text('Организатор',
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  letterSpacing: 0,
-                                                  fontWeight: FontWeight.w400,
-                                                  fontFamily: 'Gilroy')),
+                                          CircleAvatar(
+                                            radius: 20,
+                                            backgroundImage: organizedEvent
+                                                        .creator.photoUrl !=
+                                                    null
+                                                ? NetworkImage(organizedEvent
+                                                    .creator.photoUrl!)
+                                                : AssetImage(
+                                                    'assets/images/image_profile.png'), // Заменить на нужную
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                  organizedEvent.creator.name ??
+                                                      '...',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 17.8,
+                                                      fontFamily: 'Inter',
+                                                      color: mainBlueColor)),
+                                              Text(
+                                                'Организатор',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    letterSpacing: 0,
+                                                    fontWeight: FontWeight.w400,
+                                                    fontFamily: 'Gilroy'),
+                                              ),
+                                            ],
+                                          ),
                                         ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
+                                //const SizedBox(height: 5),
                                 Padding(
                                   padding: const EdgeInsets.only(
                                       top: 10, bottom: 15),
@@ -443,26 +443,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                         icon: SvgPicture.asset(
                                             'assets/icons/icon_back_blue.svg')),
                                     SizedBox(
-                                      width: 25,
+                                      width: 5,
                                     ),
-                                    organizedEvent.price == 0
-                                        ? buildTag('Бесплатное')
-                                        : Container(),
-                                    const SizedBox(width: 8),
-                                    buildTag('Компания'),
-                                    Spacer(),
-                                    SvgPicture.asset(
-                                      'assets/icons/icon_adult.svg',
-                                      width: 34,
-                                    )
-                                  ],
-                                ),
-
-                                const SizedBox(height: 15),
-
-                                // Автор и участники
-                                Row(
-                                  children: [
                                     InkWell(
                                       onTap: () {
                                         Navigator.push(
@@ -527,10 +509,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     ),
                                   ],
                                 ),
-
                                 Padding(
-                                  padding: const EdgeInsets.only(
-                                      top: 10, bottom: 15),
+                                  padding:
+                                      const EdgeInsets.only(top: 8, bottom: 15),
                                   child: Divider(),
                                 ),
                                 Column(
@@ -547,7 +528,38 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                       ),
                                     ),
 
-                                    const SizedBox(height: 20),
+                                    const SizedBox(height: 10),
+
+                                    Wrap(
+                                      alignment: WrapAlignment.start,
+                                      spacing: 10,
+                                      children: [
+                                        organizedEvent.price == 0
+                                            ? buildTag('Бесплатное')
+                                            : buildTag(organizedEvent.price
+                                                    .toString() +
+                                                " ₽"),
+                                        if (organizedEvent.status ==
+                                            'completed')
+                                          buildTag('Завершено'),
+                                        if (organizedEvent.restrictions
+                                            .contains("withKids"))
+                                          buildTag('Можно с детьми'),
+                                        if (organizedEvent
+                                                .creator.isOrganization ??
+                                            false)
+                                          buildTag('Компания'),
+                                        if (organizedEvent.type == 'online')
+                                          buildTag('Онлайн'),
+                                        if (organizedEvent.restrictions
+                                            .contains("withAnimals"))
+                                          buildTag('Можно с животными'),
+                                        if (organizedEvent.restrictions
+                                            .contains("isKidsNotAllowed"))
+                                          buildTag('18+'),
+                                      ],
+                                    ),
+                                    SizedBox(height: 10),
 
                                     if (!completedStatus
                                         .contains(organizedEvent.status)) ...[
@@ -631,27 +643,36 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            TabBar(
-                                              dividerColor: Colors.transparent,
-                                              unselectedLabelStyle: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 22,
-                                                fontWeight: FontWeight.w400,
-                                                fontFamily: 'Gilroy',
+                                            Transform.translate(
+                                              offset: Offset(00, 0),
+                                              child: TabBar(
+                                                tabAlignment:
+                                                    TabAlignment.start,
+                                                labelPadding:
+                                                    EdgeInsets.only(right: 20),
+                                                isScrollable: true,
+                                                dividerColor:
+                                                    Colors.transparent,
+                                                unselectedLabelStyle: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.w400,
+                                                  fontFamily: 'Gilroy',
+                                                ),
+                                                labelStyle: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 66, 147, 239),
+                                                  fontFamily: 'Gilroy',
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                                indicatorColor:
+                                                    Colors.transparent,
+                                                tabs: [
+                                                  Tab(text: 'Обзор'),
+                                                  Tab(text: 'Отзывы'),
+                                                ],
                                               ),
-                                              labelStyle: TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 66, 147, 239),
-                                                fontFamily: 'Gilroy',
-                                                fontSize: 22,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                              indicatorColor:
-                                                  Colors.transparent,
-                                              tabs: [
-                                                Tab(text: 'Обзор'),
-                                                Tab(text: 'Отзывы'),
-                                              ],
                                             ),
                                             SizedBox(
                                               height: MediaQuery.of(context)
@@ -759,12 +780,17 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                     ],
                                                   ),
                                                   // Вкладка "Отзывы"
-                                                  Center(
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
+                                                  Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      if (rewiewsModel
+                                                                  .reviews !=
+                                                              null &&
+                                                          rewiewsModel
+                                                                  .reviews !=
+                                                              []) ...[
                                                         Icon(
                                                           Icons
                                                               .chat_bubble_outline,
@@ -782,7 +808,63 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                           ),
                                                         ),
                                                       ],
-                                                    ),
+                                                      if (rewiewsModel
+                                                                  .reviews !=
+                                                              null &&
+                                                          rewiewsModel
+                                                                  .reviews !=
+                                                              []) ...[
+                                                        ListView.builder(
+                                                          itemBuilder:
+                                                              (context, index) {
+                                                            return Column(
+                                                              children: [
+                                                                Row(
+                                                                  children: [
+                                                                    CircleAvatar(
+                                                                      radius:
+                                                                          20,
+                                                                      backgroundImage: rewiewsModel.reviews[index].user.photoUrl !=
+                                                                              null
+                                                                          ? NetworkImage(rewiewsModel
+                                                                              .reviews[index]
+                                                                              .user
+                                                                              .photoUrl)
+                                                                          : AssetImage('assets/images/image_profile.png'), // Заменить на нужную
+                                                                    ),
+                                                                    const SizedBox(
+                                                                        width:
+                                                                            10),
+                                                                    Column(
+                                                                      children: [
+                                                                        Text(
+                                                                          rewiewsModel
+                                                                              .reviews[index]
+                                                                              .user
+                                                                              .name,
+                                                                        ),
+                                                                        Text(
+                                                                          rewiewsModel
+                                                                              .reviews[index]
+                                                                              .rating
+                                                                              .toString(),
+                                                                        ),
+                                                                      ],
+                                                                    )
+                                                                  ],
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                          // separatorBuilder:
+                                                          //     separatorBuilder,
+                                                          itemCount:
+                                                              rewiewsModel
+                                                                  .reviews
+                                                                  .length,
+                                                        )
+                                                      ],
+                                                    ],
                                                   ),
                                                 ],
                                               ),
@@ -873,15 +955,15 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
       decoration: BoxDecoration(
-        color: Colors.blue,
-        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: mainBlueColor, width: 1),
+        borderRadius: BorderRadius.circular(76),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: Colors.white,
+          color: Colors.black,
           fontSize: 12.46,
-          fontFamily: 'Gilroy',
+          fontFamily: 'Montserrat',
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -919,6 +1001,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 ? () {
                     if (organizedEvent.latitude != null &&
                         organizedEvent.longitude != null) {
+                      _locationFocusNode.unfocus();
                       Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -931,7 +1014,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   )));
                     }
                   }
-                : () {},
+                : () {
+                    if (title == 'Дата и время') {
+                      _dateFocusNode.unfocus();
+                    }
+                  },
             child: trailing != null && organizedEvent.isRecurring
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1013,9 +1100,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ),
                         overflow: TextOverflow.fade,
                       ),
-                      // if (trailing != null)
-                      //   Text(trailing,
-                      //       style: const TextStyle(color: Colors.grey)),
                     ],
                   )
                 : Row(
@@ -1031,9 +1115,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               color: isLocation ? Colors.blue : Colors.black),
                         ),
                       ),
-                      // if (trailing != null)
-                      //   Text(trailing,
-                      //       style: const TextStyle(color: Colors.grey)),
                     ],
                   ),
           ),
