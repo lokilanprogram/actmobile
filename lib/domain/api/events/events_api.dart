@@ -220,6 +220,13 @@ class EventsApi {
         if (filters['slots_max'] != null) {
           queryParameters['slots_max'] = filters['slots_max'].toString();
         }
+        if (filters['type'] != null) {
+          queryParameters['type'] = filters['type'];
+        }
+        if (filters['is_organization'] != null) {
+          queryParameters['is_organization'] =
+              filters['is_organization'].toString();
+        }
       }
 
       queryParameters
@@ -514,6 +521,7 @@ class EventsApi {
     int? slots_min,
     int? slots_max,
     String? search_query,
+    bool? is_organization,
     int offset = 0,
     int limit = 20,
   }) async {
@@ -541,6 +549,7 @@ class EventsApi {
         'slots_min': slots_min?.toString(),
         'slots_max': slots_max?.toString(),
         'search_query': search_query,
+        'is_organization': is_organization?.toString(),
       };
 
       // Удаляем параметры, которые равны null или строке 'null'

@@ -9,13 +9,16 @@ class FilterProvider extends ChangeNotifier {
   String? selectedTimeFrom;
   String? selectedTimeTo;
   String? selectedLocationType;
-  double selectedRadius = 50.0;
+  static const double baseRadius = 50.0;
+  double selectedRadius = baseRadius;
   bool isOnlineSelected = false;
   String priceMinText = '';
   String priceMaxText = '';
   bool isFreeSelected = false;
   List<String> selectedAgeRestrictions = [];
   bool isAnimalsAllowedSelected = false;
+  bool isCompanySelected = false;
+  bool? isOrganization;
   String? selectedDurationFilter;
   List<String> selectedCategoryIds = [];
   LocalAddressModel? selectedMapAddressModel;
@@ -96,7 +99,7 @@ class FilterProvider extends ChangeNotifier {
   void updateLocationType(String type, {double? radius}) {
     selectedLocationType = type;
     if (radius != null) {
-      selectedRadius = radius;
+      selectedRadius = baseRadius + radius;
     }
     notifyListeners();
   }
@@ -112,7 +115,9 @@ class FilterProvider extends ChangeNotifier {
     if (isFree != null) {
       isFreeSelected = isFree;
       if (isFree) {
-        selectedAgeRestrictions.add('isUnlimited');
+        if (!selectedAgeRestrictions.contains('isUnlimited')) {
+          selectedAgeRestrictions.add('isUnlimited');
+        }
       } else {
         selectedAgeRestrictions.remove('isUnlimited');
       }
@@ -121,17 +126,43 @@ class FilterProvider extends ChangeNotifier {
   }
 
   void updateAgeRestrictions(List<String> restrictions) {
-    selectedAgeRestrictions = restrictions;
+    // Очищаем список перед добавлением новых ограничений
+    selectedAgeRestrictions.clear();
+
+    // Добавляем только уникальные значения
+    for (var restriction in restrictions) {
+      if (!selectedAgeRestrictions.contains(restriction)) {
+        selectedAgeRestrictions.add(restriction);
+      }
+    }
+
+    // Синхронизируем состояние чекбоксов
+    isAnimalsAllowedSelected = selectedAgeRestrictions.contains('withAnimals');
+    // isCompanySelected = selectedAgeRestrictions.contains('onlyCompany');
+
+    // Если выбрано "Можно с детьми", добавляем withKids
+    if (selectedAgeRestrictions.contains('isKidsAllowed')) {
+      selectedAgeRestrictions.add('withKids');
+    }
+
     notifyListeners();
   }
 
   void updateAnimalsAllowed(bool allowed) {
     isAnimalsAllowedSelected = allowed;
     if (allowed) {
-      selectedAgeRestrictions.add('withAnimals');
+      if (!selectedAgeRestrictions.contains('withAnimals')) {
+        selectedAgeRestrictions.add('withAnimals');
+      }
     } else {
       selectedAgeRestrictions.remove('withAnimals');
     }
+    notifyListeners();
+  }
+
+  void updateCompanyAllowed(bool allowed) {
+    isCompanySelected = allowed;
+    isOrganization = allowed;
     notifyListeners();
   }
 
@@ -192,18 +223,19 @@ class FilterProvider extends ChangeNotifier {
     selectedTimeFrom = null;
     selectedTimeTo = null;
     selectedLocationType = null;
-    selectedRadius = 50.0;
+    selectedRadius = baseRadius;
     isOnlineSelected = false;
     priceMinText = '';
     priceMaxText = '';
     isFreeSelected = false;
-    selectedAgeRestrictions = [];
+    selectedAgeRestrictions.clear();
     isAnimalsAllowedSelected = false;
+    isCompanySelected = false;
+    isOrganization = null;
     selectedDurationFilter = null;
     selectedCategoryIds = [];
     selectedMapAddressModel = null;
     cityFilterText = '';
-    // Сброс фильтра по количеству людей
     selectedPeopleFilter = 'any';
     slotsMin = null;
     slotsMax = null;

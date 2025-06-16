@@ -42,8 +42,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
   final TextEditingController _priceMinController = TextEditingController();
   final TextEditingController _priceMaxController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
-  List<mapbox.Feature> _suggestions = [];
-  bool _isLoading = false;
+  final List<mapbox.Feature> _suggestions = [];
+  final bool _isLoading = false;
   List<events.Category> _categories = [];
   bool _isLoadingCategories = false;
   Position? _currentMapPosition;
@@ -99,35 +99,35 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
     }
   }
 
-  Future<void> _searchLocation(String place) async {
-    if (place.isEmpty) {
-      setState(() => _suggestions = []);
-      return;
-    }
+  // Future<void> _searchLocation(String place) async {
+  //   if (place.isEmpty) {
+  //     setState(() => _suggestions = []);
+  //     return;
+  //   }
 
-    setState(() => _isLoading = true);
+  //   setState(() => _isLoading = true);
 
-    try {
-      final url =
-          'https://api.mapbox.com/geocoding/v5/mapbox.places/$place.json'
-          '?language=ru&country=ru&types=place'
-          '&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg';
+  //   try {
+  //     final url =
+  //         'https://api.mapbox.com/geocoding/v5/mapbox.places/$place.json'
+  //         '?language=ru&country=ru&types=place'
+  //         '&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg';
 
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final results = mapbox.MapBoxModel.fromJson(jsonDecode(response.body));
-        setState(() {
-          _suggestions = results.features;
-        });
-      } else {
-        throw Exception('Ошибка: ${response.body}');
-      }
-    } catch (e) {
-      print('Ошибка поиска: $e');
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
+  //     final response = await http.get(Uri.parse(url));
+  //     if (response.statusCode == 200) {
+  //       final results = mapbox.MapBoxModel.fromJson(jsonDecode(response.body));
+  //       setState(() {
+  //         _suggestions = results.features;
+  //       });
+  //     } else {
+  //       throw Exception('Ошибка: ${response.body}');
+  //     }
+  //   } catch (e) {
+  //     print('Ошибка поиска: $e');
+  //   } finally {
+  //     setState(() => _isLoading = false);
+  //   }
+  // }
 
   Future<TimeRange?> _showTimeRangeDialog(BuildContext context,
       {TimeOfDay? initialStart, TimeOfDay? initialEnd}) async {
@@ -494,114 +494,114 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Город
-                        Text('Город (населённый пункт)',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Gilroy',
-                              color: authBlueColor,
-                            )),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                height: 45,
-                                child: TextFormField(
-                                  onChanged: (value) {
-                                    if (value.isNotEmpty &&
-                                        filterProvider.selectedLocationType ==
-                                            'current') {
-                                      filterProvider.updateLocationType('');
-                                    }
-                                    _searchLocation(value);
-                                  },
-                                  maxLines: 1,
-                                  controller: _cityController,
-                                  decoration: InputDecoration(
-                                      contentPadding:
-                                          EdgeInsets.symmetric(horizontal: 16),
-                                      fillColor: Colors.grey[200],
-                                      filled: true,
-                                      border: OutlineInputBorder(
-                                          gapPadding: 0,
-                                          borderRadius:
-                                              BorderRadius.circular(15),
-                                          borderSide: BorderSide.none),
-                                      hintText: 'Введите город',
-                                      hintStyle: TextStyle(
-                                          fontFamily: 'Gilroy',
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w400)),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              if (_isLoading)
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8.0),
-                                  child: Center(
-                                      child: CircularProgressIndicator(
-                                    color: mainBlueColor,
-                                    strokeWidth: 1.2,
-                                  )),
-                                )
-                              else if (_suggestions.isNotEmpty)
-                                Container(
-                                  constraints: BoxConstraints(maxHeight: 160),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[100],
-                                    borderRadius: BorderRadius.circular(10),
-                                    border:
-                                        Border.all(color: Colors.grey[300]!),
-                                  ),
-                                  child: ListView.builder(
-                                    shrinkWrap: true,
-                                    itemCount: _suggestions.length,
-                                    itemBuilder: (context, index) {
-                                      final city = _suggestions[index];
-                                      return ListTile(
-                                        dense: true,
-                                        title: Text(city.placeNameRu!,
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                fontFamily: 'Gilroy')),
-                                        onTap: () {
-                                          final parts =
-                                              city.placeNameRu?.split(', ');
-                                          if (parts!.length == 6) {
-                                            _cityController.text =
-                                                'г. ${parts[2]}';
-                                          } else {
-                                            _cityController.text =
-                                                city.placeNameRu!;
-                                          }
-                                          filterProvider.updateCityFilter(
-                                              _cityController.text);
-                                          // Создаем LocalAddressModel с координатами выбранного города
-                                          filterProvider.updateLocationFilter(
-                                            'city',
-                                            address: LocalAddressModel(
-                                              address: _cityController.text,
-                                              latitude: city.center!.last,
-                                              longitude: city.center!.first,
-                                              properties: null,
-                                            ),
-                                          );
-                                          filterProvider
-                                              .updateLocationType('city');
-                                          setState(() {
-                                            _suggestions = [];
-                                          });
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
+                        // Text('Город (населённый пункт)',
+                        //     style: TextStyle(
+                        //       fontSize: 18,
+                        //       fontWeight: FontWeight.bold,
+                        //       fontFamily: 'Gilroy',
+                        //       color: authBlueColor,
+                        //     )),
+                        // Padding(
+                        //   padding: const EdgeInsets.symmetric(vertical: 8),
+                        //   child: Column(
+                        //     children: [
+                        //       SizedBox(
+                        //         height: 45,
+                        //         child: TextFormField(
+                        //           onChanged: (value) {
+                        //             if (value.isNotEmpty &&
+                        //                 filterProvider.selectedLocationType ==
+                        //                     'current') {
+                        //               filterProvider.updateLocationType('');
+                        //             }
+                        //             _searchLocation(value);
+                        //           },
+                        //           maxLines: 1,
+                        //           controller: _cityController,
+                        //           decoration: InputDecoration(
+                        //               contentPadding:
+                        //                   EdgeInsets.symmetric(horizontal: 16),
+                        //               fillColor: Colors.grey[200],
+                        //               filled: true,
+                        //               border: OutlineInputBorder(
+                        //                   gapPadding: 0,
+                        //                   borderRadius:
+                        //                       BorderRadius.circular(15),
+                        //                   borderSide: BorderSide.none),
+                        //               hintText: 'Введите город',
+                        //               hintStyle: TextStyle(
+                        //                   fontFamily: 'Gilroy',
+                        //                   fontSize: 16,
+                        //                   fontWeight: FontWeight.w400)),
+                        //         ),
+                        //       ),
+                        //       const SizedBox(height: 4),
+                        //       if (_isLoading)
+                        //         Padding(
+                        //           padding:
+                        //               const EdgeInsets.symmetric(vertical: 8.0),
+                        //           child: Center(
+                        //               child: CircularProgressIndicator(
+                        //             color: mainBlueColor,
+                        //             strokeWidth: 1.2,
+                        //           )),
+                        //         )
+                        //       else if (_suggestions.isNotEmpty)
+                        //         Container(
+                        //           constraints: BoxConstraints(maxHeight: 160),
+                        //           decoration: BoxDecoration(
+                        //             color: Colors.grey[100],
+                        //             borderRadius: BorderRadius.circular(10),
+                        //             border:
+                        //                 Border.all(color: Colors.grey[300]!),
+                        //           ),
+                        //           child: ListView.builder(
+                        //             shrinkWrap: true,
+                        //             itemCount: _suggestions.length,
+                        //             itemBuilder: (context, index) {
+                        //               final city = _suggestions[index];
+                        //               return ListTile(
+                        //                 dense: true,
+                        //                 title: Text(city.placeNameRu!,
+                        //                     style: TextStyle(
+                        //                         fontSize: 12,
+                        //                         fontFamily: 'Gilroy')),
+                        //                 onTap: () {
+                        //                   final parts =
+                        //                       city.placeNameRu?.split(', ');
+                        //                   if (parts!.length == 6) {
+                        //                     _cityController.text =
+                        //                         'г. ${parts[2]}';
+                        //                   } else {
+                        //                     _cityController.text =
+                        //                         city.placeNameRu!;
+                        //                   }
+                        //                   filterProvider.updateCityFilter(
+                        //                       _cityController.text);
+                        //                   // Создаем LocalAddressModel с координатами выбранного города
+                        //                   filterProvider.updateLocationFilter(
+                        //                     'city',
+                        //                     address: LocalAddressModel(
+                        //                       address: _cityController.text,
+                        //                       latitude: city.center!.last,
+                        //                       longitude: city.center!.first,
+                        //                       properties: null,
+                        //                     ),
+                        //                   );
+                        //                   filterProvider
+                        //                       .updateLocationType('city');
+                        //                   setState(() {
+                        //                     _suggestions = [];
+                        //                   });
+                        //                 },
+                        //               );
+                        //             },
+                        //           ),
+                        //         ),
+                        //     ],
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 20),
 
                         // Дата
                         Text('Дата',
@@ -1072,7 +1072,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             Builder(builder: (context) {
                               final radiusValues = [0, 1, 3, 5, 10, 15, 20, 50];
                               final selectedIndex = radiusValues.indexOf(
-                                  filterProvider.selectedRadius.round());
+                                  (filterProvider.selectedRadius -
+                                          FilterProvider.baseRadius)
+                                      .round());
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
@@ -1464,7 +1466,28 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        // const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Text('От компании',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Gilroy',
+                                  color: authBlueColor,
+                                )),
+                            Checkbox(
+                              value: filterProvider.isCompanySelected,
+                              onChanged: (value) {
+                                filterProvider
+                                    .updateCompanyAllowed(value ?? false);
+                              },
+                              side: BorderSide(color: mainBlueColor, width: 2),
+                              activeColor: mainBlueColor,
+                            ),
+                          ],
+                        ),
+                        // const SizedBox(height: 20),
 
                         // Количество людей
                         Text('Количество людей',

@@ -228,6 +228,30 @@ class _MapScreenState extends State<MapScreen> {
     // }
   }
 
+  Future<void> _loadLocalStyle() async {
+    try {
+      // 1. Загрузите JSON стиля из assets
+      final styleJson =
+          await rootBundle.loadString('assets/map_styles/custom_style.json');
+
+      // 2. Замените access token в стиле, если нужно
+      final modifiedStyleJson = styleJson.replaceAll('YOUR_MAPBOX_ACCESS_TOKEN',
+          'pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg');
+
+      // 3. Загрузите стиль в карту
+      if (_mapboxMap != null) {
+        await _mapboxMap!.loadStyleJson(modifiedStyleJson);
+      }
+    } catch (e) {
+      print('Ошибка загрузки локального стиля: $e');
+      // Fallback к онлайн стилю
+      if (_mapboxMap != null) {
+        await _mapboxMap!
+            .loadStyleURI('mapbox://styles/acti/cmbf00t92005701s5d84c1cqp');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
@@ -319,9 +343,6 @@ class _MapScreenState extends State<MapScreen> {
                       },
                       onScrollListener: _onScroll,
                       onTapListener: _onTap,
-                      styleUri: MapboxStyles.MAPBOX_STREETS,
-                      // styleUri:
-                      //     'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
                       cameraOptions: CameraOptions(
                         zoom: currentZoom,
                         center: Point(
@@ -334,6 +355,27 @@ class _MapScreenState extends State<MapScreen> {
                       key: const ValueKey("MapWidget"),
                       onMapCreated: _onMapCreated,
                     ),
+                    //   onScrollListener: _onScroll,
+                    //   onTapListener: _onTap,
+                    //   // styleUri: MapboxStyles.MAPBOX_STREETS,
+                    //   // https://api.mapbox.com/styles/v1/{username}/{style_id}
+                    //   // mapboxMap.loadStyleURI(),
+                    //   // styleUri:
+                    //   //     'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
+                    //   styleUri:
+                    //       'https://api.mapbox.com/styles/v1/acti/cmbf00t92005701s5d84c1cqp?access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg',
+                    //   cameraOptions: CameraOptions(
+                    //     zoom: currentZoom,
+                    //     center: Point(
+                    //       coordinates: Position(
+                    //         currentSelectedPosition.lng,
+                    //         currentSelectedPosition.lat,
+                    //       ),
+                    //     ),
+                    //   ),
+                    //   key: const ValueKey("MapWidget"),
+                    //   onMapCreated: _onMapCreated,
+                    // ),
                     Align(
                       alignment: Alignment.centerRight,
                       child: buildMapControls(),
@@ -426,21 +468,10 @@ class _MapScreenState extends State<MapScreen> {
 
                       // Формируем список ограничений
                       List<String> restrictions = [];
-                      if (filterProvider.isAnimalsAllowedSelected) {
-                        restrictions.add('withAnimals');
-                      }
 
-                      if (filterProvider.isFreeSelected) {
-                        restrictions.add('isUnlimited');
-                      }
-
-                      if (filterProvider.selectedAgeRestrictions
-                          .contains('isAdults')) {
-                        restrictions.add('isKidsNotAllowed');
-                      } else if (filterProvider.selectedAgeRestrictions
-                          .contains('isKidsAllowed')) {
-                        restrictions.add('withKids');
-                      }
+                      // Добавляем все ограничения из selectedAgeRestrictions
+                      restrictions
+                          .addAll(filterProvider.selectedAgeRestrictions);
 
                       // Определяем длительность
                       int? durationMin;
@@ -514,6 +545,12 @@ class _MapScreenState extends State<MapScreen> {
                               'date_to': formattedDateTo,
                               'time_from': filterProvider.selectedTimeFrom,
                               'time_to': filterProvider.selectedTimeTo,
+                              'type': filterProvider.isOnlineSelected
+                                  ? 'online'
+                                  : 'offline',
+                              'slots_min': filterProvider.slotsMin,
+                              'slots_max': filterProvider.slotsMax,
+                              'is_organization': filterProvider.isOrganization,
                             },
                           ));
                     },
@@ -565,32 +602,35 @@ class _MapScreenState extends State<MapScreen> {
   void _onMapCreated(MapboxMap mapboxMap) async {
     setState(() {
       this.mapboxMap = mapboxMap;
+      _mapboxMap = mapboxMap;
     });
+
+    // Загрузите локальный стиль вместо онлайн
+    await _loadLocalStyle();
+
     final pointNewAnnotationManager =
         await mapboxMap.annotations.createPointAnnotationManager();
     setState(() {
       pointAnnotationManager = pointNewAnnotationManager;
     });
+
     await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
     await mapboxMap.logo.updateSettings(LogoSettings(enabled: true));
     await mapboxMap.attribution
         .updateSettings(AttributionSettings(enabled: true));
     await mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
 
-    // Добавляем маркер текущего местоположения сразу после создания карты
     if (currentUserPosition != null) {
       await addUserIconToStyle(mapboxMap);
     }
 
-    // Add existing events to the map after it's created if they are already loaded
     if (searchedEventsModel != null) {
       for (var event in searchedEventsModel!.events) {
         final result = await screenshotController.captureFromWidget(
           CategoryMarker(
               title: event.category!.name, iconUrl: event.category!.iconPath),
         );
-        await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}',
-            result); // Use mapboxMap directly here
+        await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}', result);
         final pointAnnotationOptions = PointAnnotationOptions(
           geometry:
               Point(coordinates: Position(event.longitude!, event.latitude!)),

@@ -269,6 +269,7 @@ class _EventsScreenState extends State<EventsScreen> {
         slots_max: filterProvider.slotsMax,
         search_query:
             _searchController.text.isNotEmpty ? _searchController.text : null,
+        is_organization: filterProvider.isOrganization,
         offset: _offset,
         limit: _limit,
       );

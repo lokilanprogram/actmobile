@@ -34,6 +34,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ru');
   MapboxOptions.setAccessToken(
+    
       'pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg');
   await Firebase.initializeApp(
       options: FirebaseOptions(
@@ -55,7 +56,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   final GlobalKey<NavigatorState> navigatorKey;
 
-  const MyApp({Key? key, required this.navigatorKey}) : super(key: key);
+  const MyApp({super.key, required this.navigatorKey});
 
   @override
   Widget build(BuildContext context) {
