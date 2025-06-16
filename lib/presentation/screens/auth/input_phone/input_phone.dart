@@ -56,18 +56,18 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(top: 40, left: 25, right: 45),
-                    child: IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        color: Colors.white,
-                        icon: Icon(
-                          Icons.arrow_back_ios,
-                        )),
-                  ),
+                  // Padding(
+                  //   padding:
+                  //       const EdgeInsets.only(top: 40, left: 25, right: 45),
+                  //   child: IconButton(
+                  //       onPressed: () {
+                  //         Navigator.pop(context);
+                  //       },
+                  //       color: Colors.white,
+                  //       icon: Icon(
+                  //         Icons.arrow_back_ios,
+                  //       )),
+                  // ),
                   Padding(
                     padding:
                         const EdgeInsets.only(top: 120, left: 45, right: 45),
