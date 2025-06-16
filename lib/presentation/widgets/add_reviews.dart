@@ -59,11 +59,9 @@ void showAddReviewsBottomSheet(
                   ),
                   const SizedBox(height: 20),
                   Padding(
-                    padding: EdgeInsetsGeometry.symmetric(horizontal: 40),
+                    padding: EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
-                      DateFormat('dd.MM.yyyy').format(eventModel.dateStart) +
-                          ' | ' +
-                          eventModel.address,
+                      '${DateFormat('dd.MM.yyyy').format(eventModel.dateStart)} | ${eventModel.address}',
                       style: TextStyle(
                           fontSize: 13,
                           fontFamily: 'Gilroy',
@@ -115,7 +113,7 @@ void showAddReviewsBottomSheet(
 
 class FormReviews extends StatefulWidget {
   final String eventId;
-  
+
   const FormReviews({
     super.key,
     required this.eventId,
@@ -150,11 +148,11 @@ class _FormReviewsState extends State<FormReviews> {
       );
 
       context.read<ProfileBloc>().add(
-        ProfilePostReviewEvent(
-          reviewPost: reviewPost,
-          eventId: widget.eventId,
-        ),
-      );
+            ProfilePostReviewEvent(
+              reviewPost: reviewPost,
+              eventId: widget.eventId,
+            ),
+          );
 
       Navigator.pop(context);
     }
@@ -214,9 +212,7 @@ class _FormReviewsState extends State<FormReviews> {
             decoration: BoxDecoration(
               color: Color.fromARGB(255, 246, 246, 246),
               borderRadius: BorderRadius.circular(30),
-              border: _showCommentError
-                  ? Border.all(color: Colors.red)
-                  : null,
+              border: _showCommentError ? Border.all(color: Colors.red) : null,
             ),
             child: TextField(
               controller: _commentController,
