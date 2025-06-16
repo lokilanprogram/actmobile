@@ -33,8 +33,8 @@ class UpdateProfileScreen extends StatefulWidget {
 class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   bool isOrganizationRepresentative = false;
   final _formKey = GlobalKey<FormState>();
-  String _selectedHideMyEvents = '';
-  String _selectedHideAttendedEvents = '';
+  bool _selectedHideMyEvents = false;
+  bool _selectedHideAttendedEvents = false;
   late List<EventOnboarding> selectedCategories;
   late TextEditingController nameController;
   late TextEditingController surnameController;
@@ -102,10 +102,15 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       emailController = TextEditingController(text: widget.profileModel.email);
       selectedCategories = widget.profileModel.categories;
       isOrganizationRepresentative = widget.profileModel.isOrganization;
-      _selectedHideMyEvents =
-          widget.profileModel.hideMyEvents != null ? 'my' : '';
+      _selectedHideMyEvents = widget.profileModel.hideMyEvents != null &&
+              widget.profileModel.hideMyEvents != false
+          ? true
+          : false;
       _selectedHideAttendedEvents =
-          widget.profileModel.hideAttendedEvents != null ? 'visited' : '';
+          widget.profileModel.hideAttendedEvents != null &&
+                  widget.profileModel.hideAttendedEvents != false
+              ? true
+              : false;
     });
     context.read<AuthBloc>().add(ActiGetOnbordingEvent());
   }
@@ -202,11 +207,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   ProfileUpdateEvent(
                                       profileModel: ProfileModel(
                                           id: widget.profileModel.id,
-                                          hideMyEvents:
-                                              _selectedHideMyEvents == 'my',
+                                          hideMyEvents: _selectedHideMyEvents,
                                           hideAttendedEvents:
-                                              _selectedHideAttendedEvents ==
-                                                  'visited',
+                                              _selectedHideAttendedEvents,
                                           name: nameController.text.trim(),
                                           surname:
                                               surnameController.text.trim(),
@@ -532,13 +535,13 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                       Expanded(
                                         child: GestureDetector(
                                           onTap: () {
-                                            if (_selectedHideMyEvents == 'my') {
+                                            if (_selectedHideMyEvents == true) {
                                               setState(() {
-                                                _selectedHideMyEvents = '';
+                                                _selectedHideMyEvents = false;
                                               });
                                             } else {
                                               setState(() {
-                                                _selectedHideMyEvents = 'my';
+                                                _selectedHideMyEvents = true;
                                               });
                                             }
                                           },
@@ -547,7 +550,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                 vertical: 12, horizontal: 20),
                                             decoration: BoxDecoration(
                                                 color: _selectedHideMyEvents ==
-                                                        'my'
+                                                        true
                                                     ? mainBlueColor
                                                     : Colors.grey[200],
                                                 borderRadius:
@@ -558,13 +561,13 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                 style: TextStyle(
                                                     color:
                                                         _selectedHideMyEvents ==
-                                                                'my'
+                                                                true
                                                             ? Colors.white
                                                             : Colors.black,
                                                     fontSize: 18,
                                                     fontWeight:
                                                         _selectedHideMyEvents ==
-                                                                'my'
+                                                                true
                                                             ? FontWeight.w800
                                                             : FontWeight.w400,
                                                     fontFamily: 'Gilroy'),
@@ -580,15 +583,15 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         child: GestureDetector(
                                           onTap: () {
                                             if (_selectedHideAttendedEvents ==
-                                                'visited') {
+                                                true) {
                                               setState(() {
                                                 _selectedHideAttendedEvents =
-                                                    '';
+                                                    false;
                                               });
                                             } else {
                                               setState(() {
                                                 _selectedHideAttendedEvents =
-                                                    'visited';
+                                                    true;
                                               });
                                             }
                                           },
@@ -598,7 +601,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                             decoration: BoxDecoration(
                                                 color:
                                                     _selectedHideAttendedEvents ==
-                                                            'visited'
+                                                            true
                                                         ? mainBlueColor
                                                         : Colors.grey[200],
                                                 borderRadius:
@@ -609,13 +612,13 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                 style: TextStyle(
                                                     color:
                                                         _selectedHideAttendedEvents ==
-                                                                'visited'
+                                                                true
                                                             ? Colors.white
                                                             : Colors.black,
                                                     fontSize: 18,
                                                     fontWeight:
                                                         _selectedHideAttendedEvents ==
-                                                                'visited'
+                                                                true
                                                             ? FontWeight.w800
                                                             : FontWeight.w400,
                                                     fontFamily: 'Gilroy'),

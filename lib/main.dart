@@ -13,6 +13,7 @@ import 'package:acti_mobile/presentation/screens/events/providers/vote_provider.
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen_provider.dart';
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -23,6 +24,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:acti_mobile/configs/constants.dart';
+import 'package:acti_mobile/configs/deeplink_service.dart';
+import 'dart:developer' as developer;
 
 final baseUrl = API;
 
@@ -43,11 +46,16 @@ void main() async {
           messagingSenderId: "927589486813",
           projectId: "acti-54f96"));
 
-  runApp(const MyApp());
+  final deeplinkService = DeeplinkService();
+  await deeplinkService.initDeeplink();
+
+  runApp(MyApp(navigatorKey: deeplinkService.navigatorKey));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  const MyApp({Key? key, required this.navigatorKey}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +90,7 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => UnreadMessageProvider(),
-          child: MyApp(),
+          child: MyApp(navigatorKey: navigatorKey),
         ),
       ],
       child: GetMaterialApp(

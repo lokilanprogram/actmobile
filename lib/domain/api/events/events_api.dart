@@ -6,6 +6,7 @@ import 'package:acti_mobile/data/models/alter_event_model.dart';
 import 'package:acti_mobile/data/models/mapbox_reverse_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/recommendated_user_model.dart';
+import 'package:acti_mobile/data/models/reviews_model.dart';
 import 'package:acti_mobile/data/models/searched_events_model.dart';
 import 'package:acti_mobile/data/models/faq_model.dart';
 import 'package:dio/dio.dart';
@@ -103,6 +104,25 @@ class EventsApi {
       }
     }
     return null;
+  }
+
+  Future<ReviewsModel> getReviewEvent(String eventId) async {
+    final accessToken = await storage.getAccessToken();
+    if (accessToken != null) {
+      final response = await http.get(
+        Uri.parse('$API/api/v1/events/$eventId/reviews'),
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': 'Bearer $accessToken'
+        },
+      );
+      if (response.statusCode == 200) {
+        return ReviewsModel.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('${jsonDecode(response.body)["detail"]}');
+      }
+    }
+    throw Exception('Ошибка');
   }
 
   Future<bool?> joinEvent(String eventId) async {

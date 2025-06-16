@@ -33,6 +33,8 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Приложению нужен доступ к микрофону для записи звука при съёмке видео.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
+	<key>NSPushNotificationUsageDescription</key>
+	<string>Для получения уведомлений</string>
 	<string>Приложению нужен доступ к фотогалерее для выбора изображений.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Разрешите сохранить изображение в галерею</string>
@@ -41,11 +43,12 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
-		<string>fetch</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -60,5 +63,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSUserNotificationAlertStyle</key>
+	<string>alert</string>
 </dict>
 </plist>
