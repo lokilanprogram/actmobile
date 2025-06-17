@@ -305,7 +305,7 @@ class _DetailVoteEventScreenState extends State<DetailVoteEventScreen> {
 
                               Padding(
                                 padding:
-                                    const EdgeInsets.only(top: 10, bottom: 15),
+                                    const EdgeInsets.only(top: 10, bottom: 10),
                                 child: Divider(),
                               ),
                               Column(
@@ -336,7 +336,7 @@ class _DetailVoteEventScreenState extends State<DetailVoteEventScreen> {
                                           organizedEvent.timeEnd,
                                           organizedEvent.type == 'online'),
                                       trailing:
-                                          custom_date.DateUtils.formatDuration(
+                                          formatDuration(
                                               organizedEvent.timeStart,
                                               organizedEvent.timeEnd)),
 
@@ -596,7 +596,7 @@ class _DetailVoteEventScreenState extends State<DetailVoteEventScreen> {
                               ),
                             ),
                             TextSpan(
-                              text: custom_date.DateUtils.formatDuration(
+                              text: formatDuration(
                                   organizedEvent.timeStart,
                                   organizedEvent.timeEnd),
                               style: TextStyle(

@@ -595,6 +595,7 @@ class _EventsScreenState extends State<EventsScreen> {
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: TextField(
+                          textCapitalization: TextCapitalization.sentences,
                           controller: _searchController,
                           focusNode: _searchFocusNode,
                           onChanged: (value) {

@@ -215,6 +215,7 @@ class _FormReviewsState extends State<FormReviews> {
               border: _showCommentError ? Border.all(color: Colors.red) : null,
             ),
             child: TextField(
+              textCapitalization: TextCapitalization.sentences,
               controller: _commentController,
               maxLines: 6,
               onChanged: (value) {

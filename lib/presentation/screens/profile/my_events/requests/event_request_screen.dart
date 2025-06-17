@@ -14,9 +14,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 class EventRequestScreen extends StatefulWidget {
   final List<Participant> participants;
   final String eventId;
+  final bool completedStatus;
 
   const EventRequestScreen(
-      {super.key, required this.participants, required this.eventId});
+      {super.key,
+      required this.participants,
+      required this.eventId,
+      required this.completedStatus});
 
   @override
   State<EventRequestScreen> createState() => _EventRequestScreenState();

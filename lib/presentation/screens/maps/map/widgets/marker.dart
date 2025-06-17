@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CategoryMarker extends StatelessWidget {
   final String iconUrl;
@@ -15,9 +16,7 @@ class CategoryMarker extends StatelessWidget {
     return CustomPaint(
       painter: SpeechBubblePainter(),
       child: Container(
-        padding: EdgeInsets.only(
-          bottom: 15,right: 15
-        ),
+        padding: EdgeInsets.only(bottom: 15, right: 15),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -48,7 +47,7 @@ class SpeechBubblePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const radius = 30.0;
     const tailHeight = 15.0; // длиннее хвост
-    const tailWidth = 14.0;  // уже хвост
+    const tailWidth = 14.0; // уже хвост
 
     final bubbleHeight = size.height - tailHeight;
 
@@ -69,7 +68,8 @@ class SpeechBubblePainter extends CustomPainter {
       ..color = Colors.white
       ..style = PaintingStyle.fill;
 
-    canvas.drawShadow(path, const Color.fromARGB(255, 153, 152, 152).withOpacity(0.15), 2, true);
+    canvas.drawShadow(path,
+        const Color.fromARGB(255, 153, 152, 152).withOpacity(0.15), 2, true);
     canvas.drawPath(path, paint);
   }
 

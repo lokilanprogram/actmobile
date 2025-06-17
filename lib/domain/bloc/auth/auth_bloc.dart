@@ -170,6 +170,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         } else {
           emit(ActiCreatedActivityErrorState());
         }
+        isCreated.fold((l) => emit(ActiUpdatedActivityErrorState(message: l)),
+            (r) => emit(ActiCreatedActivityState()));
       } catch (e) {
         emit(ActiCreatedActivityErrorState());
       }
@@ -179,13 +181,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         final isUpdated = await EventsApi()
             .alterEvent(alterEvent: event.alterEventModel, isCreated: false);
-        if (isUpdated != null) {
-          emit(ActiUpdatedActivityState());
-        } else {
-          emit(ActiUpdatedActivityErrorState());
-        }
+
+        isUpdated.fold((l) => emit(ActiUpdatedActivityErrorState(message: l)),
+            (r) => emit(ActiUpdatedActivityState()));
       } catch (e) {
-        emit(ActiUpdatedActivityErrorState());
+        emit(ActiUpdatedActivityErrorState(message: e.toString()));
       }
     });
 

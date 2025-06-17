@@ -76,8 +76,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     filter: {"#": RegExp(r'[0-9]')},
   );
 
-  List<mapbox.Feature> _suggestions = [];
+  List<MapBoxSuggestion> _suggestions = [];
   bool _isLoading = false;
+  final FocusNode dateFocusNode = FocusNode();
+
+  bool isError = false;
+
   Future<void> selectDate() async {
     final DateTime? pickedDate = await showDatePicker(
         context: context,
@@ -102,6 +106,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             '${pickedDate!.day}.${pickedDate.month}.${pickedDate.year}');
       }
     });
+    Future.delayed(Duration.zero, () {
+      dateFocusNode.requestFocus();
+    });
   }
 
   final List<String> _images = [];
@@ -123,9 +130,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        final results = MapBoxModel.fromJson(jsonDecode(response.body));
+        final data = jsonDecode(response.body);
+        final List features = data['features'] ?? [];
         setState(() {
-          _suggestions = results.features;
+          _suggestions =
+              features.map((f) => MapBoxSuggestion.fromJson(f)).toList();
         });
       } else {
         throw Exception('Ошибка: ${response.body}');
@@ -159,6 +168,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   void initState() {
     initialize();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    dateFocusNode.dispose();
+    super.dispose();
   }
 
   initialize() async {
@@ -280,9 +295,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         if (state is ActiUpdatedActivityErrorState) {
           setState(() {
             isLoading = false;
+            if (state.message ==
+                "Название или описание содержит запрещенные слова") {
+              descriptionController.text =
+                  "Что-то плохое тут написано, прям фу";
+              isError = true;
+            }
           });
           ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Ошибка')));
+              .showSnackBar(SnackBar(content: Text(state.message)));
         }
         if (state is ActiGotOnbordingState) {
           setState(() {
@@ -310,10 +331,19 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           backgroundColor: Colors.white,
           appBar: isLoading
               ? null
-              : AppBarWidget(
-                  title: widget.organizedEventModel != null
+              : AppBar(
+                  leading: IconButton(
+                    icon: Icon(Icons.arrow_back_ios_new),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  scrolledUnderElevation: 0,
+                  backgroundColor: Colors.transparent,
+                  title: Text(widget.organizedEventModel != null
                       ? 'Обновление активности'
                       : "Создание активности"),
+                ),
           body: isLoading
               ? LoaderWidget()
               : SingleChildScrollView(
@@ -393,6 +423,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                         children: [
                                           Expanded(
                                             child: TextFormField(
+                                              textCapitalization:
+                                                  TextCapitalization.sentences,
                                               onChanged: _searchLocation,
                                               maxLines: 1,
                                               controller: addressController,
@@ -440,8 +472,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                                 setState(() {
                                                   addressController.text =
                                                       localAddressModel
-                                                              .properties
-                                                              ?.fullAddress ??
+                                                              .address ??
                                                           "";
                                                   selectedAddressModel =
                                                       localAddressModel;
@@ -494,19 +525,19 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                               final city = _suggestions[index];
                                               return ListTile(
                                                 dense: true,
-                                                title: Text(city.placeNameRu!,
+                                                title: Text(city.placeName,
                                                     style: TextStyle(
                                                         fontSize: 12,
                                                         fontFamily: 'Gilroy')),
                                                 onTap: () {
-                                                  final parts = city.placeNameRu
+                                                  final parts = city.placeName
                                                       ?.split(', ');
                                                   if (parts!.length == 6) {
                                                     addressController.text =
                                                         'г. ${parts[2]}, ${parts[5]}';
                                                   } else {
                                                     addressController.text =
-                                                        city.placeNameRu!;
+                                                        city.shortAddress;
                                                   }
                                                   setState(() {
                                                     _suggestions = [];
@@ -516,10 +547,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                                                 addressController
                                                                     .text
                                                                     .trim(),
-                                                            latitude: city
-                                                                .center!.last,
-                                                            longitude: city
-                                                                .center!.first,
+                                                            latitude:
+                                                                city.latitude,
+                                                            longitude:
+                                                                city.longitude,
                                                             properties: null);
                                                   });
                                                 },
@@ -543,7 +574,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                     children: [
                                       Expanded(
                                           child: TextFormField(
+                                        textCapitalization:
+                                            TextCapitalization.sentences,
                                         maxLines: 1,
+                                        focusNode: dateFocusNode,
                                         controller: dateController,
                                         inputFormatters: [dateFormatter],
                                         decoration: InputDecoration(
@@ -570,6 +604,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                       ),
                                       InkWell(
                                         onTap: () {
+                                          Future.delayed(Duration.zero, () {
+                                            dateFocusNode.requestFocus();
+                                          });
                                           selectDate();
                                         },
                                         child: Container(
@@ -676,8 +713,58 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                             style: TextStyle(fontFamily: 'Inter', fontSize: 13),
                           ),
                           const SizedBox(height: 8),
-                          _buildTextField("Опишите ваше событие",
-                              maxLines: 4, controller: descriptionController),
+                          TextFormField(
+                            textCapitalization: TextCapitalization.sentences,
+                            maxLines: 4,
+                            onChanged: (value) =>
+                                setState(() => isError = false),
+                            autofocus: true,
+                            controller: descriptionController,
+                            keyboardType: TextInputType.multiline,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            decoration: InputDecoration(
+                              labelText: isError
+                                  ? "Обнаружены недопустимые слова"
+                                  : "",
+                              labelStyle: TextStyle(color: Colors.red),
+                              filled: true,
+                              fillColor: Colors.grey[200],
+                              enabledBorder: isError
+                                  ? OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide(color: Colors.red))
+                                  : OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide.none),
+                              focusedBorder: isError
+                                  ? OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide(color: Colors.red))
+                                  : OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide.none),
+                              border: isError
+                                  ? OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide(color: Colors.red))
+                                  : OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide.none),
+                              suffixIconConstraints:
+                                  BoxConstraints(minWidth: 0, minHeight: 0),
+                              suffixStyle: TextStyle(color: Colors.black),
+                              hintText: "Опишите ваше событие",
+                              hintStyle: TextStyle(
+                                  color: isError ? Colors.red : Colors.black,
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400),
+                              errorStyle: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                          // _buildTextField("Опишите ваше событие",
+                          //     maxLines: 4, controller: descriptionController),
                           const SizedBox(height: 28),
                           Text(
                             'Категория:',
@@ -814,31 +901,44 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       String? suffixText,
       required TextEditingController controller}) {
     return TextFormField(
+      textCapitalization: TextCapitalization.sentences,
       inputFormatters:
           isPrice ? [FilteringTextInputFormatter.digitsOnly] : null,
       maxLines: maxLines,
+      autofocus: true,
       controller: controller,
       keyboardType: isPrice ? TextInputType.number : null,
       decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.grey[200],
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide.none),
-          suffixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
-          suffixIcon: suffixText != null
-              ? Padding(
-                  padding: EdgeInsets.only(right: 30),
-                  child: Text(
-                    suffixText,
-                    style: TextStyle(fontFamily: 'Inter', fontSize: 14),
-                  ),
-                )
-              : null,
-          suffixStyle: TextStyle(color: Colors.black),
-          hintText: label,
-          hintStyle: TextStyle(
-              fontFamily: 'Gilroy', fontSize: 16, fontWeight: FontWeight.w400)),
+        filled: true,
+        fillColor: Colors.grey[200],
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none),
+        suffixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
+        suffixIcon: suffixText != null
+            ? Padding(
+                padding: EdgeInsets.only(right: 30),
+                child: Text(
+                  suffixText,
+                  style: TextStyle(fontFamily: 'Inter', fontSize: 14),
+                ),
+              )
+            : null,
+        suffixStyle: TextStyle(color: Colors.black),
+        hintText: label,
+        hintStyle: TextStyle(
+            fontFamily: 'Gilroy', fontSize: 16, fontWeight: FontWeight.w400),
+        errorStyle: TextStyle(color: Colors.red),
+      ),
+      validator: (value) {
+        if (value == "Что-то плохое тут написано, прям фу") {
+          return "";
+        }
+        if (value == null || value.isEmpty) {
+          return "Обнаружены недопустимые слова";
+        }
+        return null;
+      },
     );
   }
 
@@ -1037,6 +1137,30 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   SnackBar(content: Text('Дата события должна быть в будущем')),
                 );
               } else if (selectedCategory != null) {
+                if (_images.isEmpty) {
+                  final defaultImage = await getImageFileFromAssets(
+                      'assets/images/image_default_event.png');
+                  _images.add(defaultImage.path);
+                }
+                if (isOnline) {
+                  addressController.text = '';
+                }
+                context.read<AuthBloc>().add(widget.organizedEventModel != null
+                    ? ActiUpdateActivityEvent(
+                        alterEventModel:
+                            eventmodel(dateStart, timeStart, timeEnd))
+                    : ActiCreateActivityEvent(
+                        createEventModel:
+                            eventmodel(dateStart, timeStart, timeEnd)));
+                setState(() {
+                  isLoading = true;
+                });
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Выберите категорию')));
+              }
+            } else {
+              if (selectedCategory != null) {
                 if (_images.isEmpty) {
                   final defaultImage = await getImageFileFromAssets(
                       'assets/images/image_default_event.png');

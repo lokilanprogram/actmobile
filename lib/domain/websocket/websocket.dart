@@ -108,8 +108,14 @@ class AllChatWebSocketService {
   final String token;
   late WebSocketChannel _channel;
   final _controller = StreamController<String>.broadcast();
+  Timer? _reconnectTimer;
+  bool _isDisposed = false;
 
   AllChatWebSocketService({required this.token}) {
+    _connect();
+  }
+
+  void _connect() {
     try {
       final uri = Uri.parse('$WS_API/ws/v1/chats/activity/ws?token=$token');
       developer.log('Подключение к WebSocket чатам: $uri', name: 'WEBSOCKET');
@@ -122,17 +128,31 @@ class AllChatWebSocketService {
         },
         onDone: () {
           developer.log('WebSocket все закрыт', name: 'WEBSOCKET');
+          _scheduleReconnect();
         },
         onError: (error) {
           developer.log('Ошибка все WebSocket: $error', name: 'WEBSOCKET');
+          _scheduleReconnect();
         },
         cancelOnError: true,
       );
     } catch (e) {
       developer.log('Ошибка при создании WebSocket чатов: $e',
           name: 'WEBSOCKET');
-      rethrow;
+      _scheduleReconnect();
     }
+  }
+
+  void _scheduleReconnect() {
+    if (_isDisposed) return;
+    
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(const Duration(seconds: 5), () {
+      if (!_isDisposed) {
+        developer.log('Попытка переподключения...', name: 'WEBSOCKET');
+        _connect();
+      }
+    });
   }
 
   /// Поток входящих сообщений
@@ -144,6 +164,7 @@ class AllChatWebSocketService {
       developer.log('Сообщение отправлено: $message', name: 'WEBSOCKET');
     } catch (e) {
       developer.log('Ошибка при отправке сообщения: $e', name: 'WEBSOCKET');
+      _scheduleReconnect();
       rethrow;
     }
   }
@@ -155,6 +176,7 @@ class AllChatWebSocketService {
       developer.log('печатаю');
     } catch (e) {
       developer.log('Ошибка печатаю');
+      _scheduleReconnect();
       rethrow;
     }
   }
@@ -166,11 +188,14 @@ class AllChatWebSocketService {
       developer.log('онлайн');
     } catch (e) {
       developer.log('Ошибка онлайн');
+      _scheduleReconnect();
       rethrow;
     }
   }
 
   void dispose() {
+    _isDisposed = true;
+    _reconnectTimer?.cancel();
     try {
       _controller.close();
       _channel.sink.close();

@@ -107,6 +107,7 @@ class _ReportUserSheetWidgetState extends State<ReportUserSheetWidget> {
                               ),
               const SizedBox(height: 5),
                               TextFormField(
+                                textCapitalization: TextCapitalization.sentences,
                                 controller: commentController,
                                 maxLines: 7,
                                 decoration: InputDecoration(

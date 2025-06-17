@@ -1,10 +1,12 @@
 import 'package:acti_mobile/configs/geolocator_utils.dart';
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/api/map/map_api.dart';
 import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/card_event_on_map.dart';
+import 'package:acti_mobile/presentation/screens/maps/event/widgets/cascade_cards_event_on_map.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
@@ -63,6 +65,7 @@ class _MapScreenState extends State<MapScreen> {
   DraggableScrollableController sheetController =
       DraggableScrollableController();
   SearchedEventsModel? searchedEventsModel;
+  String? profileId;
 
   late PointAnnotationManager pointAnnotationManager;
   final String eventsSourceId = "events-source";
@@ -104,7 +107,9 @@ class _MapScreenState extends State<MapScreen> {
   _onTap(
     MapContentGestureContext context,
   ) async {
-    const double threshold = 0.001;
+    //const double threshold = 0.001;
+
+    List<OrganizedEventModel> events = [];
 
     for (var event in searchedEventsModel!.events) {
       final distanceLat =
@@ -112,16 +117,26 @@ class _MapScreenState extends State<MapScreen> {
       final distanceLng =
           (event.longitude! - context.point.coordinates.lng).abs();
 
-      if (distanceLat < threshold && distanceLng < threshold) {
-        await Get.bottomSheet(
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            CardEventOnMap(
-              organizedEvent: event,
-            ));
+      if (distanceLat < 0.003 && distanceLng < 0.003) {
+        events.add(event);
       }
       print(
           '${context.point.coordinates.lng} ${context.point.coordinates.lat}');
+    }
+
+    if (events.isNotEmpty) {
+      if (events.length == 1) {
+        await Get.bottomSheet(
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            CardEventOnMap(organizedEvent: events.first));
+      } else {
+        await Get.bottomSheet(
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            CascadeCardsEventOnMap(
+                organizedEvents: events, profileId: profileId ?? ''));
+      }
     }
   }
 
@@ -157,15 +172,17 @@ class _MapScreenState extends State<MapScreen> {
     // Параллельное выполнение независимых операций
     final futures = await Future.wait<dynamic>([
       // Инициализация DeepLinks
-      Future.value(_deepLinkService = DeepLinkService(navigatorKey)),
+      //Future.value(_deepLinkService = DeepLinkService(navigatorKey)),
       // Получение токена
       SecureStorageService().getAccessToken(),
       // Проверка разрешения геолокации
       geolocator.Geolocator.checkPermission(),
     ]);
 
-    final accessToken = futures[1] as String?;
-    currentPermission = futures[2] as geolocator.LocationPermission;
+    profileId = await SecureStorageService().getUserId();
+
+    final accessToken = futures[0] as String;
+    currentPermission = futures[1] as geolocator.LocationPermission;
 
     // Параллельное выполнение WebSocket и геолокации
     if (accessToken != null) {

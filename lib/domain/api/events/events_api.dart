@@ -15,6 +15,7 @@ import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'package:dartz/dartz.dart';
 
 class EventsApi {
   Dio dio = Dio();
@@ -308,77 +309,85 @@ class EventsApi {
     return null;
   }
 
-  Future<bool?> alterEvent(
+  Future<Either<String, bool>> alterEvent(
       {required AlterEventModel alterEvent, required bool isCreated}) async {
     final accessToken = await storage.getAccessToken();
+    if (accessToken == null) {
+      return Left('Требуется авторизация');
+    }
+
     FormData formData;
     List<MultipartFile> photos = [];
     Response response;
     final now = DateTime.now();
 
-    final timezoneOffset = now.timeZoneOffset; // например, Duration(hours: 7)
-
-// Преобразовать в формат +07:00
-    String offsetString =
-        '${timezoneOffset.isNegative ? '-' : '+'}${timezoneOffset.inHours.abs().toString().padLeft(2, '0')}:${(timezoneOffset.inMinutes.abs() % 60).toString().padLeft(2, '0')}';
-    for (var photo in alterEvent.images) {
-      if (!photo.contains('http://93.183.81.104')) {
-        final file = File(photo);
-        final bytes = file.readAsBytesSync();
-        final type = file.path.split('.').last;
-        final multipartFile = MultipartFile.fromBytes(
-          bytes,
-          filename: file.path.split('/').last,
-          contentType: DioMediaType('image', type),
-        );
-        photos.add(multipartFile);
-      }
-    }
-    if (!isCreated) {
-      for (var photo in alterEvent.deletedImages) {
-        await EventsApi().deletePhotoEvent(alterEvent.id!, photo);
-      }
-    }
-
-    final List<String> restrictions = [];
-    if (alterEvent.isKidsAllowed) restrictions.add('withKids');
-    if (alterEvent.withAnimals) restrictions.add('withAnimals');
-    if (alterEvent.is18plus) restrictions.add('isKidsNotAllowed');
-    if (alterEvent.isUnlimited) restrictions.add('isUnlimited');
-
-    formData = FormData.fromMap({
-      'title': alterEvent.title,
-      'description': alterEvent.description,
-      'type': alterEvent.type,
-      'address': alterEvent.isOnline ? null : alterEvent.address,
-      'date_start': alterEvent.isRecurring
-          ? alterEvent.recurringDay
-          : alterEvent.dateStart,
-      'time_start': '${alterEvent.timeStart.substring(0, 8)}$offsetString',
-      'time_end': '${alterEvent.timeEnd.substring(0, 8)}$offsetString',
-      'price': alterEvent.price != null ? alterEvent.price.toString() : '0',
-      'create_group_chat': alterEvent.isGroupChat.toString(),
-      'restrictions': restrictions.isNotEmpty ? restrictions : null,
-      'category_id': alterEvent.categoryId,
-      'is_recurring': alterEvent.isRecurring.toString(),
-      'update_recurring': alterEvent.isRecurring.toString(),
-      'slots': alterEvent.isUnlimited ? 0 : alterEvent.slots.toString(),
-      'photos': photos,
-    });
-
-    if (alterEvent.isOnline == false) {
-      formData.fields.add(MapEntry(
-          'latitude', alterEvent.selectedAddressModel!.latitude.toString()));
-      formData.fields.add(MapEntry(
-          'longitude', alterEvent.selectedAddressModel!.longitude.toString()));
-    }
-
-    developer.log('Отправляем данные: ${formData.fields}',
-        name: 'CREATE_EVENT');
-    developer.log('Отправляем restrictions: $restrictions',
-        name: 'CREATE_EVENT');
-
     try {
+      final timezoneOffset = now.timeZoneOffset;
+      String offsetString =
+          '${timezoneOffset.isNegative ? '-' : '+'}${timezoneOffset.inHours.abs().toString().padLeft(2, '0')}:${(timezoneOffset.inMinutes.abs() % 60).toString().padLeft(2, '0')}';
+
+      for (var photo in alterEvent.images) {
+        if (!photo.contains('http://93.183.81.104')) {
+          final file = File(photo);
+          if (!await file.exists()) {
+            return Left('Файл не найден: $photo');
+          }
+          final bytes = file.readAsBytesSync();
+          final type = file.path.split('.').last;
+          final multipartFile = MultipartFile.fromBytes(
+            bytes,
+            filename: file.path.split('/').last,
+            contentType: DioMediaType('image', type),
+          );
+          photos.add(multipartFile);
+        }
+      }
+
+      if (!isCreated) {
+        for (var photo in alterEvent.deletedImages) {
+          await EventsApi().deletePhotoEvent(alterEvent.id!, photo);
+        }
+      }
+
+      final List<String> restrictions = [];
+      if (alterEvent.isKidsAllowed) restrictions.add('withKids');
+      if (alterEvent.withAnimals) restrictions.add('withAnimals');
+      if (alterEvent.is18plus) restrictions.add('isKidsNotAllowed');
+      if (alterEvent.isUnlimited) restrictions.add('isUnlimited');
+
+      formData = FormData.fromMap({
+        'title': alterEvent.title,
+        'description': alterEvent.description,
+        'type': alterEvent.type,
+        'address': alterEvent.isOnline ? null : alterEvent.address,
+        'date_start': alterEvent.isRecurring
+            ? alterEvent.recurringDay
+            : alterEvent.dateStart,
+        'time_start': '${alterEvent.timeStart.substring(0, 8)}$offsetString',
+        'time_end': '${alterEvent.timeEnd.substring(0, 8)}$offsetString',
+        'price': alterEvent.price != null ? alterEvent.price.toString() : '0',
+        'create_group_chat': alterEvent.isGroupChat.toString(),
+        'restrictions': restrictions.isNotEmpty ? restrictions : null,
+        'category_id': alterEvent.categoryId,
+        'is_recurring': alterEvent.isRecurring.toString(),
+        'update_recurring': alterEvent.isRecurring.toString(),
+        'slots': alterEvent.isUnlimited ? 0 : alterEvent.slots.toString(),
+        'photos': photos,
+      });
+
+      if (alterEvent.isOnline == false) {
+        if (alterEvent.selectedAddressModel == null) {
+          return Left('Необходимо указать адрес мероприятия');
+        }
+        formData.fields.add(MapEntry(
+            'latitude', alterEvent.selectedAddressModel!.latitude.toString()));
+        formData.fields.add(MapEntry(
+            'longitude', alterEvent.selectedAddressModel!.longitude.toString()));
+      }
+
+      developer.log('Отправляем данные: ${formData.fields}', name: 'CREATE_EVENT');
+      developer.log('Отправляем restrictions: $restrictions', name: 'CREATE_EVENT');
+
       if (isCreated) {
         response = await dio.post(
           '$API/api/v1/events',
@@ -402,16 +411,26 @@ class EventsApi {
           ),
         );
       }
+
       developer.log('Ответ сервера: ${response.data}', name: 'CREATE_EVENT');
+      
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return true;
+        return Right(true);
       } else {
-        throw Exception(
-            'Failed to create event: ${response.statusCode} ${response.data}');
+        return Left('Ошибка сервера: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      developer.log('Ошибка: ${e.response?.data}', name: 'CREATE_EVENT');
-      throw Exception('Error: ${e.response!.data['detail']}');
+      developer.log('Ошибка Dio: ${e.response?.data}', name: 'CREATE_EVENT');
+      if (e.response?.data != null && e.response?.data['detail'] != null) {
+        return Left(e.response!.data['detail']);
+      }
+      return Left('Ошибка сети: ${e.message}');
+    } on FileSystemException catch (e) {
+      developer.log('Ошибка файловой системы: $e', name: 'CREATE_EVENT');
+      return Left('Ошибка при работе с файлами: ${e.message}');
+    } catch (e) {
+      developer.log('Неизвестная ошибка: $e', name: 'CREATE_EVENT');
+      return Left('Произошла неизвестная ошибка: $e');
     }
   }
 

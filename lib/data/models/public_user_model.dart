@@ -116,9 +116,8 @@ class Creator {
     String city;
     String bio;
     bool isOrganization;
-    String photoUrl;
+    String? photoUrl;
     String status;
-    bool? isEmailVerified;
     bool? isProfileCompleted;
     String? id;
     List<Category>? categories;
@@ -132,7 +131,6 @@ class Creator {
         required this.isOrganization,
         required this.photoUrl,
         required this.status,
-        this.isEmailVerified,
         this.isProfileCompleted,
         this.id,
         this.categories,
@@ -145,12 +143,11 @@ class Creator {
         city: json["city"],
         bio: json["bio"],
         isOrganization: json["is_organization"],
-        photoUrl: json["photo_url"],
+        photoUrl: json["photo_url"] ?? '',
         status: json["status"],
-        isEmailVerified: json["is_email_verified"],
         isProfileCompleted: json["is_profile_completed"],
         id: json["id"],
-        categories: json["categories"] == null ? [] : List<Category>.from(json["categories"]!.map((x) => Category.fromJson(x))),
+        //categories: json["categories"] == null ? [] : List<Category>.from(json["categories"]!.map((x) => Category.fromJson(x))),
     );
 
     Map<String, dynamic> toJson() => {
@@ -162,7 +159,6 @@ class Creator {
         "is_organization": isOrganization,
         "photo_url": photoUrl,
         "status": status,
-        "is_email_verified": isEmailVerified,
         "is_profile_completed": isProfileCompleted,
         "id": id,
         "categories": categories == null ? [] : List<dynamic>.from(categories!.map((x) => x.toJson())),
@@ -170,7 +166,7 @@ class Creator {
 }
 
 class Review {
-    int rating;
+    double rating;
     String comment;
     DateTime createdAt;
     Creator user;
@@ -183,7 +179,7 @@ class Review {
     });
 
     factory Review.fromJson(Map<String, dynamic> json) => Review(
-        rating: json["rating"],
+        rating: json["rating"]?.toDouble(),
         comment: json["comment"],
         createdAt: DateTime.parse(json["created_at"]),
         user: Creator.fromJson(json["user"]),

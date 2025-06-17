@@ -278,6 +278,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               ),
                               Expanded(
                                 child: TextFormField(
+                                  textCapitalization:
+                                      TextCapitalization.sentences,
                                   autofocus: true,
                                   controller: seacrhController,
                                   onChanged: filterMessages,
@@ -469,6 +471,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   chatInfo?.event != null
                                       ? Text(
                                           chatInfo?.event?.title ?? '...',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                               fontFamily: 'Inter',
                                               fontSize: 17.14,
@@ -500,14 +504,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   ),
                                   chatInfo != null
                                       ? Text(
-                                          status ?? "",
+                                          chatInfo?.type == 'private'
+                                              ? status ?? ""
+                                              : "",
                                           style: TextStyle(
                                             fontFamily: 'Gilroy',
                                             fontSize: 16,
                                           ),
                                         )
                                       : Text(
-                                          'Оффлайн',
+                                          chatInfo?.type == 'private'
+                                              ? 'Оффлайн'
+                                              : '',
                                           style: TextStyle(
                                             fontFamily: 'Inter',
                                             fontSize: 13,
@@ -592,6 +600,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                             });
                                           });
                                           print(result);
+                                        } else if (result.type ==
+                                                'user_joined' &&
+                                            result.userId != profileUserId) {
+                                          status = "Онлайн";
+                                        } else if (result.type == 'user_left' &&
+                                            result.userId != profileUserId) {
+                                          status = "Офлайн";
                                         }
                                       }
 
@@ -689,22 +704,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                                                       milliseconds:
                                                                           250),
                                                                   () async {
-                                                                if (chatInfo
-                                                                        ?.eventId ==
-                                                                    null) {
-                                                                  Navigator.push(
-                                                                      context,
-                                                                      MaterialPageRoute(
-                                                                          builder: (context) =>
-                                                                              PublicUserScreen(userId: widget.interlocutorUserId ?? chatInfo!.users!.first.id)));
-                                                                } else {
-                                                                  Navigator.push(
-                                                                      context,
-                                                                      MaterialPageRoute(
-                                                                          builder: (context) => EventDetailScreen(
-                                                                                eventId: widget.interlocutorUserId ?? chatInfo!.eventId ?? "",
-                                                                              )));
-                                                                }
+                                                                Navigator.push(
+                                                                    context,
+                                                                    MaterialPageRoute(
+                                                                        builder:
+                                                                            (context) =>
+                                                                                PublicUserScreen(userId: message.userId)));
                                                               });
                                                             },
                                                             child: chatInfo ==
@@ -716,24 +721,25 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                                                         AssetImage(
                                                                       'assets/images/image_profile.png',
                                                                     ))
-                                                                : chatInfo?.event?.photos?.first ==
-                                                                            null &&
-                                                                        chatInfo?.users?.first.photoUrl ==
-                                                                            null
+                                                                : message.user.photoUrl ==
+                                                                            null ||
+                                                                        message.user.photoUrl ==
+                                                                            ""
                                                                     ? CircleAvatar(
                                                                         maxRadius:
                                                                             26,
                                                                         backgroundImage:
                                                                             AssetImage(
-                                                                          'assets/images/image_default_event.png',
+                                                                          'assets/images/image_profile.png',
                                                                         ))
                                                                     : CircleAvatar(
                                                                         maxRadius:
                                                                             26,
                                                                         backgroundImage:
                                                                             CachedNetworkImageProvider(
-                                                                          chatInfo?.event?.photos?.first ??
-                                                                              chatInfo!.users!.first.photoUrl!,
+                                                                          message
+                                                                              .user
+                                                                              .photoUrl!,
                                                                         ),
                                                                       ),
                                                           ),

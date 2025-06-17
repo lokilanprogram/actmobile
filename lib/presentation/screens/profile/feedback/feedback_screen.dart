@@ -158,6 +158,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: TextField(
+                textCapitalization: TextCapitalization.sentences,
                 controller: _controller,
                 maxLines: 5,
                 minLines: 4,

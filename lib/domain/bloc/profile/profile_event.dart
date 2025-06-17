@@ -45,7 +45,10 @@ class ProfileUpdateEvent extends ProfileEvent {
   });
 }
 
-class ProfileGetListEventsEvent extends ProfileEvent {}
+class ProfileGetListEventsEvent extends ProfileEvent {
+  final bool isRefresh;
+  ProfileGetListEventsEvent({this.isRefresh = false});
+}
 
 class ProfileGetVerifiedEventsEvent extends ProfileEvent {}
 
@@ -131,3 +134,7 @@ class ProfilePostReviewEvent extends ProfileEvent {
     required this.eventId,
   });
 }
+
+class ProfileLoadMoreMyEventsEvent extends ProfileEvent {}
+
+class ProfileLoadMoreVisitedEventsEvent extends ProfileEvent {}

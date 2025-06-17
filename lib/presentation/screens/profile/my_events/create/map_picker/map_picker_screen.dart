@@ -181,7 +181,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
           'https://api.mapbox.com/geocoding/v5/mapbox.places/$encodedPlace.json'
           '?language=ru'
           '&country=ru'
-          '&types=place,address,locality,neighborhood'
+          '&types=place,address,locality'
           '&proximity=$currentLng,$currentLat'
           '&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg';
 
@@ -218,7 +218,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     setState(() {
       print('Suggestion text: ${suggestion.text}'); // Логирование
       print('Suggestion placeName: ${suggestion.placeName}'); // Логирование
-      searchController.text = suggestion.placeName;
+      searchController.text = suggestion.shortAddress;
       _suggestions = [];
     });
     await pointAnnotationManager.deleteAll();
@@ -301,6 +301,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                         elevation: 2,
                         borderRadius: BorderRadius.circular(12),
                         child: TextField(
+                          textCapitalization: TextCapitalization.sentences,
                           controller: searchController,
                           onChanged: _searchLocation,
                           decoration: InputDecoration(
@@ -349,7 +350,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                               final s = _suggestions[idx];
                               return ListTile(
                                 title: Text(s.text,
-                                    style: TextStyle(fontSize: 16)),
+                                    style: TextStyle(fontSize: 16, fontFamily: 'Gilroy')),
                                 subtitle: Text(s.placeName,
                                     style: TextStyle(
                                         fontSize: 13, color: Colors.grey)),
@@ -413,6 +414,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     return Column(
       children: [
         TextFormField(
+          textCapitalization: TextCapitalization.sentences,
           controller: searchController,
           decoration: InputDecoration(
             hintText: 'Поиск',
@@ -481,7 +483,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
               subtitle: null,
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 10, right: 10),
+              padding: const EdgeInsets.only(left: 5, right: 5),
               child: Divider(),
             ),
           ],
@@ -494,7 +496,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 10, right: 10),
+          padding: const EdgeInsets.only(left: 5, right: 5),
           child: Divider(),
         ),
         ListTile(
@@ -562,6 +564,7 @@ class MapBoxSuggestion {
   final String placeName;
   final double latitude;
   final double longitude;
+  final String? region;
   final String? city;
   final String? streetAndHouse;
 
@@ -570,26 +573,26 @@ class MapBoxSuggestion {
     required this.placeName,
     required this.latitude,
     required this.longitude,
+    this.region,
     this.city,
     this.streetAndHouse,
   });
 
   factory MapBoxSuggestion.fromJson(Map<String, dynamic> json) {
+    String? region;
     String? city;
     String? streetAndHouse;
 
-    // 1. Если тип feature — address, то text = "улица", а дом — из place_name
     if (json['place_type'] != null &&
         (json['place_type'] as List).contains('address')) {
       final street = json['text'] ?? '';
       final placeName = json['place_name'] ?? '';
       String? house;
+
       if (placeName.contains(street)) {
         final idx = placeName.lastIndexOf(street);
         if (idx != -1) {
           final after = placeName.substring(idx + street.length).trim();
-          // after = "32" или "32 корпус 1"
-          // Берём только первые 10 символов после улицы (на случай длинных адресов)
           final houseMatch = RegExp(r'^(\d+.*?)(,|$)').firstMatch(after);
           if (houseMatch != null) {
             house = houseMatch.group(1)?.trim();
@@ -598,22 +601,22 @@ class MapBoxSuggestion {
           }
         }
       }
+
       streetAndHouse =
           house != null && house.isNotEmpty ? '$street $house' : street;
     }
 
-    // 2. Парсим context для города
     if (json['context'] != null) {
       for (final ctx in json['context']) {
-        if (ctx['id'] != null &&
-            (ctx['id'].toString().startsWith('place') ||
-                ctx['id'].toString().startsWith('locality'))) {
+        final id = ctx['id']?.toString() ?? '';
+        if (id.startsWith('region')) {
+          region = ctx['text'];
+        } else if (id.startsWith('place') || id.startsWith('locality')) {
           city = ctx['text'];
         }
       }
     }
 
-    // 3. Если streetAndHouse пусто, fallback на text
     if (streetAndHouse == null || streetAndHouse.isEmpty) {
       streetAndHouse = json['text'] ?? '';
     }
@@ -623,27 +626,14 @@ class MapBoxSuggestion {
       placeName: json['place_name'] ?? '',
       latitude: (json['center'] as List).last.toDouble(),
       longitude: (json['center'] as List).first.toDouble(),
+      region: region,
       city: city,
       streetAndHouse: streetAndHouse,
     );
   }
 
   String get shortAddress {
-    if (city != null && streetAndHouse != null && streetAndHouse!.isNotEmpty) {
-      return '$city, $streetAndHouse';
-    }
-    if (city != null) {
-      return city!;
-    }
-    return placeName;
+    final parts = [region, city, streetAndHouse].where((e) => e != null && e.isNotEmpty).cast<String>();
+    return parts.join(', ');
   }
-}
-
-String getShortAddress(String placeName) {
-  // Обычно placeName: "улица, дом, корпус, город, регион, страна"
-  final parts = placeName.split(', ');
-  if (parts.length >= 3) {
-    return parts.take(3).join(', ');
-  }
-  return placeName;
 }

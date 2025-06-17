@@ -71,6 +71,10 @@ class ActiCreatedActivityErrorState extends AuthState {}
 
 class ActiUpdatedActivityState extends AuthState {}
 
-class ActiUpdatedActivityErrorState extends AuthState {}
+class ActiUpdatedActivityErrorState extends AuthState {
+  final String message;
+
+  ActiUpdatedActivityErrorState({required this.message});
+}
 
 class AuthAccountDeletedState extends AuthState {}

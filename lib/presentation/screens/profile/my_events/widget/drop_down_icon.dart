@@ -105,7 +105,7 @@ class DropDownIcon extends StatelessWidget {
                 ),
               ),
             ],
-      child: const Icon(Icons.more_vert, color: Colors.black),
+      child: const Icon(Icons.more_vert, color: Colors.white),
     );
   }
 }

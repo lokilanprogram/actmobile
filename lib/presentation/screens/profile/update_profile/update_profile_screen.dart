@@ -376,6 +376,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       TextFormField(
+                                        textCapitalization: TextCapitalization.sentences,
                                         controller: cityController,
                                         onChanged: _searchLocation,
                                         style: TextStyle(
@@ -802,6 +803,7 @@ class TextInputWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      textCapitalization: TextCapitalization.sentences,
       style: TextStyle(fontSize: 11, fontFamily: 'Inter'),
       controller: controller,
       validator: validator,

@@ -166,7 +166,7 @@ Widget buildInfoRow(
                 ],
               ),
         Padding(
-          padding: const EdgeInsets.only(top: 10, bottom: 15),
+          padding: const EdgeInsets.only(top: 5, bottom: 5),
           child: Divider(
             thickness: 1,
           ),

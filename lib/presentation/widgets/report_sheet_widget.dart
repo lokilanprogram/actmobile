@@ -165,6 +165,7 @@ class _ReportEventSheetWidgetState extends State<ReportEventSheetWidget> {
                           style: TextStyle(fontFamily: 'Inter', fontSize: 13),
                         ),
                         TextFormField(
+                          textCapitalization: TextCapitalization.sentences,
                           controller: commentController,
                           maxLines: 3,
                           decoration: InputDecoration(

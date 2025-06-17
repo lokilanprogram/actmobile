@@ -158,6 +158,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                 color: Colors.grey[200],
                                 borderRadius: BorderRadius.circular(25)),
                             child: TextFormField(
+                              textCapitalization: TextCapitalization.sentences,
                               controller: _controller,
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(

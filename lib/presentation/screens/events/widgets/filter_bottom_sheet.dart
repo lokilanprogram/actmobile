@@ -1310,6 +1310,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             children: [
                               Expanded(
                                 child: TextField(
+                                  textCapitalization: TextCapitalization.sentences,
                                   controller: _priceMinController,
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
@@ -1326,6 +1327,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                               SizedBox(width: 10),
                               Expanded(
                                 child: TextField(
+                                  textCapitalization: TextCapitalization.sentences,
                                   controller: _priceMaxController,
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
@@ -1617,6 +1619,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                               children: [
                                 Expanded(
                                   child: TextField(
+                                    textCapitalization: TextCapitalization.sentences,
                                     keyboardType: TextInputType.number,
                                     decoration: InputDecoration(
                                       hintText: 'От',
@@ -1636,6 +1639,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                 SizedBox(width: 10),
                                 Expanded(
                                   child: TextField(
+                                    textCapitalization: TextCapitalization.sentences,
                                     keyboardType: TextInputType.number,
                                     decoration: InputDecoration(
                                       hintText: 'До',

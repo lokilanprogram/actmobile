@@ -6,8 +6,6 @@ import 'dart:convert';
 
 MapBoxModel welcomeFromJson(String str) => MapBoxModel.fromJson(json.decode(str));
 
-
-
 class MapBoxModel {
     String type;
     List<String> query;

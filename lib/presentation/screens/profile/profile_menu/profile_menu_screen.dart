@@ -177,6 +177,20 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                             height: 350,
                                             fit: BoxFit.cover,
                                           ),
+                                    Positioned.fill(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.center,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withOpacity(0.6),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                     Positioned(
                                         top: 48,
                                         right: 10,

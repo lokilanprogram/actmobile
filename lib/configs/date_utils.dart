@@ -13,9 +13,11 @@ class DateUtils {
     final dateFormat = DateFormat('dd.MM.yyyy');
 
     final startTime =
-        DateTime.parse('${date.toIso8601String().split('T')[0]}T$timeStart');
+        DateTime.parse('${date.toIso8601String().split('T')[0]}T$timeStart')
+            .toLocal();
     final endTime =
-        DateTime.parse('${date.toIso8601String().split('T')[0]}T$timeEnd');
+        DateTime.parse('${date.toIso8601String().split('T')[0]}T$timeEnd')
+            .toLocal();
 
     final localStartTime = isOnline ? startTime.toLocal() : startTime;
     final localEndTime = isOnline ? endTime.toLocal() : endTime;
@@ -29,28 +31,20 @@ class DateUtils {
     final dateFormat = DateFormat('dd.MM.yyyy');
 
     final timeRange = timeStart.split('–'); // или '-', если такой дефис
-    final startTimeStr = timeRange.first.trim(); // '17:43'
+    final startTimeStr = timeRange.first.trim();
+    final endTimeStr = timeRange.last.trim();
+    // '17:43'
     final startTime =
         DateTime.parse('${date.toIso8601String().split('T')[0]}T$startTimeStr');
 
     final localTime = isOnline ? startTime.toLocal() : startTime;
 
-    return '${dateFormat.format(date)} | ${timeFormat.format(localTime)}';
-  }
+    final endTime =
+        DateTime.parse('${date.toIso8601String().split('T')[0]}T$endTimeStr');
 
-  static String formatDuration(String timeStart, String timeEnd) {
-    final start = DateTime.parse('2000-01-01T$timeStart');
-    final end = DateTime.parse('2000-01-01T$timeEnd');
-    final difference = end.difference(start);
+    final localEndTime = isOnline ? endTime.toLocal() : endTime;
 
-    final hours = difference.inHours;
-    final minutes = difference.inMinutes % 60;
-
-    if (hours > 0) {
-      return '($hoursч $minutesм)';
-    } else {
-      return '($minutesм)';
-    }
+    return '${dateFormat.format(date)} | ${timeFormat.format(localTime)} - ${timeFormat.format(localEndTime)}';
   }
 }
 

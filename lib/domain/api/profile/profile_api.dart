@@ -80,7 +80,9 @@ class ProfileApi {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.get(
-        Uri.parse('$API/api/v1/users/events/my'),
+        Uri.parse('$API/api/v1/users/events/my').replace(queryParameters: {
+          'limit': '100',
+        }),
         headers: {
           "Content-Type": "application/json",
           'Authorization': 'Bearer $accessToken'

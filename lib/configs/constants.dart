@@ -120,6 +120,8 @@ String formatDuration(String startTime, String endTime) {
     return '$minutes мин';
   } else if (hours == 1 && minutes == 0) {
     return '60 мин';
+  } else if (minutes == 0) {
+    return '$hours ч';
   } else {
     return '$hours ч ${minutes.toString().padLeft(2, '0')} мин';
   }
@@ -182,13 +184,10 @@ String utcDate(String date) {
   // Создаем DateTime в локальной зоне
   DateTime localDateTime = DateTime(year, month, day);
 
-  // Конвертируем в UTC
-  DateTime utcDateTime = localDateTime.toUtc();
-
   // Форматируем дату в формат yyyy-MM-dd
-  String formattedDate = '${utcDateTime.year.toString().padLeft(4, '0')}-'
-      '${utcDateTime.month.toString().padLeft(2, '0')}-'
-      '${utcDateTime.day.toString().padLeft(2, '0')}';
+  String formattedDate = '${localDateTime.year.toString().padLeft(4, '0')}-'
+      '${localDateTime.month.toString().padLeft(2, '0')}-'
+      '${localDateTime.day.toString().padLeft(2, '0')}';
 
   return formattedDate;
 }
@@ -207,12 +206,10 @@ String utcTime(String time) {
     minute,
   );
 
-  // Конвертируем в UTC
-  DateTime utcDateTime = localDateTime.toUtc();
 
   // Форматируем время в формат HH:mm:ss
-  String formattedTime = '${utcDateTime.hour.toString().padLeft(2, '0')}:'
-      '${utcDateTime.minute.toString().padLeft(2, '0')}:00';
+  String formattedTime = '${localDateTime.hour.toString().padLeft(2, '0')}:'
+      '${localDateTime.minute.toString().padLeft(2, '0')}:00';
 
   return formattedTime;
 }

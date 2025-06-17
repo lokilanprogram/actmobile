@@ -128,6 +128,8 @@ class MyCardEventWidget extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   organizedEvent.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                       height: 1,
                                       fontSize: 15,
@@ -273,6 +275,9 @@ class MyCardEventWidget extends StatelessWidget {
                             spacing: 5,
                             runSpacing: 5,
                             children: [
+                              if (organizedEvent.restrictions
+                                  .contains("isKidsNotAllowed"))
+                                buildTag('18+'),
                               organizedEvent.price == 0
                                   ? buildTag('Бесплатное')
                                   : buildTag(
@@ -285,14 +290,11 @@ class MyCardEventWidget extends StatelessWidget {
                               if (organizedEvent.creator.isOrganization ??
                                   false)
                                 buildTag('Компания'),
-                              if (organizedEvent.type == 'online')
-                                buildTag('Онлайн'),
-                              if (organizedEvent.restrictions
-                                  .contains("withAnimals"))
-                                buildTag('Можно с животными'),
-                              if (organizedEvent.restrictions
-                                  .contains("isKidsNotAllowed"))
-                                buildTag('18+'),
+                              // if (organizedEvent.type == 'online')
+                              //   buildTag('Онлайн'),
+                              // if (organizedEvent.restrictions
+                              //     .contains("withAnimals"))
+                              //   buildTag('Можно с животными'),
                             ],
                           ),
                         ],

@@ -100,6 +100,7 @@ class _InputPhoneScreenState extends State<InputPhoneScreen> {
                           height: 15,
                         ),
                         TextFormField(
+                          textCapitalization: TextCapitalization.sentences,
                           controller: phoneController,
                           validator: (val) {
                             final unmaskedText =

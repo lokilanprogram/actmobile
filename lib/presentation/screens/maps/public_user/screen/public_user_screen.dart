@@ -337,7 +337,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
-                      padding: EdgeInsets.only(bottom: 60),
+                      padding: EdgeInsets.only(bottom: 20),
                       child: Container(
                         decoration: BoxDecoration(color: Colors.transparent),
                         child: Column(
