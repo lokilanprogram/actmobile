@@ -128,6 +128,20 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                       height: 350,
                                       fit: BoxFit.cover,
                                     ),
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.center,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.6),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
                               Positioned(
                                 top: 48,
                                 left: 10,
@@ -348,7 +362,8 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                     elevation: 1.2,
                                     borderRadius: BorderRadius.circular(25),
                                     child: Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 5, vertical: 5),
                                       height: 59,
                                       width: MediaQuery.of(context).size.width *
                                           0.8,

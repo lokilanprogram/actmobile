@@ -26,8 +26,10 @@ class ChatMainScreen extends StatefulWidget {
 class _ChatMainScreenState extends State<ChatMainScreen> {
   AllChatWebSocketService? webSocketService;
   String selectedTab = 'mine';
-  AllChatsModel allPrivateChats = AllChatsModel(total: 0, offset: 0, limit: 0, chats: []);
-  AllChatsModel allGroupChats = AllChatsModel(total: 0, offset: 0, limit: 0, chats: []);
+  AllChatsModel allPrivateChats =
+      AllChatsModel(total: 0, offset: 0, limit: 0, chats: []);
+  AllChatsModel allGroupChats =
+      AllChatsModel(total: 0, offset: 0, limit: 0, chats: []);
   bool _isLoading = false;
   bool isPrivateChats = true;
   bool isVerified = true;
@@ -77,8 +79,12 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
       listener: (context, state) {
         if (state is GotAllChatsState) {
           _count = 0;
-          _count += state.allGroupChats.chats.where((e) => (e.unreadCount ?? 0) > 0).length;
-          _count += state.allPrivateChats.chats.where((e) => (e.unreadCount ?? 0) > 0).length;
+          _count += state.allGroupChats.chats
+              .where((e) => (e.unreadCount ?? 0) > 0)
+              .length;
+          _count += state.allPrivateChats.chats
+              .where((e) => (e.unreadCount ?? 0) > 0)
+              .length;
           _unreadProvider.setUnreadCount(_count);
           setState(() {
             allGroupChats = state.allGroupChats;
@@ -129,8 +135,10 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                       children: [
                         TabBarWidget(
                           selectedTab: selectedTab,
-                          onTapMine: () => setState(() => isPrivateChats = true),
-                          onTapVisited: () => setState(() => isPrivateChats = false),
+                          onTapMine: () =>
+                              setState(() => isPrivateChats = true),
+                          onTapVisited: () =>
+                              setState(() => isPrivateChats = false),
                           firshTabText: 'Личные',
                           secondTabText: 'Групповые',
                           requestLentgh: null,
@@ -143,48 +151,74 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                             builder: (context, snapshot) {
                               if (snapshot.hasData) {
                                 final data = snapshot.data!;
-                                final result = AllChatsSnapshotModel.fromJson(jsonDecode(data));
+                                final result = AllChatsSnapshotModel.fromJson(
+                                    jsonDecode(data));
                                 if (result.timestamp != lastProcessedEventId) {
                                   lastProcessedEventId = result.timestamp;
                                   if (result.eventType == "new_chat") {
-                                    context.read<ChatBloc>().add(GetAllChatsEvent());
-                                  } else if (result.eventType == 'new_message') {
-                                    allPrivateChats.chats = allPrivateChats.chats.map((chat) {
-                                      if (chat.id == result.chatId && chat.lastMessage != null) {
+                                    context
+                                        .read<ChatBloc>()
+                                        .add(GetAllChatsEvent());
+                                  } else if (result.eventType ==
+                                      'new_message') {
+                                    allPrivateChats.chats =
+                                        allPrivateChats.chats.map((chat) {
+                                      if (chat.id == result.chatId &&
+                                          chat.lastMessage != null) {
                                         return chat.copyWith(
-                                          unreadCount: result.data?.senderId != userId ? (chat.unreadCount ?? 0) + 1 : 0,
-                                          lastMessage: chat.lastMessage!.copyWith(
+                                          unreadCount:
+                                              result.data?.senderId != userId
+                                                  ? (chat.unreadCount ?? 0) + 1
+                                                  : 0,
+                                          lastMessage:
+                                              chat.lastMessage!.copyWith(
                                             createdAt: DateTime.now(),
-                                            content: result.data?.contentPreview ?? "...",
+                                            content:
+                                                result.data?.contentPreview ??
+                                                    "...",
                                           ),
                                         );
                                       }
                                       return chat;
                                     }).toList();
-                                    allGroupChats.chats = allGroupChats.chats.map((chat) {
-                                      if (chat.id == result.chatId && chat.lastMessage != null) {
+                                    allGroupChats.chats =
+                                        allGroupChats.chats.map((chat) {
+                                      if (chat.id == result.chatId &&
+                                          chat.lastMessage != null) {
                                         return chat.copyWith(
-                                          unreadCount: (chat.unreadCount ?? 0) + 1,
-                                          lastMessage: chat.lastMessage!.copyWith(
-                                            content: result.data?.contentPreview ?? "...",
+                                          unreadCount:
+                                              (chat.unreadCount ?? 0) + 1,
+                                          lastMessage:
+                                              chat.lastMessage!.copyWith(
+                                            content:
+                                                result.data?.contentPreview ??
+                                                    "...",
                                           ),
                                         );
                                       }
                                       return chat;
                                     }).toList();
-                                  } else if (result.eventType == "user_typing" && result.data?.userId != userId) {
-                                    allPrivateChats.chats = allPrivateChats.chats.map((chat) {
-                                      if (chat.id == result.chatId && chat.lastMessage != null) {
+                                  } else if (result.eventType ==
+                                          "user_typing" &&
+                                      result.data?.userId != userId) {
+                                    allPrivateChats.chats =
+                                        allPrivateChats.chats.map((chat) {
+                                      if (chat.id == result.chatId &&
+                                          chat.lastMessage != null) {
                                         return chat.copyWith(
-                                          lastMessage: chat.lastMessage!.copyWith(content: 'Печатает...'),
+                                          lastMessage: chat.lastMessage!
+                                              .copyWith(content: 'Печатает...'),
                                         );
                                       }
                                       return chat;
                                     }).toList();
-                                    allGroupChats.chats = allGroupChats.chats.map((chat) {
-                                      if (chat.id == result.chatId && chat.lastMessage != null) {
+                                    allGroupChats.chats =
+                                        allGroupChats.chats.map((chat) {
+                                      if (chat.id == result.chatId &&
+                                          chat.lastMessage != null) {
                                         return chat.copyWith(
-                                          lastMessage: chat.lastMessage!.copyWith(content: 'Печатает...'),
+                                          lastMessage: chat.lastMessage!
+                                              .copyWith(content: 'Печатает...'),
                                         );
                                       }
                                       return chat;
@@ -197,6 +231,9 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                           )
                         else
                           _buildChatList(),
+                        SizedBox(
+                          height: 80,
+                        ),
                       ],
                     ),
                   ),
@@ -210,24 +247,32 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
         return _buildEmptyState('У вас пока нет чатов', showRefresh: true);
       }
       return Column(
-        children: allPrivateChats.chats.map((chat) => ChatListTileWidget(
-          onTapFunction: () => context.read<ChatBloc>().add(GetAllChatsEvent()),
-          onDeletedFunction: () => context.read<ChatBloc>().add(GetAllChatsEvent()),
-          chat: chat,
-          isPrivateChats: isPrivateChats,
-        )).toList(),
+        children: allPrivateChats.chats
+            .map((chat) => ChatListTileWidget(
+                  onTapFunction: () =>
+                      context.read<ChatBloc>().add(GetAllChatsEvent()),
+                  onDeletedFunction: () =>
+                      context.read<ChatBloc>().add(GetAllChatsEvent()),
+                  chat: chat,
+                  isPrivateChats: isPrivateChats,
+                ))
+            .toList(),
       );
     } else {
       if (allGroupChats.chats.isEmpty) {
         return _buildEmptyState('У вас пока нет групповых чатов');
       }
       return Column(
-        children: allGroupChats.chats.map((chat) => ChatListTileWidget(
-          onTapFunction: () => context.read<ChatBloc>().add(GetAllChatsEvent()),
-          onDeletedFunction: () => context.read<ChatBloc>().add(GetAllChatsEvent()),
-          chat: chat,
-          isPrivateChats: isPrivateChats,
-        )).toList(),
+        children: allGroupChats.chats
+            .map((chat) => ChatListTileWidget(
+                  onTapFunction: () =>
+                      context.read<ChatBloc>().add(GetAllChatsEvent()),
+                  onDeletedFunction: () =>
+                      context.read<ChatBloc>().add(GetAllChatsEvent()),
+                  chat: chat,
+                  isPrivateChats: isPrivateChats,
+                ))
+            .toList(),
       );
     }
   }
@@ -258,7 +303,8 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
               ),
               child: const Text(
                 'Обновить',
