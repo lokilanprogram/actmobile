@@ -28,6 +28,11 @@
 	<true/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Приложению нужен доступ к камере для съёмки фото и видео.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
@@ -40,11 +45,6 @@
 	<string>Приложению нужен доступ к фотогалерее для выбора изображений.</string>
 	<key>NSPushNotificationUsageDescription</key>
 	<string>Для получения уведомлений</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
 	<key>NSUserNotificationAlertStyle</key>
 	<string>alert</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
