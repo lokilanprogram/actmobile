@@ -342,10 +342,32 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   Text('Фамилия (необязательно)',
                                       style: titleTextStyleEdit),
                                   SizedBox(height: 4),
-                                  TextInputNameWidget(
+                                 TextFormField(
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w400),
                                     controller: surnameController,
-                                    text: 'Введите фамилию',
-                                    validator: null,
+                                    decoration: InputDecoration(
+                                      hintText: 'Введите фамилию',
+                                      hintStyle: hintTextStyleEdit,
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.grey[100],
+                                    ),
+                                    validator: (val) {
+                                      if (val != null && val.isNotEmpty) {
+                                        if (!RegExp(r'^[а-яА-ЯёЁa-zA-Z\s-]+$')
+                                            .hasMatch(val)) {
+                                          return 'Используйте только буквы';
+                                        }
+                                      }
+                                      return null;
+                                    },
                                   ),
                                   SizedBox(height: 16),
                                   Row(

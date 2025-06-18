@@ -98,7 +98,7 @@ class FilterProvider extends ChangeNotifier {
 
   void updateLocationType(String type, {double? radius}) {
     selectedLocationType = type;
-    if (radius != null) {
+    if (radius != null && !isOnlineSelected) {
       selectedRadius = baseRadius + radius;
     }
     notifyListeners();
@@ -106,6 +106,10 @@ class FilterProvider extends ChangeNotifier {
 
   void updateOnlineStatus(bool isOnline) {
     isOnlineSelected = isOnline;
+    if (isOnline) {
+    } else {
+      selectedRadius = baseRadius;
+    }
     notifyListeners();
   }
 

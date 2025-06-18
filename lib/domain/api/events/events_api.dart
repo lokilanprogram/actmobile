@@ -381,12 +381,14 @@ class EventsApi {
         }
         formData.fields.add(MapEntry(
             'latitude', alterEvent.selectedAddressModel!.latitude.toString()));
-        formData.fields.add(MapEntry(
-            'longitude', alterEvent.selectedAddressModel!.longitude.toString()));
+        formData.fields.add(MapEntry('longitude',
+            alterEvent.selectedAddressModel!.longitude.toString()));
       }
 
-      developer.log('Отправляем данные: ${formData.fields}', name: 'CREATE_EVENT');
-      developer.log('Отправляем restrictions: $restrictions', name: 'CREATE_EVENT');
+      developer.log('Отправляем данные: ${formData.fields}',
+          name: 'CREATE_EVENT');
+      developer.log('Отправляем restrictions: $restrictions',
+          name: 'CREATE_EVENT');
 
       if (isCreated) {
         response = await dio.post(
@@ -413,7 +415,7 @@ class EventsApi {
       }
 
       developer.log('Ответ сервера: ${response.data}', name: 'CREATE_EVENT');
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         return Right(true);
       } else {
@@ -574,7 +576,7 @@ class EventsApi {
         'longitude': longitude.toString(),
         'limit': limit.toString(),
         'offset': offset.toString(),
-        'radius': radius?.toString(),
+        'radius': type == 'online' ? null : radius?.toString(),
         'address': address,
         'date_from': date_from,
         'date_to': date_to,
