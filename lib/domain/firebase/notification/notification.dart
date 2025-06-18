@@ -30,9 +30,9 @@ class NotificationService {
         AndroidInitializationSettings('@mipmap/icon_acti');
 
     final initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
     final InitializationSettings initializationSettings =

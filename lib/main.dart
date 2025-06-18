@@ -26,6 +26,7 @@ import 'package:dio/dio.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/deeplink_service.dart';
 import 'dart:developer' as developer;
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 final baseUrl = API;
 
@@ -34,7 +35,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ru');
   MapboxOptions.setAccessToken(
-    
       'pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg');
   await Firebase.initializeApp(
       options: FirebaseOptions(
@@ -46,6 +46,19 @@ void main() async {
               : "1:368466897752:ios:d78a2747650774472dd32d",
           messagingSenderId: "927589486813",
           projectId: "acti-54f96"));
+
+  // Инициализация Firebase Messaging
+  // if (Platform.isIOS) {
+  //   await FirebaseMessaging.instance.requestPermission(
+  //     alert: true,
+  //     announcement: false,
+  //     badge: true,
+  //     carPlay: false,
+  //     criticalAlert: false,
+  //     provisional: false,
+  //     sound: true,
+  //   );
+  // }
 
   final deeplinkService = DeeplinkService();
   await deeplinkService.initDeeplink();

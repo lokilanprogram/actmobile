@@ -219,6 +219,17 @@ class FilterProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Метод для получения типа события
+  String? getEventType() {
+    print('DEBUG: isOnlineSelected = $isOnlineSelected');
+    if (isOnlineSelected) {
+      print('DEBUG: returning online');
+      return 'online';
+    }
+    print('DEBUG: returning empty string (no type parameter)');
+    return ''; // пустая строка означает, что параметр type не будет передан
+  }
+
   void resetFilters() {
     selectedDateFilter = null;
     selectedDateFrom = null;

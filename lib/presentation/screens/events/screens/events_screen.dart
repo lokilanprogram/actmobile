@@ -233,6 +233,12 @@ class _EventsScreenState extends State<EventsScreen> {
       final int radius = filterProvider.selectedRadius.round() == 0
           ? 1
           : filterProvider.selectedRadius.round();
+
+      final eventType = filterProvider.getEventType();
+      print(
+          'DEBUG EventsScreen: isOnlineSelected = ${filterProvider.isOnlineSelected}');
+      print('DEBUG EventsScreen: getEventType() returned = $eventType');
+
       final events = await EventsApi().searchEvents(
         latitude: filterProvider.selectedMapAddressModel?.latitude ??
             _currentPosition?.latitude ??
@@ -252,7 +258,7 @@ class _EventsScreenState extends State<EventsScreen> {
             : null,
         time_from: filterProvider.selectedTimeFrom,
         time_to: filterProvider.selectedTimeTo,
-        type: filterProvider.isOnlineSelected ? 'online' : 'offline',
+        type: eventType,
         price_min: filterProvider.priceMinText.isNotEmpty
             ? double.tryParse(filterProvider.priceMinText)
             : null,

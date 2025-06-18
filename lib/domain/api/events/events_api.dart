@@ -272,12 +272,24 @@ class EventsApi {
             categoryIds.map((e) => e.toString()).toList();
       }
 
-      final uri = Uri(
-        scheme: 'http',
-        host: '93.183.81.104',
-        path: '/api/v1/events/map',
-        queryParameters: queryParams,
-      );
+      // Добавляем type только если он не пустой
+      if (filters?['type'] != null &&
+          filters?['type'] is String &&
+          (filters?['type'] as String).isNotEmpty) {
+        print(
+            'DEBUG: type is ${(filters?['type'] as String)}, adding single type');
+        queryParams['type'] = [filters?['type'] as String];
+      } else {
+        print('DEBUG: type is empty or null, not adding type parameter');
+      }
+
+      // Формируем URL вручную для правильной передачи массивов
+      final baseUrl = '$API/api/v1/events/map';
+      final queryString = queryParams.entries.map((entry) {
+        return entry.value.map((value) => '${entry.key}=$value').join('&');
+      }).join('&');
+
+      final uri = Uri.parse('$baseUrl?$queryString');
 
       developer.log('Отправляем запрос на поиск событий на карте:',
           name: 'MAP_SEARCH');
@@ -618,14 +630,23 @@ class EventsApi {
         queryParams['category_ids'] = category_ids;
       }
 
-      final uri = Uri(
-        scheme: 'http',
-        host: '93.183.81.104',
-        path: '/api/v1/events',
-        queryParameters: queryParams,
-      );
+      // Добавляем type только если он не пустой
+      if (type != null && type.isNotEmpty) {
+        print('DEBUG: type is $type, adding single type');
+        queryParams['type'] = [type];
+      } else {
+        print('DEBUG: type is empty or null, not adding type parameter');
+      }
+
+      // Формируем URL вручную для правильной передачи массивов
+      final queryString = queryParams.entries.map((entry) {
+        return entry.value.map((value) => '${entry.key}=$value').join('&');
+      }).join('&');
+
+      final uri = Uri.parse('$baseUrl?$queryString');
 
       developer.log('Запрос к API: ${uri.toString()}');
+      developer.log('DEBUG: queryParams = $queryParams');
 
       final response = await http.get(
         uri,

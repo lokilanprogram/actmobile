@@ -4,6 +4,7 @@ import 'package:acti_mobile/domain/api/auth/auth_api.dart';
 import 'package:acti_mobile/domain/api/chat/chat_api.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
 import 'package:acti_mobile/main.dart';
+import 'package:acti_mobile/navigation/app_router_delegate.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
@@ -12,28 +13,36 @@ import 'package:acti_mobile/presentation/screens/profile/my_events/detail/event_
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class FirebaseApi {
   final firebaseMessaging = FirebaseMessaging.instance;
   Future<void> initNotifications() async {
     String? token;
     NotificationSettings settings = await firebaseMessaging.requestPermission();
+    print('Firebase permission status: ${settings.authorizationStatus}');
+
     if (Platform.isIOS) {
       token = await firebaseMessaging.getAPNSToken();
-      print('Firebase apns token ${token}');
+      print('Firebase APNS token: $token');
       await Future.delayed(Duration(seconds: 2));
     } else {
       token = await firebaseMessaging.getToken();
-      print('Firebase token  ${token}');
+      print('Firebase FCM token: $token');
     }
 
     if (token != null) {
+      print('Sending token to server: $token');
       try {
         await AuthApi().sendFcmToken(token);
+        print('Token sent successfully');
       } catch (e) {
-        print(e.toString());
+        print('Error sending token: $e');
       }
+    } else {
+      print('Failed to get token');
     }
+
     await firebaseMessaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
@@ -117,7 +126,7 @@ class FirebaseApi {
     } else {
       navigator.push(
         MaterialPageRoute(
-          builder: (_) => MainScreen(),
+          builder: (_) => MainScreen(initialIndex: 0),
         ),
       );
     }
