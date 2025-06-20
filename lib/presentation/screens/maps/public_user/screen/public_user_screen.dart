@@ -31,6 +31,7 @@ class PublicUserScreen extends StatefulWidget {
 class _PublicUserScreenState extends State<PublicUserScreen> {
   bool isLoading = false;
   bool isBlocked = false;
+  bool isBlockedByPublicUser = false;
   late PublicUserModel publicUserModel;
   bool isVerified = true;
 
@@ -64,14 +65,22 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
           setState(() {
             isLoading = false;
           });
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Заблокировали')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Пользователь заблокирован')));
+        }
+        if (state is ProfileUnblockedUserState) {
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Пользователь разблокирован')));
         }
         if (state is ProfileGotPublicUserState) {
           setState(() {
             isLoading = false;
             publicUserModel = state.publicUserModel;
             isBlocked = state.publicUserModel.isBlockedByUser ?? false;
+            isBlockedByPublicUser = state.isBlocked;
           });
         }
         if (state is ProfileUpdatedState) {
@@ -172,14 +181,30 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                 top: 48,
                                 right: 10,
                                 child: PopUpPublicUserButtons(
+                                  isBlocked: isBlockedByPublicUser,
                                   userId: widget.userId,
                                   blockFunction: () async {
-                                    setState(() {
-                                      isLoading = true;
-                                    });
-                                    context.read<ProfileBloc>().add(
-                                        ProfileBlockUserEvent(
-                                            userId: widget.userId));
+                                    if (isBlockedByPublicUser) {
+                                      context.read<ProfileBloc>().add(
+                                          ProfileUnblockUserEvent(
+                                              userId: widget.userId,
+                                              isBlocked:
+                                                  isBlockedByPublicUser));
+                                      setState(() {
+                                        isLoading = true;
+                                        isBlockedByPublicUser =
+                                            !isBlockedByPublicUser;
+                                      });
+                                    } else {
+                                      context.read<ProfileBloc>().add(
+                                          ProfileBlockUserEvent(
+                                              userId: widget.userId));
+                                      setState(() {
+                                        isLoading = true;
+                                        isBlockedByPublicUser =
+                                            !isBlockedByPublicUser;
+                                      });
+                                    }
                                   },
                                   userName:
                                       publicUserModel.name ?? 'Неизвестный',
@@ -366,7 +391,8 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            publicUserModel.isBlockedByUser == true || isVerified == false
+                            publicUserModel.isBlockedByUser == true ||
+                                    isVerified == false
                                 ? Material(
                                     elevation: 1.2,
                                     borderRadius: BorderRadius.circular(25),
@@ -383,7 +409,9 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                       ),
                                       child: Center(
                                         child: Text(
-                                          !isVerified ? "Подтвердите почту, чтобы ему написать" : 'Данный пользователь вас заблокировал, вы не можете ему написать',
+                                          !isVerified
+                                              ? "Подтвердите почту, чтобы ему написать"
+                                              : 'Данный пользователь вас заблокировал, вы не можете ему написать',
                                           textAlign: TextAlign.center,
                                           maxLines: 2,
                                           style: TextStyle(

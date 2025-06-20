@@ -102,13 +102,13 @@ class ChatApi {
     return null;
   }
 
-  Future<AllChatsModel?> getAllChats(String chatType) async {
+  Future<AllChatsModel?> getAllChats(String chatType, {int limit = 30, int offset = 0}) async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final queries = {
         'chat_type': chatType,
-        'limit': 30.toString(),
-        'offset': 0.toString()
+        'limit': limit.toString(),
+        'offset': offset.toString()
       };
       final response = await http.get(
         Uri.parse('$API/api/v1/chats').replace(queryParameters: queries),

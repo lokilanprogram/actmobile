@@ -16,7 +16,15 @@ class SendMessageEvent extends ChatEvent {
       required this.imagePath});
 }
 
-class GetAllChatsEvent extends ChatEvent {}
+class GetAllChatsEvent extends ChatEvent {
+  final bool isLoadMore;
+  final String chatType;
+
+  GetAllChatsEvent({
+    this.isLoadMore = false,
+    this.chatType = 'private',
+  });
+}
 
 class DeleteChatEvent extends ChatEvent {
   final String chatId;

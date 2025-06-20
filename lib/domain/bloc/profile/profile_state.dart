@@ -148,8 +148,9 @@ class ProfileGotEventDetailErrorState extends ProfileState {
 
 class ProfileGotPublicUserState extends ProfileState {
   final PublicUserModel publicUserModel;
+  final bool isBlocked;
 
-  ProfileGotPublicUserState({required this.publicUserModel});
+  ProfileGotPublicUserState({required this.publicUserModel, required this.isBlocked});
 }
 
 class ProfileGotPublicUserErrorState extends ProfileState {
@@ -169,6 +170,10 @@ class ProfileAcceptedUserOnActivityState extends ProfileState {
 class ProfileAcceptedUserOnActivityErrorState extends ProfileState {}
 
 class ProfileBlockedUserState extends ProfileState {}
+
+class ProfileUnblockedUserState extends ProfileState {}
+
+class ProfileUnblockedUserErrorState extends ProfileState {}
 
 class ProfileBlockedUserErrorState extends ProfileState {}
 

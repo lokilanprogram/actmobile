@@ -275,8 +275,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             children: [
                               IconButton(
                                 onPressed: () {
-                                  isSearched = false;
-                                  setState(() {});
+                                  setState(() {
+                                    isSearched = false;
+                                  });
                                 },
                                 icon: Icon(Icons.arrow_back_ios),
                                 color: Colors.grey,
@@ -342,8 +343,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           itemBuilder: (BuildContext context) => [
                             PopupMenuItem<int>(
                               value: 0,
-                              onTap: () {
+                              onTap: () async {
                                 if (!mounted) return;
+                                await Future.delayed(
+                                    Duration(milliseconds: 300));
                                 setState(() {
                                   isSearched = true;
                                 });
@@ -373,7 +376,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                       trailing != null
                                           ? 'Вы точно хотите удалить групповой чат?'
                                           : 'Вы точно хотите удалить диалог c пользователем $interlocutorName?',
-                                      () {
+                                      () async {
+                                    if (!mounted) return;
+                                    await Future.delayed(
+                                        Duration(milliseconds: 300));
                                     setState(() {
                                       isLoading = true;
                                     });

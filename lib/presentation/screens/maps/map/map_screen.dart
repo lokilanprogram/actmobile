@@ -67,7 +67,7 @@ class _MapScreenState extends State<MapScreen> {
   SearchedEventsModel? searchedEventsModel;
   String? profileId;
 
-  late PointAnnotationManager pointAnnotationManager;
+  PointAnnotationManager? pointAnnotationManager;
   final String eventsSourceId = "events-source";
   final String eventsLayerId = "events-layer";
   final String iconImageIdPrefix = "event-icon-";
@@ -306,7 +306,7 @@ class _MapScreenState extends State<MapScreen> {
                 image: result,
                 iconImage: 'pointer:${event.id}',
               );
-              await pointAnnotationManager.create(pointAnnotationOptions);
+              await pointAnnotationManager?.create(pointAnnotationOptions);
             }
           }
         }
@@ -352,8 +352,7 @@ class _MapScreenState extends State<MapScreen> {
                                 image: result,
                                 iconImage: 'pointer:${event.id}',
                               );
-                              await pointAnnotationManager
-                                  .create(pointAnnotationOptions);
+                              await pointAnnotationManager?.create(pointAnnotationOptions);
                             }
                           }
                         }
@@ -459,7 +458,7 @@ class _MapScreenState extends State<MapScreen> {
                           Provider.of<FilterProvider>(context, listen: false);
 
                       // Очищаем текущие маркеры
-                      pointAnnotationManager.deleteAll();
+                      pointAnnotationManager?.deleteAll();
 
                       // Определяем координаты для поиска
                       double searchLat = currentSelectedPosition.lat.toDouble();
@@ -655,7 +654,7 @@ class _MapScreenState extends State<MapScreen> {
           image: result,
           iconImage: 'pointer:${event.id}',
         );
-        await pointAnnotationManager.create(pointAnnotationOptions);
+        await pointAnnotationManager?.create(pointAnnotationOptions);
       }
     }
   }

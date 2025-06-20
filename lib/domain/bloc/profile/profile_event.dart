@@ -50,7 +50,8 @@ class ProfileUpdateEvent extends ProfileEvent {
 class ProfileGetListEventsEvent extends ProfileEvent {
   final bool loadMoreMy;
   final bool loadMoreVisited;
-  ProfileGetListEventsEvent({this.loadMoreMy = false, this.loadMoreVisited = false});
+  ProfileGetListEventsEvent(
+      {this.loadMoreMy = false, this.loadMoreVisited = false});
 }
 
 class ProfileGetVerifiedEventsEvent extends ProfileEvent {}
@@ -65,6 +66,13 @@ class ProfileGetPublicUserEvent extends ProfileEvent {
   final String userId;
 
   ProfileGetPublicUserEvent({required this.userId});
+}
+
+class ProfileUnblockUserEvent extends ProfileEvent {
+  final String userId;
+  final bool isBlocked;
+
+  ProfileUnblockUserEvent({required this.userId, required this.isBlocked});
 }
 
 class ProfileJoinEvent extends ProfileEvent {

@@ -133,7 +133,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               isOpenAddReviews == false) {
             if (!rewiewsModel.reviews
                     .any((review) => review.user.id == userId) &&
-                state.eventModel.creatorId != userId) {
+                state.eventModel.creatorId != userId &&
+                state.eventModel.participants
+                    .any((user) => user.id == userId)) {
               showAddReviewsBottomSheet(context, userId, state.eventModel);
             }
           }
@@ -515,23 +517,24 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                           onTap: () {
                                             if (organizedEvent.creator.id !=
                                                 userId) {
-                                            Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        PublicUserScreen(
-                                                            userId:
-                                                                organizedEvent
-                                                                    .creator
-                                                                    .id!)));
-                                                } else {
-                                                  Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              ProfileMenuScreen(
-                                                                  onSettingsChanged: null)));
-                                                }
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          PublicUserScreen(
+                                                              userId:
+                                                                  organizedEvent
+                                                                      .creator
+                                                                      .id!)));
+                                            } else {
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          ProfileMenuScreen(
+                                                              onSettingsChanged:
+                                                                  null)));
+                                            }
                                           },
                                           child: Row(
                                             children: [

@@ -1,16 +1,20 @@
 import 'package:acti_mobile/configs/function.dart';
+import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class PopUpPublicUserButtons extends StatelessWidget {
   final Function blockFunction;
   final String userName;
   final String userId;
+  final bool isBlocked;
   const PopUpPublicUserButtons(
       {super.key,
       required this.blockFunction,
       required this.userName,
-      required this.userId});
+      required this.userId,
+      required this.isBlocked});
 
   @override
   Widget build(BuildContext context) {
@@ -24,18 +28,20 @@ class PopUpPublicUserButtons extends StatelessWidget {
         PopupMenuItem<int>(
           value: 0,
           onTap: () {
-            showBlockDialog(
-                context,
-                'Блокировка пользователя',
-                'Вы точно хотите заблокировать пользователя $userName?',
-                blockFunction);
+            isBlocked
+                ? blockFunction()
+                : showBlockDialog(
+                    context,
+                    'Блокировка пользователя',
+                    'Вы точно хотите заблокировать пользователя $userName?',
+                    blockFunction);
           },
           child: Row(
             children: [
               SvgPicture.asset('assets/icons/icon_block.svg'),
               SizedBox(width: 10),
               Text(
-                "Заблокировать",
+                isBlocked ? "Разблокировать" : "Заблокировать",
                 style: TextStyle(
                   fontFamily: 'Gilroy',
                   fontSize: 12.93,
