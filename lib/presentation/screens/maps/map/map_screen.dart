@@ -68,7 +68,7 @@ class _MapScreenState extends State<MapScreen> {
   String? profileId;
 
   PointAnnotationManager? pointAnnotationManager;
-  PointAnnotationManager? pointAnnotationManager;
+
   final String eventsSourceId = "events-source";
   final String eventsLayerId = "events-layer";
   final String iconImageIdPrefix = "event-icon-";
