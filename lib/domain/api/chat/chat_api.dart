@@ -9,6 +9,7 @@ import 'package:acti_mobile/data/models/chat_model.dart';
 import 'package:acti_mobile/data/models/created_chat_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/data/models/all_chats_model.dart';
+import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/src/multipart_file.dart';
@@ -17,7 +18,7 @@ import 'package:dio/src/form_data.dart';
 class ChatApi {
   final storage = SecureStorageService();
 
-  Future<bool?> sendFileMessage(
+  Future<Either<String, bool>> sendFileMessage(
       String chatId, String message, String imagePath) async {
     final accessToken = await storage.getAccessToken();
     Dio dio = Dio();
@@ -47,19 +48,18 @@ class ChatApi {
         );
         if (response.statusCode == 200 || response.statusCode == 201) {
           print(response.data);
-          return true;
+          return Right(true);
         } else {
-          throw Exception(
-              'Failed to create event: ${response.statusCode} ${response.data}');
+          return Left(response.data['detail']);
         }
       } on DioException catch (e) {
         throw Exception('Error: ${e.response!.data['detail']}');
       }
     }
-    return null;
+    return Left('No access token');
   }
 
-  Future<bool?> sendMessage(String chatId, String message) async {
+  Future<Either<String, bool>> sendMessage(String chatId, String message) async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final response = await http.post(
@@ -71,12 +71,14 @@ class ChatApi {
         body: jsonEncode(<String, dynamic>{'content': message}),
       );
       if (response.statusCode == 200) {
-        return true;
+        return Right(true);
+      } else if (response.statusCode == 403) {
+        return Left("Пользователь вас заблокировал");
       } else {
         throw Exception('Error: ${response.body}');
       }
     }
-    return null;
+    return Left('No access token');
   }
 
   Future<bool?> deleteChat(
@@ -100,13 +102,13 @@ class ChatApi {
     return null;
   }
 
-  Future<AllChatsModel?> getAllChats(String chatType) async {
+  Future<AllChatsModel?> getAllChats(String chatType, {int limit = 30, int offset = 0}) async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       final queries = {
         'chat_type': chatType,
-        'limit': 30.toString(),
-        'offset': 0.toString()
+        'limit': limit.toString(),
+        'offset': offset.toString()
       };
       final response = await http.get(
         Uri.parse('$API/api/v1/chats').replace(queryParameters: queries),

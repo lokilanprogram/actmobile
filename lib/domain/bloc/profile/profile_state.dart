@@ -12,12 +12,30 @@ class ProfileGotState extends ProfileState {
       {required this.profileModel, required this.similiarUsersModel});
 }
 
+class ProfileResendEmailState extends ProfileState {}
+
+class ProfileResendEmailErrorState extends ProfileState {
+  final String message;
+
+  ProfileResendEmailErrorState({required this.message});
+}
+
 class ProfileGotErrorState extends ProfileState {}
 
 class ProfileUpdatedState extends ProfileState {
   final ProfileModel profileModel;
 
   ProfileUpdatedState({required this.profileModel});
+}
+
+class ProfileBlockedAdminState extends ProfileState {
+  final ProfileModel profileModel;
+  ProfileBlockedAdminState({required this.profileModel});
+}
+
+class ProfileDeleteAdminState extends ProfileState {
+  final ProfileModel profileModel;
+  ProfileDeleteAdminState({required this.profileModel});
 }
 
 class ProfileUpdatedWithPhotoErrorState extends ProfileState {
@@ -50,12 +68,17 @@ class ProfileGotListEventsState extends ProfileState {
   final ProfileEventModels? profileVisitedEventsModels;
   final bool isVerified;
   final bool isProfileCompleted;
+  final bool hasMoreEvents;
+  final bool hasMoreVisitedEvents;
 
-  ProfileGotListEventsState(
-      {required this.profileVisitedEventsModels,
-      required this.profileEventsModels,
-      required this.isVerified,
-      required this.isProfileCompleted});
+  ProfileGotListEventsState({
+    required this.profileVisitedEventsModels,
+    required this.profileEventsModels,
+    required this.isVerified,
+    required this.isProfileCompleted,
+    this.hasMoreEvents = true,
+    this.hasMoreVisitedEvents = true,
+  });
 }
 
 class ProfileJoinedState extends ProfileState {
@@ -125,8 +148,9 @@ class ProfileGotEventDetailErrorState extends ProfileState {
 
 class ProfileGotPublicUserState extends ProfileState {
   final PublicUserModel publicUserModel;
+  final bool isBlocked;
 
-  ProfileGotPublicUserState({required this.publicUserModel});
+  ProfileGotPublicUserState({required this.publicUserModel, required this.isBlocked});
 }
 
 class ProfileGotPublicUserErrorState extends ProfileState {
@@ -146,6 +170,10 @@ class ProfileAcceptedUserOnActivityState extends ProfileState {
 class ProfileAcceptedUserOnActivityErrorState extends ProfileState {}
 
 class ProfileBlockedUserState extends ProfileState {}
+
+class ProfileUnblockedUserState extends ProfileState {}
+
+class ProfileUnblockedUserErrorState extends ProfileState {}
 
 class ProfileBlockedUserErrorState extends ProfileState {}
 

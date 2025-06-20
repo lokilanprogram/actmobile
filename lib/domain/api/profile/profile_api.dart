@@ -36,6 +36,25 @@ class ProfileApi {
     return null;
   }
 
+  Future<Either<String, bool>> postResendEmail() async {
+    final accessToken = await storage.getAccessToken();
+    if (accessToken != null) {
+      final response = await http.post(
+        Uri.parse('$API/api/v1/users/resend-email'),
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': 'Bearer $accessToken'
+        },
+      );
+      if (response.statusCode == 200) {
+        return Right(true);
+      } else {
+        return Left("Ошибка");
+      }
+    }
+    return Left("Ошибка");
+  }
+
   Future<bool?> inviteUser(String userId, String eventId) async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
@@ -76,13 +95,43 @@ class ProfileApi {
     return null;
   }
 
-  Future<ProfileEventModels?> getProfileListEvents() async {
+  Future<bool?> unblockUser(String userId) async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
+      final response = await http.post(
+        Uri.parse('$API/api/v1/users/$userId/unblock'),
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': 'Bearer $accessToken'
+        },
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Error: ${response.body}');
+      }
+    }
+    return null;
+  }
+
+  Future<ProfileEventModels?> getProfileListEvents(
+      {int offset = 0,
+      int limit = 10,
+      bool activeOnly = false,
+      String? userId}) async {
+    final accessToken = await storage.getAccessToken();
+    if (accessToken != null) {
+      final queryParameters = {
+        'offset': offset.toString(),
+        'limit': limit.toString(),
+        'active_only': activeOnly.toString(),
+      };
+      if (userId != null) {
+        queryParameters['user_id'] = userId;
+      }
       final response = await http.get(
-        Uri.parse('$API/api/v1/users/events/my').replace(queryParameters: {
-          'limit': '100',
-        }),
+        Uri.parse('$API/api/v1/users/events/my')
+            .replace(queryParameters: queryParameters),
         headers: {
           "Content-Type": "application/json",
           'Authorization': 'Bearer $accessToken'
@@ -97,11 +146,20 @@ class ProfileApi {
     return null;
   }
 
-  Future<ProfileEventModels?> getProfileVisitedListEvents() async {
+  Future<ProfileEventModels?> getProfileVisitedListEvents(
+      {int offset = 0, int limit = 10, String? userId}) async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
+      final queryParameters = {
+        'offset': offset.toString(),
+        'limit': limit.toString(),
+      };
+      if (userId != null) {
+        queryParameters['user_id'] = userId;
+      }
       final response = await http.get(
-        Uri.parse('$API/api/v1/users/events/visited'),
+        Uri.parse('$API/api/v1/users/events/visited')
+            .replace(queryParameters: queryParameters),
         headers: {
           "Content-Type": "application/json",
           'Authorization': 'Bearer $accessToken'
@@ -130,6 +188,25 @@ class ProfileApi {
         return Left(PublicUserModel.fromJson(jsonDecode(response.body)));
       } else if (response.statusCode == 403) {
         return Right("Пользователь вас заблокировал");
+      } else {
+        throw Exception('Error: ${response.body}');
+      }
+    }
+    throw Exception('Error');
+  }
+
+  Future<bool> getBlockedUser(String userId) async {
+    final accessToken = await storage.getAccessToken();
+    if (accessToken != null) {
+      final response = await http.get(
+        Uri.parse('$API/api/v1/users/$userId/block'),
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': 'Bearer $accessToken'
+        },
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body)['is_blocked'];
       } else {
         throw Exception('Error: ${response.body}');
       }
@@ -179,7 +256,8 @@ class ProfileApi {
     return null;
   }
 
-  Future<ProfileModel?> updateProfile(ProfileModel profileModel) async {
+  Future<Either<String, ProfileModel>> updateProfile(
+      ProfileModel profileModel) async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
       developer.log(
@@ -224,12 +302,14 @@ class ProfileApi {
       );
 
       if (response.statusCode == 200) {
-        return profileModel;
-      } else {
-        throw Exception('Error: ${response.body}');
+        return Right(profileModel);
+      } else if (response.statusCode == 400) {
+        return Left("Поля содержат запрещенные слова");
       }
+    } else {
+      return Left("Ошибка");
     }
-    return null;
+    return Left("Ошибка");
   }
 
   Future<bool> updateProfilePicture(String imagePath) async {

@@ -111,7 +111,7 @@ class _EventsScreenState extends State<EventsScreen> {
 
     // Запускаем получение геолокации и профиля параллельно
     _getCurrentLocation();
-    context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
+    //context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
 
     try {
       developer.log('Загрузка событий в EventsScreen:', name: 'EVENTS_SCREEN');

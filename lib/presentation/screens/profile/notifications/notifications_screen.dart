@@ -44,6 +44,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         backgroundColor: Colors.transparent,
         title: Padding(
           padding: const EdgeInsets.only(left: 5),
@@ -85,7 +86,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         child: CircularProgressIndicator(),
                       ));
                     }
-
                     final notification = state.notifications[index];
                     return NotificationTile(notification: notification);
                   },

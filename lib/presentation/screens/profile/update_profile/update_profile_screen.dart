@@ -50,6 +50,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   List<String> _suggestions = [];
   bool _isLoading = false;
+  bool isError = false;
 
   final ScrollController _scrollController = ScrollController();
   ListOnbordingModel? listOnbordingModel;
@@ -165,6 +166,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
           if (state is ProfileUpdatedErrorState) {
             setState(() {
               isLoading = false;
+              bioController.text = "Что-то плохое тут написано, прям фу";
+              isError = true;
             });
             toastification.show(
               context: context,
@@ -374,6 +377,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         fontSize: 18,
                                         fontFamily: 'Inter',
                                         fontWeight: FontWeight.w400),
+                                    textCapitalization:
+                                        TextCapitalization.sentences,
                                     controller: surnameController,
                                     decoration: InputDecoration(
                                       hintText: 'Введите фамилию',
@@ -549,6 +554,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                       return null;
                                     },
                                     onChanged: (value) {
+                                      setState(() => isError = false);
                                       if (value.isNotEmpty) {
                                         final formattedValue =
                                             value[0].toUpperCase() +
@@ -564,13 +570,45 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                       }
                                     },
                                     decoration: InputDecoration(
+                                      labelText: isError
+                                          ? "Обнаружены недопустимые слова"
+                                          : "",
+                                      labelStyle: TextStyle(color: Colors.red),
                                       hintText: 'Напишите что-нибудь о себе...',
-                                      hintStyle: hintTextStyleEdit,
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                        borderSide: BorderSide.none,
+                                      hintStyle: hintTextStyleEdit.copyWith(
+                                        color:
+                                            isError ? Colors.red : Colors.black,
                                       ),
+                                      enabledBorder: isError
+                                          ? OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              borderSide:
+                                                  BorderSide(color: Colors.red))
+                                          : OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              borderSide: BorderSide.none),
+                                      focusedBorder: isError
+                                          ? OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              borderSide:
+                                                  BorderSide(color: Colors.red))
+                                          : OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              borderSide: BorderSide.none),
+                                      border: isError
+                                          ? OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              borderSide:
+                                                  BorderSide(color: Colors.red))
+                                          : OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              borderSide: BorderSide.none),
                                       filled: true,
                                       fillColor: Colors.grey[100],
                                     ),

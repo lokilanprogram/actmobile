@@ -7,6 +7,7 @@ import 'package:acti_mobile/presentation/screens/events/screens/events_screen.da
 import 'package:acti_mobile/presentation/screens/events/screens/votes_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
+import 'package:acti_mobile/presentation/screens/profile/block_and_delete/block_and_delete_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/update_profile/update_profile_screen.dart';
@@ -209,6 +210,20 @@ class _MainScreenState extends State<MainScreen> {
             _isVerified = state.isVerified;
             _isProfileCompleted = state.isProfileCompleted;
           });
+        } else if (state is ProfileBlockedAdminState) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      BlockedScreen(profileModel: state.profileModel)),
+              (route) => false);
+        } else if (state is ProfileDeleteAdminState) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      DeletedScreen(profileModel: state.profileModel)),
+              (route) => false);
         }
       },
       child: Consumer<MainScreenProvider>(
@@ -291,9 +306,9 @@ class _MainScreenState extends State<MainScreen> {
                           provider.setIndex(index);
                         }
                         // Обновляем состояние при изменении индекса
-                        context
-                            .read<ProfileBloc>()
-                            .add(ProfileGetListEventsEvent());
+                        // context
+                        //     .read<ProfileBloc>()
+                        //     .add(ProfileGetListEventsEvent());
                       },
                       profileIconUrl: _profileIconUrl,
                     ),

@@ -40,10 +40,10 @@ void main() async {
       options: FirebaseOptions(
           apiKey: Platform.isAndroid
               ? "AIzaSyBSPx33YxNkVQ9m5nb_U3Uchu1YpoiDSOg"
-              : "AIzaSyBhorOPzeLBM2gICrTlhw32hEmOpjGcZkM",
+              : "AIzaSyCjLnxLzxmKKbSCj7ebabQFabmZEvFdf5k",
           appId: Platform.isAndroid
               ? "1:927589486813:android:2315c019c7bf66d4a40b34"
-              : "1:368466897752:ios:d78a2747650774472dd32d",
+              : "1:927589486813:ios:f0ce8032174c9c6ca40b34", //"1:368466897752:ios:d78a2747650774472dd32d",
           messagingSenderId: "927589486813",
           projectId: "acti-54f96"));
 
