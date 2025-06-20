@@ -38,7 +38,10 @@ class SentMessageState extends ChatState {
   SentMessageState({required this.chatModel});
 }
 
-class SentMessageErrorState extends ChatState {}
+class SentMessageErrorState extends ChatState {
+  final String error;
+  SentMessageErrorState(this.error);
+}
 
 class GotChatHistoryState extends ChatState {
   final ChatMessagesModel chatModel;

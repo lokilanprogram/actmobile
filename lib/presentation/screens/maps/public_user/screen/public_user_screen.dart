@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
+import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/public_user_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
@@ -31,6 +32,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
   bool isLoading = false;
   bool isBlocked = false;
   late PublicUserModel publicUserModel;
+  bool isVerified = true;
 
   @override
   void initState() {
@@ -42,6 +44,13 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
     setState(() {
       isLoading = true;
     });
+    final storage = SecureStorageService();
+    final verified = await storage.isUserVerified();
+    if (verified != true) {
+      setState(() {
+        isVerified = false;
+      });
+    }
     context
         .read<ProfileBloc>()
         .add(ProfileGetPublicUserEvent(userId: widget.userId));
@@ -357,7 +366,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            publicUserModel.isBlockedByUser == true
+                            publicUserModel.isBlockedByUser == true || isVerified == false
                                 ? Material(
                                     elevation: 1.2,
                                     borderRadius: BorderRadius.circular(25),
@@ -374,7 +383,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                       ),
                                       child: Center(
                                         child: Text(
-                                          'Данный пользователь вас заблокировал, вы не можете ему написать',
+                                          !isVerified ? "Подтвердите почту, чтобы ему написать" : 'Данный пользователь вас заблокировал, вы не можете ему написать',
                                           textAlign: TextAlign.center,
                                           maxLines: 2,
                                           style: TextStyle(

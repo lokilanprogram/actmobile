@@ -182,6 +182,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             });
           }
         }
+        if (state is SentMessageErrorState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.error)),
+          );
+        }
         if (state is StartedChatMessageState) {
           setState(() {
             webSocketService = ChatWebSocketService(
@@ -437,7 +442,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   }
                                 });
                               },
-                              child: chatInfo == null
+                              child: chatInfo?.event == null &&
+                                      chatInfo?.users?.first.photoUrl == null
                                   ? CircleAvatar(
                                       maxRadius: 26,
                                       backgroundImage: AssetImage(
@@ -534,10 +540,37 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 : SafeArea(
                     child: Column(
                       children: [
+                        if (chatInfo?.type == "private" &&
+                            chatInfo?.users?.first.hasRecentBan == true)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 30, right: 30, top: 5),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.red,
+                                  width: 1,
+                                ),
+                                borderRadius: BorderRadius.circular(11),
+                              ),
+                              child: Text(
+                                'На данного пользователя поступали жалобы, будьте бдительны',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ),
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.only(
-                                left: 15, right: 15, top: 15),
+                                left: 15, right: 15, top: 5),
                             child: messages.isEmpty
                                 ? const SizedBox()
                                 : StreamBuilder(
@@ -551,7 +584,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                           print(result);
 
                                           final newMessage = result.message;
-                                          status = "Онлайн";
+                                          if (result.message?.userId !=
+                                              profileUserId) {
+                                            status = "Онлайн";
+                                          }
+
                                           final alreadyExists = messages.any(
                                               (m) => m.id == newMessage!.id);
                                           if (!alreadyExists) {

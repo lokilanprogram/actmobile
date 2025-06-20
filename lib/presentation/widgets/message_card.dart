@@ -60,7 +60,7 @@ class _MessageCardState extends State<MessageCard>
       padding = Platform.isAndroid ? 8 : 12;
     }
 
-    final textPadding = '\u00A0' * padding;
+    final textPadding = '\u00A0' * (padding + 1);
     final maxWidth = MediaQuery.of(context).size.width * 0.80;
     final maxHeight = MediaQuery.of(context).size.height * 0.40;
     final minWidth = 0.8 * maxWidth;
@@ -293,6 +293,8 @@ class _MessageCardState extends State<MessageCard>
                               !isSentMessageCard ? Colors.black : Colors.white,
                         ),
                       ),
+                      if (widget.message.status == "read" && isSentMessageCard)
+                        const SizedBox(width: 2),
                       if (widget.message.status == "read" && isSentMessageCard)
                         SvgPicture.asset('assets/icons/icon_message_read.svg'),
                       // if (isSentMessageCard) ...[

@@ -22,6 +22,10 @@ part 'profile_state.dart';
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final storage = SecureStorageService();
 
+  int _eventOffset = 0;
+  int _visitedEventOffset = 0;
+  final int _pageLimit = 10;
+
   ProfileBloc() : super(ProfileInitial()) {
     on<InitializeMapEvent>((event, emit) async {
       try {
@@ -49,13 +53,41 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileGetEvent>((event, emit) async {
       try {
         final profile = await ProfileApi().getProfile();
-        final users = await ProfileApi().getSimiliarUsers();
-        if (profile != null && users != null) {
-          emit(ProfileGotState(
-              profileModel: profile, similiarUsersModel: users));
+        if (profile != null) {
+          if (profile.status == 'blocked') {
+            emit(ProfileBlockedAdminState(profileModel: profile));
+          } else if (profile.status == 'deleted') {
+            emit(ProfileDeleteAdminState(profileModel: profile));
+          } else {
+            final users = await ProfileApi().getSimiliarUsers();
+            if (users != null) {
+              emit(ProfileGotState(
+                  profileModel: profile, similiarUsersModel: users));
+            }
+          }
         }
       } catch (e) {
         emit(ProfileGotErrorState());
+      }
+    });
+
+    on<ProfileResendEmailEvent>((event, emit) async {
+      try {
+        final profile = await ProfileApi().getProfile();
+        if (profile != null) {
+          if (profile.isProfileCompleted == true) {
+            final isSend = await ProfileApi().postResendEmail();
+            isSend.fold(
+              (_l) => emit(ProfileResendEmailErrorState(message: _l)),
+              (_r) => emit(ProfileResendEmailState()),
+            );
+          } else {
+            emit(ProfileResendEmailErrorState(
+                message: "Заполните данные профиля"));
+          }
+        }
+      } catch (e) {
+        emit(ProfileResendEmailErrorState(message: e.toString()));
       }
     });
 
@@ -152,87 +184,96 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           name: 'ProfileBloc',
         );
 
-        final profile = await ProfileApi().updateProfile(
+        final postProfile = await ProfileApi().updateProfile(
           event.profileModel,
         );
 
-        developer.log(
-          '=== Ответ сервера на обновление профиля ===\n'
-          'Статус: Успешно\n'
-          'Обновленные данные профиля:\n'
-          'ID: ${profile?.id}\n'
-          'Имя: ${profile?.name}\n'
-          'Фамилия: ${profile?.surname}\n'
-          'Email: ${profile?.email}\n'
-          'Город: ${profile?.city}\n'
-          'О себе: ${profile?.bio}\n'
-          'Организация: ${profile?.isOrganization}\n'
-          'Категории: ${profile?.categories.map((e) => e.name).toList()}\n'
-          'Скрыть мои мероприятия: ${profile?.hideMyEvents}\n'
-          'Скрыть посещенные мероприятия: ${profile?.hideAttendedEvents}',
-          name: 'ProfileBloc',
-        );
+        late final profile;
 
-        String? photoError;
-        if (event.profileModel.photoUrl != null) {
-          try {
-            developer.log(
-              '=== Обновление фотографии профиля ===\n'
-              'Путь к файлу: ${event.profileModel.photoUrl}',
-              name: 'ProfileBloc',
-            );
-            await ProfileApi()
-                .updateProfilePicture(event.profileModel.photoUrl!);
-            developer.log('Фотография успешно обновлена', name: 'ProfileBloc');
-          } catch (e) {
-            developer.log(
-              '=== Ошибка при обновлении фотографии ===\n'
-              'Тип ошибки: ${e.runtimeType}\n'
-              'Сообщение: $e',
-              name: 'ProfileBloc',
-              error: e,
-            );
-            photoError = e.toString().replaceAll('Exception: ', '');
-          }
-        }
+        postProfile.fold(
+            (_l) => emit(ProfileUpdatedErrorState(errorMessage: _l)),
+            (_r) => profile = _r);
 
-        // Получаем обновленные данные профиля
-        final updatedProfile = await ProfileApi().getProfile();
-        // Получаем обновленный список похожих пользователей
-        final similarUsers = await ProfileApi().getSimiliarUsers();
-
-        if (updatedProfile != null && similarUsers != null) {
+        if (postProfile.isRight()) {
           developer.log(
-            '=== Финальное состояние профиля ===\n'
-            'ID: ${updatedProfile.id}\n'
-            'Имя: ${updatedProfile.name}\n'
-            'Фамилия: ${updatedProfile.surname}\n'
-            'Email: ${updatedProfile.email}\n'
-            'Город: ${updatedProfile.city}\n'
-            'О себе: ${updatedProfile.bio}\n'
-            'Организация: ${updatedProfile.isOrganization}\n'
-            'Категории: ${updatedProfile.categories.map((e) => e.name).toList()}\n'
-            'Скрыть мои мероприятия: ${updatedProfile.hideMyEvents}\n'
-            'Скрыть посещенные мероприятия: ${updatedProfile.hideAttendedEvents}\n'
-            'URL фото: ${updatedProfile.photoUrl}\n'
-            '=== Обновление профиля завершено ===',
+            '=== Ответ сервера на обновление профиля ===\n'
+            'Статус: Успешно\n'
+            'Обновленные данные профиля:\n'
+            'ID: ${profile?.id}\n'
+            'Имя: ${profile?.name}\n'
+            'Фамилия: ${profile?.surname}\n'
+            'Email: ${profile?.email}\n'
+            'Город: ${profile?.city}\n'
+            'О себе: ${profile?.bio}\n'
+            'Организация: ${profile?.isOrganization}\n'
+            'Категории: ${profile?.categories.map((e) => e.name).toList()}\n'
+            'Скрыть мои мероприятия: ${profile?.hideMyEvents}\n'
+            'Скрыть посещенные мероприятия: ${profile?.hideAttendedEvents}',
             name: 'ProfileBloc',
           );
 
-          if (photoError != null) {
-            emit(ProfileUpdatedWithPhotoErrorState(
-              profileModel: updatedProfile,
-              photoError: photoError,
-            ));
-          } else {
-            emit(ProfileUpdatedState(profileModel: updatedProfile));
+          String? photoError;
+          if (event.profileModel.photoUrl != null) {
+            try {
+              developer.log(
+                '=== Обновление фотографии профиля ===\n'
+                'Путь к файлу: ${event.profileModel.photoUrl}',
+                name: 'ProfileBloc',
+              );
+              await ProfileApi()
+                  .updateProfilePicture(event.profileModel.photoUrl!);
+              developer.log('Фотография успешно обновлена',
+                  name: 'ProfileBloc');
+            } catch (e) {
+              developer.log(
+                '=== Ошибка при обновлении фотографии ===\n'
+                'Тип ошибки: ${e.runtimeType}\n'
+                'Сообщение: $e',
+                name: 'ProfileBloc',
+                error: e,
+              );
+              photoError = e.toString().replaceAll('Exception: ', '');
+            }
           }
 
-          // Обновляем данные на обоих экранах
-          emit(ProfileGotState(
-            profileModel: updatedProfile,
-            similiarUsersModel: similarUsers,
-          ));
+          // Получаем обновленные данные профиля
+          final updatedProfile = await ProfileApi().getProfile();
+          // Получаем обновленный список похожих пользователей
+          final similarUsers = await ProfileApi().getSimiliarUsers();
+
+          if (updatedProfile != null && similarUsers != null) {
+            developer.log(
+              '=== Финальное состояние профиля ===\n'
+              'ID: ${updatedProfile.id}\n'
+              'Имя: ${updatedProfile.name}\n'
+              'Фамилия: ${updatedProfile.surname}\n'
+              'Email: ${updatedProfile.email}\n'
+              'Город: ${updatedProfile.city}\n'
+              'О себе: ${updatedProfile.bio}\n'
+              'Организация: ${updatedProfile.isOrganization}\n'
+              'Категории: ${updatedProfile.categories.map((e) => e.name).toList()}\n'
+              'Скрыть мои мероприятия: ${updatedProfile.hideMyEvents}\n'
+              'Скрыть посещенные мероприятия: ${updatedProfile.hideAttendedEvents}\n'
+              'URL фото: ${updatedProfile.photoUrl}\n'
+              '=== Обновление профиля завершено ===',
+              name: 'ProfileBloc',
+            );
+
+            if (photoError != null) {
+              emit(ProfileUpdatedWithPhotoErrorState(
+                profileModel: updatedProfile,
+                photoError: photoError,
+              ));
+            } else {
+              emit(ProfileUpdatedState(profileModel: updatedProfile));
+            }
+
+            // Обновляем данные на обоих экранах
+            emit(ProfileGotState(
+              profileModel: updatedProfile,
+              similiarUsersModel: similarUsers,
+            ));
+          }
         }
       } catch (e) {
         developer.log(
@@ -263,22 +304,58 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     on<ProfileGetListEventsEvent>((event, emit) async {
       try {
-        final profile = await ProfileApi().getProfile();
-        if (profile != null) {
-          final events = await ProfileApi().getProfileListEvents();
-          final visitedEvents =
-              await ProfileApi().getProfileVisitedListEvents();
-          if (events != null)
-            events.events.sort((a, b) => a.dateStart.compareTo(b.dateStart));
-          if (visitedEvents != null)
-            visitedEvents.events
-                .sort((a, b) => a.dateStart.compareTo(b.dateStart));
-          emit(ProfileGotListEventsState(
-              profileVisitedEventsModels: visitedEvents,
-              profileEventsModels: events,
-              isVerified: profile.isEmailVerified,
-              isProfileCompleted: profile.isProfileCompleted));
+        final currentState = state;
+        List<OrganizedEventModel> allEvents = [];
+        List<OrganizedEventModel> allVisitedEvents = [];
+
+        if (event.loadMoreMy && currentState is ProfileGotListEventsState) {
+          allEvents = List.from(currentState.profileEventsModels!.events);
         }
+        if (event.loadMoreVisited &&
+            currentState is ProfileGotListEventsState) {
+          allVisitedEvents =
+              List.from(currentState.profileVisitedEventsModels!.events);
+        }
+        if (!event.loadMoreVisited && !event.loadMoreMy) {
+          _eventOffset = 0;
+          _visitedEventOffset = 0;
+        }
+
+        final profile = await ProfileApi().getProfile();
+
+        final events = await ProfileApi()
+            .getProfileListEvents(offset: _eventOffset, limit: _pageLimit);
+        final visitedEvents = await ProfileApi().getProfileVisitedListEvents(
+            offset: _visitedEventOffset, limit: _pageLimit);
+
+        if (events != null) {
+          allEvents.addAll(events.events);
+          //allEvents.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+          _eventOffset += events.events.length;
+        }
+
+        if (visitedEvents != null) {
+          allVisitedEvents.addAll(visitedEvents.events);
+          //allVisitedEvents.sort((a, b) => a.dateStart.compareTo(b.dateStart));
+          _visitedEventOffset += visitedEvents.events.length;
+        }
+
+        emit(ProfileGotListEventsState(
+          profileVisitedEventsModels: ProfileEventModels(
+              events: allVisitedEvents.cast<OrganizedEventModel>(),
+              total: visitedEvents?.total ?? 0,
+              limit: visitedEvents?.limit ?? 0,
+              offset: visitedEvents?.offset ?? 0),
+          profileEventsModels: ProfileEventModels(
+              events: allEvents.cast<OrganizedEventModel>(),
+              total: events?.total ?? 0,
+              limit: events?.limit ?? 0,
+              offset: events?.offset ?? 0),
+          isVerified: profile?.isEmailVerified ?? false,
+          isProfileCompleted: profile?.isProfileCompleted ?? false,
+          hasMoreEvents: events?.events.length == _pageLimit,
+          hasMoreVisitedEvents: visitedEvents?.events.length == _pageLimit,
+        ));
       } catch (e) {
         emit(ProfileGotListEventsErrorState());
       }

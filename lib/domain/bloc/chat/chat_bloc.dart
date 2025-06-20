@@ -6,6 +6,7 @@ import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/api/chat/chat_api.dart';
 import 'package:bloc/bloc.dart';
+import 'package:dartz/dartz.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meta/meta.dart';
 part 'chat_event.dart';
@@ -93,7 +94,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     });
 
     on<StartChatMessageEvent>((event, emit) async {
-      bool? isSent = false;
+      Either<String, bool>? isSent;
       try {
         final storage = SecureStorageService();
         final accessToken = await storage.getAccessToken();
@@ -108,10 +109,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           if (isSent != null) {
             final chatModel = await ChatApi()
                 .getChatHistory(chatId: createdChat.id, offset: 0);
-            emit(StartedChatMessageState(
-                chatModel: chatModel!,
-                chatId: createdChat.id,
-                accessToken: accessToken!));
+            isSent.fold(
+                (l) => emit(StartedChatMessageErrorState()),
+                (r) => emit(StartedChatMessageState(
+                      chatModel: chatModel!,
+                      chatId: createdChat.id,
+                      accessToken: accessToken!,
+                    )));
           }
         }
       } catch (e) {
@@ -132,7 +136,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     on<SendMessageEvent>((event, emit) async {
       ChatMessagesModel? chatModel;
-      bool? isSent = false;
+      Either<String, bool>? isSent;
       try {
         if (event.imagePath == null) {
           isSent = await ChatApi().sendMessage(event.chatId, event.message);
@@ -141,17 +145,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
               .sendFileMessage(event.chatId, event.message, event.imagePath!);
         }
 
-        if (isSent != null && isSent == true) {
-          if (event.isEmptyChat) {
-            chatModel =
-                await ChatApi().getChatHistory(chatId: event.chatId, offset: 0);
-          }
-          emit(SentMessageState(
-            chatModel: chatModel,
-          ));
+        if (event.isEmptyChat) {
+          chatModel =
+              await ChatApi().getChatHistory(chatId: event.chatId, offset: 0);
         }
+        isSent.fold((l) => emit(SentMessageErrorState(l)),
+            (r) => emit(SentMessageState(chatModel: chatModel)));
       } catch (e) {
-        emit(SentMessageErrorState());
+        emit(SentMessageErrorState(e.toString()));
       }
     });
   }

@@ -12,6 +12,7 @@ import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/create/map_picker/map_picker_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/widget/drop_down_icon.dart';
+import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
 import 'package:acti_mobile/presentation/widgets/add_reviews.dart';
 import 'package:acti_mobile/presentation/widgets/gradient_text.dart';
 import 'package:acti_mobile/presentation/widgets/image_widget.dart';
@@ -93,7 +94,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           });
           context.read<ProfileBloc>().add(
               ProfileGetPublicUserEvent(userId: organizedEvent.creatorId!));
-          context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
+          //context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
         }
 
         if (state is ProfileLeftState) {
@@ -104,7 +105,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           });
           context.read<ProfileBloc>().add(
               ProfileGetPublicUserEvent(userId: organizedEvent.creatorId!));
-          context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
+          //context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
         }
         if (state is ProfileGotEventDetailState) {
           setState(() {
@@ -131,7 +132,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           if (state.eventModel.status == 'completed' &&
               isOpenAddReviews == false) {
             if (!rewiewsModel.reviews
-                .any((review) => review.user.id == userId)) {
+                    .any((review) => review.user.id == userId) &&
+                state.eventModel.creatorId != userId) {
               showAddReviewsBottomSheet(context, userId, state.eventModel);
             }
           }
@@ -511,6 +513,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                             )),
                                         InkWell(
                                           onTap: () {
+                                            if (organizedEvent.creator.id !=
+                                                userId) {
                                             Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
@@ -520,6 +524,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                                 organizedEvent
                                                                     .creator
                                                                     .id!)));
+                                                } else {
+                                                  Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              ProfileMenuScreen(
+                                                                  onSettingsChanged: null)));
+                                                }
                                           },
                                           child: Row(
                                             children: [
@@ -684,20 +696,21 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                             child: Divider(),
                                           ),
 
-                                          // Место
-                                          infoRow(
-                                            organizedEvent,
-                                            'assets/icons/icon_location.svg',
-                                            true,
-                                            'Место',
-                                            organizedEvent.address,
-                                          ),
+                                          if (organizedEvent.type != 'online')
+                                            infoRow(
+                                              organizedEvent,
+                                              'assets/icons/icon_location.svg',
+                                              true,
+                                              'Место',
+                                              organizedEvent.address,
+                                            ),
 
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                top: 5, bottom: 5),
-                                            child: Divider(),
-                                          ),
+                                          if (organizedEvent.type != 'online')
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 5, bottom: 5),
+                                              child: Divider(),
+                                            ),
 
                                           // Места
                                           infoRow(
