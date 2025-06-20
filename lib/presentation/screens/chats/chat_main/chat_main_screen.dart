@@ -7,6 +7,7 @@ import 'package:acti_mobile/configs/unread_message_provider.dart';
 import 'package:acti_mobile/data/models/all_chats_model.dart';
 import 'package:acti_mobile/data/models/all_chats_snapshot_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
+import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
@@ -54,16 +55,21 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
     setState(() {
       userId = id;
     });
-    if (verified == true) {
-      context.read<ChatBloc>().add(GetAllChatsEvent());
-      final accessToken = await storage.getAccessToken();
-      webSocketService = AllChatWebSocketService(token: accessToken!);
-    } else {
+    if (verified != true) {
       setState(() {
         isVerified = false;
         _isLoading = false;
       });
     }
+    //   context.read<ChatBloc>().add(GetAllChatsEvent());
+    //   final accessToken = await storage.getAccessToken();
+    //   webSocketService = AllChatWebSocketService(token: accessToken!);
+    // } else {
+    //   setState(() {
+    //     isVerified = false;
+    //     _isLoading = false;
+    //   });
+    // }
   }
 
   @override
@@ -75,24 +81,71 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   @override
   Widget build(BuildContext context) {
     final _unreadProvider = Provider.of<UnreadMessageProvider>(context);
-    return BlocListener<ChatBloc, ChatState>(
-      listener: (context, state) {
-        if (state is GotAllChatsState) {
-          _count = 0;
-          _count += state.allGroupChats.chats
-              .where((e) => (e.unreadCount ?? 0) > 0)
-              .length;
-          _count += state.allPrivateChats.chats
-              .where((e) => (e.unreadCount ?? 0) > 0)
-              .length;
-          _unreadProvider.setUnreadCount(_count);
-          setState(() {
-            allGroupChats = state.allGroupChats;
-            allPrivateChats = state.allPrivateChats;
-            _isLoading = false;
-          });
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ChatBloc, ChatState>(
+          listener: (context, state) {
+            if (state is GotAllChatsState) {
+              _count = 0;
+              _count += state.allGroupChats.chats
+                  .where((e) => (e.unreadCount ?? 0) > 0)
+                  .length;
+              _count += state.allPrivateChats.chats
+                  .where((e) => (e.unreadCount ?? 0) > 0)
+                  .length;
+              _unreadProvider.setUnreadCount(_count);
+              setState(() {
+                allGroupChats = state.allGroupChats;
+                allPrivateChats = state.allPrivateChats;
+                _isLoading = false;
+              });
+            }
+          },
+        ),
+        BlocListener<ProfileBloc, ProfileState>(
+          listener: (context, state) async {
+            if (state is ProfileGotState) {
+              if (webSocketService == null &&
+                  state.profileModel.status != 'blocked' &&
+                  state.profileModel.isEmailVerified) {
+                final storage = SecureStorageService();
+                storage.setUserVerified(true);
+                final accessToken = await storage.getAccessToken();
+                context.read<ChatBloc>().add(GetAllChatsEvent());
+                webSocketService = AllChatWebSocketService(token: accessToken!);
+                setState(() {
+                  _isLoading = false;
+                  isVerified = state.profileModel.isEmailVerified;
+                });
+              } else {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            } else if (state is ProfileResendEmailState) {
+              setState(() {
+                _isLoading = false;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Подтверждение отправлено на почту'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            } else if (state is ProfileResendEmailErrorState) {
+              setState(() {
+                _isLoading = false;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -117,16 +170,73 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
         body: _isLoading
             ? const LoaderWidget()
             : !isVerified
-                ? const Center(
-                    child: Text(
-                      "Подтвердите почту",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 18.35,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'Inter',
-                      ),
+                ? Padding(
+                    padding: const EdgeInsets.all(30.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Для продолжения, требуется  подтвердить почту",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18.35,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 59,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: mainBlueColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            onPressed: () {
+                              context
+                                  .read<ProfileBloc>()
+                                  .add(ProfileGetEvent());
+                              setState(() {
+                                _isLoading = true;
+                              });
+                            },
+                            child: const Text(
+                              'Обновить',
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                  fontFamily: 'Inter'),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        InkWell(
+                          onTap: () {
+                            context
+                                .read<ProfileBloc>()
+                                .add(ProfileResendEmailEvent());
+                            setState(() {
+                              _isLoading = true;
+                            });
+                          },
+                          child: Text(
+                            "Отправить еще раз",
+                            style: TextStyle(
+                              color: mainBlueColor,
+                              fontFamily: 'Gilroy',
+                              fontSize: 14.7,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        )
+                      ],
                     ),
                   )
                 : Padding(
@@ -293,30 +403,30 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
             ),
           ),
         ),
-        if (showRefresh) ...[
-          const SizedBox(height: 24),
-          Center(
-            child: ElevatedButton(
-              onPressed: initialize,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4293EF),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
-              ),
-              child: const Text(
-                'Обновить',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ],
+        // if (showRefresh) ...[
+        //   const SizedBox(height: 24),
+        //   Center(
+        //     child: ElevatedButton(
+        //       onPressed: initialize,
+        //       style: ElevatedButton.styleFrom(
+        //         backgroundColor: const Color(0xFF4293EF),
+        //         shape: RoundedRectangleBorder(
+        //           borderRadius: BorderRadius.circular(30),
+        //         ),
+        //         padding:
+        //             const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
+        //       ),
+        //       child: const Text(
+        //         'Обновить',
+        //         style: TextStyle(
+        //           fontSize: 16,
+        //           color: Colors.white,
+        //           fontWeight: FontWeight.w500,
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ],
       ],
     );
   }

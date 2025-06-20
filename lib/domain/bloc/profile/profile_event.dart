@@ -5,6 +5,8 @@ abstract class ProfileEvent {}
 
 class ProfileGetEvent extends ProfileEvent {}
 
+class ProfileResendEmailEvent extends ProfileEvent {}
+
 class SearchEventsOnMapEvent extends ProfileEvent {
   final double latitude;
   final double longitude;
@@ -46,8 +48,9 @@ class ProfileUpdateEvent extends ProfileEvent {
 }
 
 class ProfileGetListEventsEvent extends ProfileEvent {
-  final bool isRefresh;
-  ProfileGetListEventsEvent({this.isRefresh = false});
+  final bool loadMoreMy;
+  final bool loadMoreVisited;
+  ProfileGetListEventsEvent({this.loadMoreMy = false, this.loadMoreVisited = false});
 }
 
 class ProfileGetVerifiedEventsEvent extends ProfileEvent {}

@@ -17,18 +17,15 @@ class ActivityBarWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        !isProfileCompleted
-            ? showAlertOKDialog(context, null,
-                isTitled: true, title: 'Заполните профиль')
-            : isVerified
-                ? Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => CreateEventScreen(
-                              organizedEventModel: null,
-                            )))
-                : showAlertOKDialog(context, null,
-                    isTitled: true, title: 'Подтвердите почту');
+        isVerified
+            ? Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => CreateEventScreen(
+                          organizedEventModel: null,
+                        )))
+            : showAlertOKDialog(context, null,
+                isTitled: true, title: 'Подтвердите почту');
       },
       child: Material(
         elevation: 1.2,

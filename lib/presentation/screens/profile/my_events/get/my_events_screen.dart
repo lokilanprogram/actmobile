@@ -33,6 +33,12 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
 
   late final TextEditingController _controller;
 
+  late final ScrollController _scrollControllerMy;
+  bool isLoadingMoreMy = false;
+
+  late final ScrollController _scrollControllerVisited;
+  bool isLoadingMoreVisited = false;
+
   @override
   void initState() {
     print('MyEventsScreen initState'); // Отладочная информация
@@ -40,6 +46,10 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
     _controller.addListener(() {
       setState(() {});
     });
+    _scrollControllerMy = ScrollController();
+    _scrollControllerMy.addListener(_onScrollMy);
+    _scrollControllerVisited = ScrollController();
+    _scrollControllerVisited.addListener(_onScrollVisited);
     super.initState();
     initialize();
   }
@@ -47,6 +57,8 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    _scrollControllerMy.dispose();
+    _scrollControllerVisited.dispose();
     super.dispose();
   }
 
@@ -57,6 +69,34 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
       isLoading = true;
     });
     context.read<ProfileBloc>().add(ProfileGetListEventsEvent());
+  }
+
+  void _onScrollMy() {
+    final state = context.read<ProfileBloc>().state;
+    if (_scrollControllerMy.position.pixels >=
+        _scrollControllerMy.position.maxScrollExtent - 200) {
+      if (!isLoadingMoreMy &&
+          state is ProfileGotListEventsState &&
+          state.hasMoreEvents) {
+        setState(() => isLoadingMoreMy = true);
+        context.read<ProfileBloc>().add(
+            ProfileGetListEventsEvent(loadMoreMy: true, loadMoreVisited: true));
+      }
+    }
+  }
+
+  void _onScrollVisited() {
+    final state = context.read<ProfileBloc>().state;
+    if (_scrollControllerVisited.position.pixels >=
+        _scrollControllerVisited.position.maxScrollExtent - 200) {
+      if (!isLoadingMoreVisited &&
+          state is ProfileGotListEventsState &&
+          state.hasMoreVisitedEvents) {
+        setState(() => isLoadingMoreVisited = true);
+        context.read<ProfileBloc>().add(
+            ProfileGetListEventsEvent(loadMoreVisited: true, loadMoreMy: true));
+      }
+    }
   }
 
   @override
@@ -75,6 +115,8 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           setState(() {
             isLoading = false;
             isVerified = state.isVerified;
+            isLoadingMoreMy = false;
+            isLoadingMoreVisited = false;
             isProfileCompleted = state.isProfileCompleted;
             profileEventModels = state.profileEventsModels;
             profileVisitedEventModels = state.profileVisitedEventsModels;
@@ -181,11 +223,23 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                   initialize();
                                 },
                                 child: ListView(
+                                  controller: isMineEvents
+                                      ? _scrollControllerMy
+                                      : _scrollControllerVisited,
                                   children: [
                                     if (isMineEvents)
                                       buildMyEvents(query)
                                     else
                                       buildVisitedEvents(query),
+                                    if ((isMineEvents && isLoadingMoreMy) ||
+                                        (!isMineEvents && isLoadingMoreVisited))
+                                      Center(
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 16),
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      ),
                                     const SizedBox(height: 150),
                                   ],
                                 ),
@@ -196,47 +250,6 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                       ),
                     ),
                   ),
-            // Positioned(
-            //   bottom: 60,
-            //   child: Column(
-            //     mainAxisSize: MainAxisSize.min,
-            //     children: [
-            //       ActivityBarWidget(isVerified: isVerified, isProfileCompleted: isProfileCompleted),
-            //       const SizedBox(height: 15),
-            //       CustomNavBarWidget(
-            //         selectedIndex: 4,
-            //         onTabSelected: (index) {
-            //           if (index == 0) {
-            //             Navigator.push(
-            //               context,
-            //               MaterialPageRoute(
-            //                   builder: (context) =>
-            //                       MapScreen(selectedScreenIndex: 0)),
-            //             );
-            //           }
-            //           if (index == 1) {
-            //             Navigator.push(
-            //               context,
-            //               MaterialPageRoute(
-            //                   builder: (context) => EventsScreen()),
-            //             );
-            //           }
-            //           if (index == 2) {
-            //             Navigator.push(
-            //               context,
-            //               MaterialPageRoute(
-            //                   builder: (context) =>
-            //                       MapScreen(selectedScreenIndex: 2)),
-            //             );
-            //           }
-            //           if (index == 3) {
-            //             Navigator.pop(context);
-            //           }
-            //         },
-            //       ),
-            //     ],
-            //   ),
-            // ),
           ],
         ),
       ),

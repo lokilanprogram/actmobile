@@ -180,6 +180,7 @@ class User {
   String? photoUrl;
   String? status;
   bool? isEmailVerified;
+  bool? hasRecentBan;
 
   User({
     required this.id,
@@ -191,6 +192,7 @@ class User {
     required this.photoUrl,
     required this.status,
     required this.isEmailVerified,
+    required this.hasRecentBan,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -203,6 +205,7 @@ class User {
         photoUrl: json["photo_url"],
         status: json["status"],
         isEmailVerified: json["is_email_verified"],
+        hasRecentBan: json["has_recent_ban"] ?? false,
       );
 
   Map<String, dynamic> toJson() => {
