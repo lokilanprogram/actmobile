@@ -1241,7 +1241,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                           children: [
                             GestureDetector(
                               onTap: () {
-                                filterProvider.updatePriceRange(isFree: true);
+                                filterProvider.setPriceType(true);
                               },
                               child: SizedBox(
                                 width: 100,
@@ -1249,7 +1249,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                   duration: Duration(milliseconds: 100),
                                   curve: Curves.easeInBack,
                                   decoration: BoxDecoration(
-                                    color: filterProvider.isFreeSelected
+                                    color: filterProvider.isFreeSelected == true
                                         ? mainBlueColor
                                         : Colors.grey[200],
                                     borderRadius: BorderRadius.circular(30.0),
@@ -1261,9 +1261,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                     'Бесплатно',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: filterProvider.isFreeSelected
-                                          ? Colors.white
-                                          : Colors.black,
+                                      color:
+                                          filterProvider.isFreeSelected == true
+                                              ? Colors.white
+                                              : Colors.black,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -1273,7 +1274,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             SizedBox(width: 10),
                             GestureDetector(
                               onTap: () {
-                                filterProvider.updatePriceRange(isFree: false);
+                                filterProvider.setPriceType(false);
                               },
                               child: SizedBox(
                                 width: 100,
@@ -1281,21 +1282,23 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                   duration: Duration(milliseconds: 100),
                                   curve: Curves.easeInBack,
                                   decoration: BoxDecoration(
-                                    color: !filterProvider.isFreeSelected
-                                        ? mainBlueColor
-                                        : Colors.grey[200],
+                                    color:
+                                        filterProvider.isFreeSelected == false
+                                            ? mainBlueColor
+                                            : Colors.grey[200],
                                     borderRadius: BorderRadius.circular(30.0),
                                   ),
                                   padding: EdgeInsets.symmetric(
                                       vertical: 8.0, horizontal: 16.0),
                                   alignment: Alignment.center,
                                   child: Text(
-                                    'Платно',
+                                    'Диапазон',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: !filterProvider.isFreeSelected
-                                          ? Colors.white
-                                          : Colors.black,
+                                      color:
+                                          filterProvider.isFreeSelected == false
+                                              ? Colors.white
+                                              : Colors.black,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -1304,41 +1307,67 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             ),
                           ],
                         ),
-                        if (!filterProvider.isFreeSelected) ...[
+                        if (filterProvider.isFreeSelected == false) ...[
                           const SizedBox(height: 10),
                           Row(
                             children: [
+                              Text('От',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  )),
+                              SizedBox(width: 10),
                               Expanded(
-                                child: TextField(
-                                  textCapitalization: TextCapitalization.sentences,
-                                  controller: _priceMinController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    hintText: 'От',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                child: SizedBox(
+                                  height: 38,
+                                  child: TextField(
+                                    textAlign: TextAlign.center,
+                                    textAlignVertical: TextAlignVertical.top,
+                                    textCapitalization:
+                                        TextCapitalization.sentences,
+                                    controller: _priceMinController,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      // hintText: 'От',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(36),
+                                      ),
                                     ),
+                                    onChanged: (value) {
+                                      filterProvider.setPriceMin(value);
+                                    },
                                   ),
-                                  onChanged: (value) {
-                                    filterProvider.updatePriceRange(min: value);
-                                  },
                                 ),
                               ),
                               SizedBox(width: 10),
+                              Text('До',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  )),
+                              SizedBox(width: 10),
                               Expanded(
-                                child: TextField(
-                                  textCapitalization: TextCapitalization.sentences,
-                                  controller: _priceMaxController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    hintText: 'До',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                child: SizedBox(
+                                  height: 38,
+                                  child: TextField(
+                                    textAlign: TextAlign.center,
+                                    textAlignVertical: TextAlignVertical.top,
+                                    textCapitalization:
+                                        TextCapitalization.sentences,
+                                    controller: _priceMaxController,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      // hintText: 'До',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(36),
+                                      ),
                                     ),
+                                    onChanged: (value) {
+                                      filterProvider.setPriceMax(value);
+                                    },
                                   ),
-                                  onChanged: (value) {
-                                    filterProvider.updatePriceRange(max: value);
-                                  },
                                 ),
                               ),
                             ],
@@ -1617,43 +1646,71 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                 const EdgeInsets.only(top: 12.0, bottom: 8.0),
                             child: Row(
                               children: [
+                                Text('От',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black,
+                                    )),
+                                SizedBox(width: 10),
                                 Expanded(
-                                  child: TextField(
-                                    textCapitalization: TextCapitalization.sentences,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      hintText: 'От',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
+                                  child: SizedBox(
+                                    height: 38,
+                                    child: TextField(
+                                      textAlign: TextAlign.center,
+                                      textAlignVertical: TextAlignVertical.top,
+                                      textCapitalization:
+                                          TextCapitalization.sentences,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        // hintText: 'От',
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(36),
+                                        ),
                                       ),
+                                      onChanged: (value) {
+                                        int? min = int.tryParse(value);
+                                        filterProvider.updatePeopleRange(
+                                          min,
+                                          filterProvider.slotsMax,
+                                        );
+                                      },
                                     ),
-                                    onChanged: (value) {
-                                      int? min = int.tryParse(value);
-                                      filterProvider.updatePeopleRange(
-                                        min,
-                                        filterProvider.slotsMax,
-                                      );
-                                    },
                                   ),
                                 ),
                                 SizedBox(width: 10),
+                                Text('От',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black,
+                                    )),
+                                SizedBox(width: 10),
                                 Expanded(
-                                  child: TextField(
-                                    textCapitalization: TextCapitalization.sentences,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      hintText: 'До',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
+                                  child: SizedBox(
+                                    height: 38,
+                                    child: TextField(
+                                      textAlign: TextAlign.center,
+                                      textAlignVertical: TextAlignVertical.top,
+                                      textCapitalization:
+                                          TextCapitalization.sentences,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        // hintText: 'До',
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(36),
+                                        ),
                                       ),
+                                      onChanged: (value) {
+                                        int? max = int.tryParse(value);
+                                        filterProvider.updatePeopleRange(
+                                          filterProvider.slotsMin,
+                                          max,
+                                        );
+                                      },
                                     ),
-                                    onChanged: (value) {
-                                      int? max = int.tryParse(value);
-                                      filterProvider.updatePeopleRange(
-                                        filterProvider.slotsMin,
-                                        max,
-                                      );
-                                    },
                                   ),
                                 ),
                               ],

@@ -402,7 +402,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                           fontFamily: 'Gilroy'),
                                     ),
                                     SizedBox(height: 10),
-                                    Container(
+                                    SizedBox(
                                       height: 100,
                                       child: ListView.separated(
                                         controller:
@@ -633,9 +633,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                           children: [
                                             organizedEvent.price == 0
                                                 ? buildTag('Бесплатное')
-                                                : buildTag(organizedEvent.price
-                                                        .toString() +
-                                                    " ₽"),
+                                                : buildTag("${organizedEvent.price} ₽"),
                                             if (organizedEvent.status ==
                                                 'completed')
                                               buildTag('Завершено'),
@@ -807,9 +805,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                           ),
                                                           SizedBox(width: 5),
                                                           if (rewiewsModel
-                                                                      .reviews !=
-                                                                  null &&
-                                                              rewiewsModel
                                                                       .reviews !=
                                                                   [])
                                                             Container(
@@ -994,9 +989,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                           children: [
                                                             if (rewiewsModel
                                                                         .reviews ==
-                                                                    null ||
-                                                                rewiewsModel
-                                                                        .reviews ==
                                                                     []) ...[
                                                               Icon(
                                                                 Icons
@@ -1020,9 +1012,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                               ),
                                                             ],
                                                             if (rewiewsModel
-                                                                        .reviews !=
-                                                                    null &&
-                                                                rewiewsModel
                                                                         .reviews !=
                                                                     []) ...[
                                                               ListView

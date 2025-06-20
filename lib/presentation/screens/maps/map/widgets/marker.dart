@@ -76,3 +76,65 @@ class SpeechBubblePainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
+
+class ClusterMarker extends StatelessWidget {
+  final List<String> iconUrls;
+  final int count;
+
+  const ClusterMarker({
+    super.key,
+    required this.iconUrls,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final iconsToShow = iconUrls.take(3).toList();
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Первый слой — иконки внахлёст
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(iconsToShow.length, (i) {
+            return Transform.translate(
+              offset: Offset(i * 18.0, 0), // сдвиг для оверлапа
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                radius: 20,
+                child: CachedNetworkImage(
+                  imageUrl: iconsToShow[i],
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            );
+          }),
+        ),
+        // Если событий больше 3 — кружок с числом
+        if (count > 3)
+          Positioned(
+            right: -8,
+            top: -8,
+            child: Container(
+              padding: EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}

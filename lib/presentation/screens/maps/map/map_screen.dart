@@ -67,7 +67,7 @@ class _MapScreenState extends State<MapScreen> {
   SearchedEventsModel? searchedEventsModel;
   String? profileId;
 
-  late PointAnnotationManager pointAnnotationManager;
+  PointAnnotationManager? pointAnnotationManager;
   final String eventsSourceId = "events-source";
   final String eventsLayerId = "events-layer";
   final String iconImageIdPrefix = "event-icon-";
@@ -107,35 +107,34 @@ class _MapScreenState extends State<MapScreen> {
   _onTap(
     MapContentGestureContext context,
   ) async {
-    //const double threshold = 0.001;
-
-    List<OrganizedEventModel> events = [];
-
-    for (var event in searchedEventsModel!.events) {
-      final distanceLat =
-          (event.latitude! - context.point.coordinates.lat).abs();
-      final distanceLng =
-          (event.longitude! - context.point.coordinates.lng).abs();
-
-      if (distanceLat < 0.003 && distanceLng < 0.003) {
-        events.add(event);
+    if (searchedEventsModel == null) return;
+    final groups = _groupEventsByLocation(searchedEventsModel!.events);
+    List<OrganizedEventModel> tappedEvents = [];
+    for (var group in groups) {
+      final first = group.first;
+      final distance = geolocator.Geolocator.distanceBetween(
+        (first.latitude ?? 0.0).toDouble(),
+        (first.longitude ?? 0.0).toDouble(),
+        context.point.coordinates.lat.toDouble(),
+        context.point.coordinates.lng.toDouble(),
+      );
+      if (distance <= 100) {
+        tappedEvents = group;
+        break;
       }
-      print(
-          '${context.point.coordinates.lng} ${context.point.coordinates.lat}');
     }
-
-    if (events.isNotEmpty) {
-      if (events.length == 1) {
+    if (tappedEvents.isNotEmpty) {
+      if (tappedEvents.length == 1) {
         await Get.bottomSheet(
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
-            CardEventOnMap(organizedEvent: events.first));
+            CardEventOnMap(organizedEvent: tappedEvents.first));
       } else {
         await Get.bottomSheet(
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
             CascadeCardsEventOnMap(
-                organizedEvents: events, profileId: profileId ?? ''));
+                organizedEvents: tappedEvents, profileId: profileId ?? ''));
       }
     }
   }
@@ -185,12 +184,10 @@ class _MapScreenState extends State<MapScreen> {
     currentPermission = futures[1] as geolocator.LocationPermission;
 
     // Параллельное выполнение WebSocket и геолокации
-    if (accessToken != null) {
-      connectToOnlineStatus(accessToken).catchError((e) {
-        developer.log('Ошибка при подключении к WebSocket: $e',
-            name: 'MAP_SCREEN');
-      });
-    }
+    connectToOnlineStatus(accessToken).catchError((e) {
+      developer.log('Ошибка при подключении к WebSocket: $e',
+          name: 'MAP_SCREEN');
+    });
 
     if (currentPermission.name == 'denied') {
       currentPermission = await geolocator.Geolocator.requestPermission();
@@ -269,6 +266,33 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  // Группировка событий по координатам с точностью до 100 м
+  List<List<OrganizedEventModel>> _groupEventsByLocation(
+      List<OrganizedEventModel> events) {
+    List<List<OrganizedEventModel>> groups = [];
+    for (var event in events) {
+      bool added = false;
+      for (var group in groups) {
+        final first = group.first;
+        final distance = geolocator.Geolocator.distanceBetween(
+          (event.latitude ?? 0.0).toDouble(),
+          (event.longitude ?? 0.0).toDouble(),
+          (first.latitude ?? 0.0).toDouble(),
+          (first.longitude ?? 0.0).toDouble(),
+        );
+        if (distance <= 100) {
+          group.add(event);
+          added = true;
+          break;
+        }
+      }
+      if (!added) {
+        groups.add([event]);
+      }
+    }
+    return groups;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
@@ -290,23 +314,59 @@ class _MapScreenState extends State<MapScreen> {
             searchedEventsModel?.events.addAll(newUniqueEvents);
           });
 
-          if (mapboxMap != null) {
-            for (var event in searchedEventsModel!.events.toList()) {
+          if (mapboxMap != null && pointAnnotationManager != null) {
+            // Только группировка!
+            await pointAnnotationManager!.deleteAll();
+            final groups = _groupEventsByLocation(searchedEventsModel!.events);
+            for (var group in groups) {
+              final avgLat =
+                  group.map((e) => e.latitude ?? 0.0).reduce((a, b) => a + b) /
+                      group.length;
+              final avgLng =
+                  group.map((e) => e.longitude ?? 0.0).reduce((a, b) => a + b) /
+                      group.length;
+              final event = group.first;
               final result = await screenshotController.captureFromWidget(
-                CategoryMarker(
-                    title: event.category!.name,
-                    iconUrl: event.category!.iconPath),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CategoryMarker(
+                      title: event.category!.name,
+                      iconUrl: event.category!.iconPath,
+                    ),
+                    if (group.length > 1)
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            ' + ${group.length.toString()}',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               );
               await addEventIconFromUrl(
                   mapboxMap!, 'pointer:${event.id}', result);
               final pointAnnotationOptions = PointAnnotationOptions(
-                geometry: Point(
-                    coordinates: Position(event.longitude!, event.latitude!)),
+                geometry: Point(coordinates: Position(avgLng, avgLat)),
                 iconSize: 0.75,
                 image: result,
                 iconImage: 'pointer:${event.id}',
               );
-              await pointAnnotationManager.create(pointAnnotationOptions);
+              await pointAnnotationManager!.create(pointAnnotationOptions);
             }
           }
         }
@@ -331,30 +391,69 @@ class _MapScreenState extends State<MapScreen> {
                         if (currentUserPosition != null && mapboxMap != null) {
                           await addUserIconToStyle(mapboxMap!);
                         }
-                        if (searchedEventsModel != null && mapboxMap != null) {
-                          for (var event in searchedEventsModel!.events) {
-                            if (event.category != null) {
-                              final result =
-                                  await screenshotController.captureFromWidget(
-                                CategoryMarker(
+                        if (searchedEventsModel != null &&
+                            mapboxMap != null &&
+                            pointAnnotationManager != null) {
+                          // Только группировка!
+                          await pointAnnotationManager!.deleteAll();
+                          final groups = _groupEventsByLocation(
+                              searchedEventsModel!.events);
+                          for (var group in groups) {
+                            final avgLat = group
+                                    .map((e) => e.latitude ?? 0.0)
+                                    .reduce((a, b) => a + b) /
+                                group.length;
+                            final avgLng = group
+                                    .map((e) => e.longitude ?? 0.0)
+                                    .reduce((a, b) => a + b) /
+                                group.length;
+                            final event = group.first;
+                            final result =
+                                await screenshotController.captureFromWidget(
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  CategoryMarker(
                                     title: event.category!.name,
-                                    iconUrl: event.category!.iconPath),
-                              );
-                              await addEventIconFromUrl(
-                                  mapboxMap!, 'pointer:${event.id}', result);
-                              final pointAnnotationOptions =
-                                  PointAnnotationOptions(
-                                geometry: Point(
-                                    coordinates: Position(
-                                        event.longitude ?? 0.0,
-                                        event.latitude ?? 0.0)),
-                                iconSize: 0.75,
-                                image: result,
-                                iconImage: 'pointer:${event.id}',
-                              );
-                              await pointAnnotationManager
-                                  .create(pointAnnotationOptions);
-                            }
+                                    iconUrl: event.category!.iconPath,
+                                  ),
+                                  if (group.length > 1)
+                                    Positioned(
+                                      top: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.redAccent,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          ' + ${group.length.toString()}',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                            await addEventIconFromUrl(
+                                mapboxMap!, 'pointer:${event.id}', result);
+                            final pointAnnotationOptions =
+                                PointAnnotationOptions(
+                              geometry:
+                                  Point(coordinates: Position(avgLng, avgLat)),
+                              iconSize: 0.75,
+                              image: result,
+                              iconImage: 'pointer:${event.id}',
+                            );
+                            await pointAnnotationManager!
+                                .create(pointAnnotationOptions);
                           }
                         }
                       },
@@ -459,7 +558,8 @@ class _MapScreenState extends State<MapScreen> {
                           Provider.of<FilterProvider>(context, listen: false);
 
                       // Очищаем текущие маркеры
-                      pointAnnotationManager.deleteAll();
+                      if (pointAnnotationManager != null)
+                        pointAnnotationManager!.deleteAll();
 
                       // Определяем координаты для поиска
                       double searchLat = currentSelectedPosition.lat.toDouble();
@@ -518,7 +618,7 @@ class _MapScreenState extends State<MapScreen> {
                           'Категории (${filterProvider.selectedCategoryIds.length}): ${filterProvider.selectedCategoryIds.join(", ")}',
                           name: 'MAP_SEARCH');
                       developer.log(
-                          'Цена: ${filterProvider.isFreeSelected ? "Бесплатно" : "${filterProvider.priceMinText} - ${filterProvider.priceMaxText}"}',
+                          'Цена: ${filterProvider.isFreeSelected == true ? "Бесплатно" : "${filterProvider.priceMinText} - ${filterProvider.priceMaxText}"}',
                           name: 'MAP_SEARCH');
                       developer.log(
                           'Дата: ${filterProvider.selectedDateFrom} - ${filterProvider.selectedDateTo}',
@@ -550,11 +650,11 @@ class _MapScreenState extends State<MapScreen> {
                               'duration_max': durationMax,
                               'category_ids':
                                   filterProvider.selectedCategoryIds,
-                              'price_min': filterProvider.isFreeSelected
+                              'price_min': filterProvider.isFreeSelected == true
                                   ? 0
                                   : double.tryParse(
                                       filterProvider.priceMinText),
-                              'price_max': filterProvider.isFreeSelected
+                              'price_max': filterProvider.isFreeSelected == true
                                   ? 0
                                   : double.tryParse(
                                       filterProvider.priceMaxText),
@@ -630,33 +730,8 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       pointAnnotationManager = pointNewAnnotationManager;
     });
-
-    await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
-    await mapboxMap.logo.updateSettings(LogoSettings(enabled: true));
-    await mapboxMap.attribution
-        .updateSettings(AttributionSettings(enabled: true));
-    await mapboxMap.compass.updateSettings(CompassSettings(enabled: false));
-
-    if (currentUserPosition != null) {
-      await addUserIconToStyle(mapboxMap);
-    }
-
-    if (searchedEventsModel != null) {
-      for (var event in searchedEventsModel!.events) {
-        final result = await screenshotController.captureFromWidget(
-          CategoryMarker(
-              title: event.category!.name, iconUrl: event.category!.iconPath),
-        );
-        await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}', result);
-        final pointAnnotationOptions = PointAnnotationOptions(
-          geometry:
-              Point(coordinates: Position(event.longitude!, event.latitude!)),
-          iconSize: 0.75,
-          image: result,
-          iconImage: 'pointer:${event.id}',
-        );
-        await pointAnnotationManager.create(pointAnnotationOptions);
-      }
-    }
+    // Удаляем все маркеры при создании карты
+    await pointAnnotationManager?.deleteAll();
+    // Не рисуем маркеры здесь! Только через onStyleLoadedListener
   }
 }

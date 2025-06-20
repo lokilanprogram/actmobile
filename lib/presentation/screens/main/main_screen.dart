@@ -1,5 +1,7 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
+import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_main/chat_main_screen.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/votes_screen.dart';
@@ -7,6 +9,7 @@ import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/update_profile/update_profile_screen.dart';
 import 'package:acti_mobile/presentation/widgets/activity_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/my_events_widget.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +25,13 @@ import 'package:acti_mobile/data/models/all_events_model.dart' as all_events;
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
-  const MainScreen({super.key, this.initialIndex = 0});
+  final bool showUpdateProfileOnStart;
+  final ProfileModel? profileModel;
+  const MainScreen(
+      {super.key,
+      this.initialIndex = 0,
+      this.showUpdateProfileOnStart = false,
+      this.profileModel});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -34,6 +43,9 @@ class _MainScreenState extends State<MainScreen> {
   bool _isProfileCompleted = false;
   all_events.AllEventsModel? _eventsModel;
   geolocator.Position? _currentPosition;
+  String? _profileIconUrl;
+  late ProfileModel profileModel;
+  bool _didShowUpdateProfile = false;
 
   final List<Widget> _screens = [
     MapScreen(),
@@ -42,6 +54,10 @@ class _MainScreenState extends State<MainScreen> {
     ProfileMenuScreen(onSettingsChanged: null),
     const MyEventsScreen(),
     const VotesScreen(),
+    // UpdateProfileScreen(
+    //                                                           profileModel:
+    //                                                               profileModel,
+    //                                                         )
   ];
 
   Future<void> _checkLocationPermission() async {
@@ -127,7 +143,7 @@ class _MainScreenState extends State<MainScreen> {
         final events = await EventsApi().searchEvents(
           latitude: _currentPosition!.latitude,
           longitude: _currentPosition!.longitude,
-          radius: 50, // Уменьшаем радиус до 50 км
+          // radius: 50, // Уменьшаем радиус до 50 км
           limit: 20, // Уменьшаем лимит до 20
           offset: 0, // Добавляем offset
         );
@@ -149,6 +165,8 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    _profileIconUrl = null;
+    _loadProfileIcon();
     // Устанавливаем начальный индекс
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MainScreenProvider>(context, listen: false)
@@ -158,8 +176,32 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  Future<void> _loadProfileIcon() async {
+    try {
+      final profile = await ProfileApi().getProfile();
+      setState(() {
+        _profileIconUrl = profile?.photoUrl;
+      });
+    } catch (e) {
+      _profileIconUrl = null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.showUpdateProfileOnStart &&
+          !_didShowUpdateProfile &&
+          widget.profileModel != null) {
+        _didShowUpdateProfile = true;
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                UpdateProfileScreen(profileModel: widget.profileModel!),
+          ),
+        );
+      }
+    });
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
         if (state is ProfileGotListEventsState) {
@@ -182,6 +224,7 @@ class _MainScreenState extends State<MainScreen> {
           ];
 
           return Scaffold(
+            backgroundColor: Colors.white,
             body: Stack(
               children: [
                 IndexedStack(
@@ -252,6 +295,7 @@ class _MainScreenState extends State<MainScreen> {
                             .read<ProfileBloc>()
                             .add(ProfileGetListEventsEvent());
                       },
+                      profileIconUrl: _profileIconUrl,
                     ),
                   ),
                 ),

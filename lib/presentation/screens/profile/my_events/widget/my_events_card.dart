@@ -281,7 +281,7 @@ class MyCardEventWidget extends StatelessWidget {
                               organizedEvent.price == 0
                                   ? buildTag('Бесплатное')
                                   : buildTag(
-                                      organizedEvent.price.toString() + " ₽"),
+                                      "${organizedEvent.price} ₽"),
                               // if (organizedEvent.status == 'completed')
                               //   buildTag('Завершено'),
                               // if (organizedEvent.restrictions

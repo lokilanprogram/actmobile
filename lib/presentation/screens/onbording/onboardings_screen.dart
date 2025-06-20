@@ -1,4 +1,6 @@
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
+import 'package:acti_mobile/data/models/profile_model.dart';
+import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_around/events_around_screen.dart';
@@ -7,6 +9,7 @@ import 'package:acti_mobile/presentation/screens/onbording/events_list/events_li
 import 'package:acti_mobile/presentation/screens/onbording/events_select/events_select_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/events_start/events_start_screen.dart';
 import 'package:acti_mobile/presentation/screens/onbording/widgets/pop_nav_button.dart';
+import 'package:acti_mobile/presentation/screens/profile/update_profile/update_profile_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,8 +28,10 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
   late List<Widget> _pages;
   int _currentPage = 0;
   bool isLoading = false;
+  bool isFinishing = false;
   List<EventOnboarding> selectedCategories = [];
   ListOnbordingModel? listOnbordingModel;
+  late ProfileModel profileModel;
 
   @override
   void initState() {
@@ -49,7 +54,6 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
         },
         categories: listOnbordingModel?.categories ?? [],
       ),
-      EventsStartScreen(),
     ];
     _pageController = PageController();
   }
@@ -119,16 +123,26 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
+      listener: (context, state) async {
         if (state is ActiSavedOnbordingState) {
           setState(() {
             isLoading = false;
+            isFinishing = true;
           });
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const MainScreen()),
-            (route) => false,
-          );
+          final profile = await ProfileApi().getProfile();
+          if (profile != null) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (_) => MainScreen(
+                  initialIndex: 3,
+                  showUpdateProfileOnStart: true,
+                  profileModel: profile,
+                ),
+              ),
+              (route) => false,
+            );
+          }
         }
         if (state is ActiSavedOnbordingErrorState) {
           setState(() {
@@ -158,7 +172,7 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: isLoading
+        body: isLoading || isFinishing
             ? LoaderWidget()
             : Stack(
                 children: [

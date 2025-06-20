@@ -6,15 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomNavBarWidget extends StatefulWidget {
   final int selectedIndex;
   final Function(int) onTabSelected;
+  final String? profileIconUrl;
 
   const CustomNavBarWidget({
     super.key,
     required this.selectedIndex,
     required this.onTabSelected,
+    required this.profileIconUrl,
   });
 
   @override
@@ -22,46 +25,6 @@ class CustomNavBarWidget extends StatefulWidget {
 }
 
 class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
-  String? profileIcon;
-  bool _isDisposed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    initialize();
-  }
-
-  Future<void> initialize() async {
-    if (_isDisposed) return;
-
-    try {
-      final profile = await ProfileApi().getProfile();
-      if (!_isDisposed && mounted) {
-        setState(() {
-          profileIcon = profile?.photoUrl;
-        });
-      }
-    } catch (e) {
-      print('Error loading profile: $e');
-    }
-  }
-
-  @override
-  void dispose() {
-    _isDisposed = true;
-    super.dispose();
-  }
-
-  void _handleTap(int index) {
-    FocusScope.of(context).unfocus();
-    // При нажатии на иконку профиля всегда переходим на индекс 3
-    if (index == 3) {
-      widget.onTabSelected(3);
-    } else {
-      widget.onTabSelected(index);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final icons = [
@@ -72,7 +35,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
     ];
 
     final unreadProvider = Provider.of<UnreadMessageProvider>(context);
-    final _count = unreadProvider.unreadCount;
+    final count = unreadProvider.unreadCount;
 
     return Material(
       elevation: 8,
@@ -94,11 +57,31 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                 child: i == 3
                     ? CircleAvatar(
                         radius: 20,
-                        backgroundImage: profileIcon != null
-                            ? NetworkImage(profileIcon!)
-                            : AssetImage('assets/images/image_profile.png')
-                                as ImageProvider,
                         backgroundColor: Colors.transparent,
+                        child: ClipOval(
+                          child: widget.profileIconUrl != null &&
+                                  widget.profileIconUrl!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: widget.profileIconUrl!,
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                    width: 40,
+                                    height: 40,
+                                    color: Colors.grey[200],
+                                    child:
+                                        Icon(Icons.person, color: Colors.grey),
+                                  ),
+                                )
+                              : Image.asset(
+                                  'assets/images/image_profile.png',
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
                       )
                     : SizedBox(
                         height: 31.5,
@@ -116,7 +99,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                                 BlendMode.srcIn,
                               ),
                             ),
-                            if (i == 2 && _count > 0)
+                            if (i == 2 && count > 0)
                               Align(
                                 alignment: Alignment.bottomRight,
                                 child: Container(
@@ -129,7 +112,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                                     borderRadius: BorderRadius.circular(100),
                                   ),
                                   child: Text(
-                                    _count.toString(),
+                                    count.toString(),
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         color: Colors.white,
@@ -147,5 +130,15 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
         ),
       ),
     );
+  }
+
+  void _handleTap(int index) {
+    FocusScope.of(context).unfocus();
+    // При нажатии на иконку профиля всегда переходим на индекс 3
+    if (index == 3) {
+      widget.onTabSelected(3);
+    } else {
+      widget.onTabSelected(index);
+    }
   }
 }

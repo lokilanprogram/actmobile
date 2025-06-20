@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/update_profile/update_hobbies.dart';
 import 'package:acti_mobile/presentation/widgets/rotating_icon.dart';
 import 'package:http/http.dart' as http;
@@ -22,6 +23,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:toastification/toastification.dart';
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
+import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
 
 class UpdateProfileScreen extends StatefulWidget {
   final ProfileModel profileModel;
@@ -140,6 +142,12 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
               autoCloseDuration: const Duration(seconds: 3),
               alignment: Alignment.topRight,
             );
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (_) => MainScreen(initialIndex: 3),
+              ),
+              (route) => false,
+            );
           }
           if (state is ProfileUpdatedWithPhotoErrorState) {
             setState(() {
@@ -181,6 +189,24 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     surfaceTintColor: Colors.white,
                     backgroundColor: Colors.white,
                     centerTitle: true,
+                    leading: Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: IconButton(
+                          onPressed: () {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => MainScreen(
+                                  initialIndex: 3,
+                                  // showUpdateProfileOnStart: true,
+                                  // profileModel: profile,
+                                ),
+                              ),
+                              (route) => false,
+                            );
+                          },
+                          icon: Icon(Icons.arrow_back_ios)),
+                    ),
                     title: Padding(
                       padding: const EdgeInsets.only(top: 5),
                       child: SvgPicture.asset('assets/texts/text_profile.svg'),
@@ -193,12 +219,13 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                             if (selectedCategories.isEmpty) {
                               toastification.show(
                                 context: context,
-                                title: Text('Выберите хотя бы одно увлечение'),
+                                title: Text('Выберите хотя бы одну категорию'),
                                 type: ToastificationType.error,
                                 style: ToastificationStyle.fillColored,
                                 autoCloseDuration: const Duration(seconds: 3),
                                 alignment: Alignment.topRight,
                               );
+                              return;
                             } else if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
                               setState(() {
@@ -342,7 +369,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   Text('Фамилия (необязательно)',
                                       style: titleTextStyleEdit),
                                   SizedBox(height: 4),
-                                 TextFormField(
+                                  TextFormField(
                                     style: TextStyle(
                                         fontSize: 18,
                                         fontFamily: 'Inter',
@@ -398,7 +425,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       TextFormField(
-                                        textCapitalization: TextCapitalization.sentences,
+                                        textCapitalization:
+                                            TextCapitalization.sentences,
                                         controller: cityController,
                                         onChanged: _searchLocation,
                                         style: TextStyle(

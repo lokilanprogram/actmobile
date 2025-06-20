@@ -272,15 +272,13 @@ class EventsApi {
             categoryIds.map((e) => e.toString()).toList();
       }
 
-      // Добавляем type только если он не пустой
+      // Добавляем type только если он не null
       if (filters?['type'] != null &&
           filters?['type'] is String &&
           (filters?['type'] as String).isNotEmpty) {
         print(
             'DEBUG: type is ${(filters?['type'] as String)}, adding single type');
         queryParams['type'] = [filters?['type'] as String];
-      } else {
-        print('DEBUG: type is empty or null, not adding type parameter');
       }
 
       // Формируем URL вручную для правильной передачи массивов
@@ -630,12 +628,10 @@ class EventsApi {
         queryParams['category_ids'] = category_ids;
       }
 
-      // Добавляем type только если он не пустой
+      // Добавляем type только если он не null
       if (type != null && type.isNotEmpty) {
         print('DEBUG: type is $type, adding single type');
         queryParams['type'] = [type];
-      } else {
-        print('DEBUG: type is empty or null, not adding type parameter');
       }
 
       // Формируем URL вручную для правильной передачи массивов

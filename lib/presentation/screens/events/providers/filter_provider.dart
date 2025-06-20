@@ -14,7 +14,7 @@ class FilterProvider extends ChangeNotifier {
   bool isOnlineSelected = false;
   String priceMinText = '';
   String priceMaxText = '';
-  bool isFreeSelected = false;
+  bool? isFreeSelected;
   List<String> selectedAgeRestrictions = [];
   bool isAnimalsAllowedSelected = false;
   bool isCompanySelected = false;
@@ -82,17 +82,22 @@ class FilterProvider extends ChangeNotifier {
 
   void updateTimeFilter(String filter, {String? from, String? to}) {
     // Если нажали на уже выбранный фильтр - сбрасываем его
-    if (selectedTimeFilter == filter) {
+    if (selectedTimeFilter == filter && filter != 'period') {
       selectedTimeFilter = null;
       selectedTimeFrom = null;
       selectedTimeTo = null;
       notifyListeners();
       return;
     }
-
+    // Для периода не сбрасываем значения, если повторно выбираем "Период"
     selectedTimeFilter = filter;
-    selectedTimeFrom = from;
-    selectedTimeTo = to;
+    if (filter == 'period') {
+      if (from != null) selectedTimeFrom = from;
+      if (to != null) selectedTimeTo = to;
+    } else {
+      selectedTimeFrom = from;
+      selectedTimeTo = to;
+    }
     notifyListeners();
   }
 
@@ -116,15 +121,16 @@ class FilterProvider extends ChangeNotifier {
   void updatePriceRange({String? min, String? max, bool? isFree}) {
     if (min != null) priceMinText = min;
     if (max != null) priceMaxText = max;
-    if (isFree != null) {
-      isFreeSelected = isFree;
-      if (isFree) {
-        if (!selectedAgeRestrictions.contains('isUnlimited')) {
-          selectedAgeRestrictions.add('isUnlimited');
-        }
-      } else {
-        selectedAgeRestrictions.remove('isUnlimited');
+    if (isFree == true) {
+      isFreeSelected = true;
+      if (!selectedAgeRestrictions.contains('isUnlimited')) {
+        selectedAgeRestrictions.add('isUnlimited');
       }
+    } else if (isFree == false) {
+      isFreeSelected = false;
+      selectedAgeRestrictions.remove('isUnlimited');
+    } else if (isFree == null) {
+      isFreeSelected = null;
     }
     notifyListeners();
   }
@@ -221,13 +227,10 @@ class FilterProvider extends ChangeNotifier {
 
   // Метод для получения типа события
   String? getEventType() {
-    print('DEBUG: isOnlineSelected = $isOnlineSelected');
     if (isOnlineSelected) {
-      print('DEBUG: returning online');
       return 'online';
     }
-    print('DEBUG: returning empty string (no type parameter)');
-    return ''; // пустая строка означает, что параметр type не будет передан
+    return null; // null означает, что type не будет передан
   }
 
   void resetFilters() {
@@ -242,7 +245,7 @@ class FilterProvider extends ChangeNotifier {
     isOnlineSelected = false;
     priceMinText = '';
     priceMaxText = '';
-    isFreeSelected = false;
+    isFreeSelected = null;
     selectedAgeRestrictions.clear();
     isAnimalsAllowedSelected = false;
     isCompanySelected = false;
@@ -254,6 +257,28 @@ class FilterProvider extends ChangeNotifier {
     selectedPeopleFilter = 'any';
     slotsMin = null;
     slotsMax = null;
+    notifyListeners();
+  }
+
+  void setPriceMin(String value) {
+    priceMinText = value;
+    notifyListeners();
+  }
+
+  void setPriceMax(String value) {
+    priceMaxText = value;
+    notifyListeners();
+  }
+
+  void setPriceType(bool? isFree) {
+    isFreeSelected = isFree;
+    if (isFree == true) {
+      if (!selectedAgeRestrictions.contains('isUnlimited')) {
+        selectedAgeRestrictions.add('isUnlimited');
+      }
+    } else {
+      selectedAgeRestrictions.remove('isUnlimited');
+    }
     notifyListeners();
   }
 }
