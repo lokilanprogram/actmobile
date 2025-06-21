@@ -13,6 +13,10 @@ part 'chat_event.dart';
 part 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
+  int _privateChatOffset = 0;
+  int _groupChatOffset = 0;
+  final int _pageLimit = 30;
+
   ChatBloc() : super(ChatInitial()) {
     on<GetChatHistoryEvent>((event, emit) async {
       try {
@@ -65,29 +69,49 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     on<GetAllChatsEvent>((event, emit) async {
       try {
-        final allPrivateChats = await ChatApi().getAllChats('private');
-        final allGroupChats = await ChatApi().getAllChats('group');
+        final currentState = state;
+        List<Chat> allPrivateChats = [];
+        List<Chat> allGroupChats = [];
 
-        if (allPrivateChats != null) {
-          allPrivateChats.chats.sort((a, b) {
-            final aDate = a.lastMessage?.createdAt ?? a.createdAt;
-            final bDate = b.lastMessage?.createdAt ?? b.createdAt;
-            return bDate.compareTo(aDate);
-          });
+        if (event.loadMorePrivate && currentState is GotAllChatsState) {
+          allPrivateChats = List.from(currentState.allPrivateChats.chats);
+        }
+        if (event.loadMoreGroup && currentState is GotAllChatsState) {
+          allGroupChats = List.from(currentState.allGroupChats.chats);
+        }
+        if (!event.loadMorePrivate && !event.loadMoreGroup) {
+          _privateChatOffset = 0;
+          _groupChatOffset = 0;
         }
 
-        if (allGroupChats != null) {
-          allGroupChats.chats.sort((a, b) {
-            final aDate = a.lastMessage?.createdAt ?? a.createdAt;
-            final bDate = b.lastMessage?.createdAt ?? b.createdAt;
-            return bDate.compareTo(aDate);
-          });
+        final privateChats = await ChatApi().getAllChats('private',
+            offset: _privateChatOffset, limit: _pageLimit);
+        final groupChats = await ChatApi()
+            .getAllChats('group', offset: _groupChatOffset, limit: _pageLimit);
+
+        if (privateChats != null) {
+          allPrivateChats.addAll(privateChats.chats);
+          _privateChatOffset += privateChats.chats.length;
         }
 
-        if (allPrivateChats != null && allGroupChats != null) {
-          emit(GotAllChatsState(
-              allGroupChats: allGroupChats, allPrivateChats: allPrivateChats));
+        if (groupChats != null) {
+          allGroupChats.addAll(groupChats.chats);
+          _groupChatOffset += groupChats.chats.length;
         }
+
+        emit(GotAllChatsState(
+            allGroupChats: AllChatsModel(
+                total: groupChats?.total ?? 0,
+                offset: groupChats?.offset ?? 0,
+                limit: groupChats?.limit ?? 0,
+                chats: allGroupChats),
+            allPrivateChats: AllChatsModel(
+                total: privateChats?.total ?? 0,
+                offset: privateChats?.offset ?? 0,
+                limit: privateChats?.limit ?? 0,
+                chats: allPrivateChats),
+            hasMorePrivateChats: privateChats?.chats.length == _pageLimit,
+            hasMoreGroupChats: groupChats?.chats.length == _pageLimit));
       } catch (e) {
         emit(GotAllChatsErrorState());
       }

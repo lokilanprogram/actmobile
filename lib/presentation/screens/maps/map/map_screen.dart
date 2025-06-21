@@ -1,29 +1,24 @@
+import 'dart:async';
+
 import 'package:acti_mobile/configs/geolocator_utils.dart';
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/api/map/map_api.dart';
 import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
-import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/card_event_on_map.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/cascade_cards_event_on_map.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
 import 'dart:developer' as developer;
-import 'package:acti_mobile/main.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/marker.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
-import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/searched_events_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
-import 'package:acti_mobile/presentation/screens/chats/chat_main/chat_main_screen.dart';
-import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/events_home_map_widget.dart';
-import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
-import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -37,7 +32,6 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'dart:typed_data';
 
 class MapScreen extends StatefulWidget {
   // final int selectedScreenIndex;
@@ -67,6 +61,8 @@ class _MapScreenState extends State<MapScreen> {
   SearchedEventsModel? searchedEventsModel;
   String? profileId;
 
+  Timer? _scrollDebounce;
+
   PointAnnotationManager? pointAnnotationManager;
   final String eventsSourceId = "events-source";
   final String eventsLayerId = "events-layer";
@@ -81,27 +77,36 @@ class _MapScreenState extends State<MapScreen> {
     'museum',
   ];
 
-  _onScroll(
-    MapContentGestureContext gestureContext,
-  ) async {
-    double distance = geolocator.Geolocator.distanceBetween(
-      currentSelectedPosition.lat.toDouble(),
-      currentSelectedPosition.lng.toDouble(),
-      gestureContext.point.coordinates.lat.toDouble(),
-      gestureContext.point.coordinates.lng.toDouble(),
-    );
+  // --- Кэш для изображений маркеров ---
+  final Map<String, Uint8List> _markerImageCache = {};
 
-    if (distance > 100000) {
-      print('more than 100 km');
-      setState(() {
-        currentSelectedPosition = Position(
+  void _onScroll(MapContentGestureContext gestureContext) {
+    _scrollDebounce?.cancel();
+
+    _scrollDebounce = Timer(const Duration(milliseconds: 300), () {
+      final double distance = geolocator.Geolocator.distanceBetween(
+        currentSelectedPosition.lat.toDouble(),
+        currentSelectedPosition.lng.toDouble(),
+        gestureContext.point.coordinates.lat.toDouble(),
+        gestureContext.point.coordinates.lng.toDouble(),
+      );
+
+      if (distance > 100000) {
+        print('more than 100 km');
+        setState(() {
+          currentSelectedPosition = Position(
             gestureContext.point.coordinates.lng.toDouble(),
-            gestureContext.point.coordinates.lat.toDouble());
-      });
-      context.read<ProfileBloc>().add(SearchEventsOnMapEvent(
-          latitude: gestureContext.point.coordinates.lat.toDouble(),
-          longitude: gestureContext.point.coordinates.lng.toDouble()));
-    }
+            gestureContext.point.coordinates.lat.toDouble(),
+          );
+        });
+        context.read<ProfileBloc>().add(
+          SearchEventsOnMapEvent(
+            latitude: gestureContext.point.coordinates.lat.toDouble(),
+            longitude: gestureContext.point.coordinates.lng.toDouble(),
+          ),
+        );
+      }
+    });
   }
 
   _onTap(
@@ -143,6 +148,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
+    prewarmMapbox(context);
     initialize();
     sheetController.addListener(() async {
       if (sheetController.size <= 0.5) {
@@ -159,6 +165,7 @@ class _MapScreenState extends State<MapScreen> {
   void dispose() {
     // TODO: Implement proper cleanup when Mapbox API is updated
     // _mapboxMap?.style.removeStyleImageMissingListener((event) {});
+    _scrollDebounce?.cancel();
     _deepLinkService?.dispose();
     sheetController.dispose();
     super.dispose();
@@ -229,6 +236,39 @@ class _MapScreenState extends State<MapScreen> {
     MapApi().updateUserLocation(lat, lon);
   }
 
+  bool mapboxPrewarmed = false;
+
+void prewarmMapbox(BuildContext context) {
+  if (mapboxPrewarmed) return;
+  mapboxPrewarmed = true;
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => Opacity(
+        opacity: 0,
+        child: SizedBox(
+          height: 1,
+          width: 1,
+          child: MapWidget(
+            key: const ValueKey("PrewarmMapWidget"),
+            cameraOptions: CameraOptions(
+              zoom: 1,
+              center: Point(coordinates: Position(0, 0)),
+            ),
+            onMapCreated: (_) {
+              Future.delayed(const Duration(milliseconds: 100), () {
+                entry.remove();
+              });
+            },
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context)?.insert(entry);
+  });
+}
+
   Future<void> _loadMapImages() async {
     // TODO: Implement proper image loading when Mapbox API is updated
     // for (final imageId in _requiredImages) {
@@ -292,11 +332,16 @@ class _MapScreenState extends State<MapScreen> {
 
           if (mapboxMap != null) {
             for (var event in searchedEventsModel!.events.toList()) {
-              final result = await screenshotController.captureFromWidget(
-                CategoryMarker(
-                    title: event.category!.name,
-                    iconUrl: event.category!.iconPath),
-              );
+              final markerKey = event.id;
+              Uint8List? result = _markerImageCache[markerKey];
+              if (result == null) {
+                result = await screenshotController.captureFromWidget(
+                  CategoryMarker(
+                      title: event.category!.name,
+                      iconUrl: event.category!.iconPath),
+                );
+                _markerImageCache[markerKey] = result;
+              }
               await addEventIconFromUrl(
                   mapboxMap!, 'pointer:${event.id}', result);
               final pointAnnotationOptions = PointAnnotationOptions(
@@ -322,91 +367,73 @@ class _MapScreenState extends State<MapScreen> {
             SystemNavigator.pop();
             return false;
           },
-          child: isLoading
-              ? const LoaderWidget()
-              : Stack(
-                  children: [
-                    MapWidget(
-                      onStyleLoadedListener: (styleLoadedEventData) async {
-                        if (currentUserPosition != null && mapboxMap != null) {
-                          await addUserIconToStyle(mapboxMap!);
+          child: Stack(
+            children: [
+              MapWidget(
+                onStyleLoadedListener: (styleLoadedEventData) async {
+                  if (currentUserPosition != null && mapboxMap != null) {
+                    await addUserIconToStyle(mapboxMap!);
+                  }
+                  if (searchedEventsModel != null && mapboxMap != null) {
+                    for (var event in searchedEventsModel!.events) {
+                      if (event.category != null) {
+                        final markerKey = event.id;
+                        Uint8List? result = _markerImageCache[markerKey];
+                        if (result == null) {
+                          result = await screenshotController.captureFromWidget(
+                            CategoryMarker(
+                                title: event.category!.name,
+                                iconUrl: event.category!.iconPath),
+                          );
+                          _markerImageCache[markerKey] = result;
                         }
-                        if (searchedEventsModel != null && mapboxMap != null) {
-                          for (var event in searchedEventsModel!.events) {
-                            if (event.category != null) {
-                              final result =
-                                  await screenshotController.captureFromWidget(
-                                CategoryMarker(
-                                    title: event.category!.name,
-                                    iconUrl: event.category!.iconPath),
-                              );
-                              await addEventIconFromUrl(
-                                  mapboxMap!, 'pointer:${event.id}', result);
-                              final pointAnnotationOptions =
-                                  PointAnnotationOptions(
-                                geometry: Point(
-                                    coordinates: Position(
-                                        event.longitude ?? 0.0,
-                                        event.latitude ?? 0.0)),
-                                iconSize: 0.75,
-                                image: result,
-                                iconImage: 'pointer:${event.id}',
-                              );
-                              await pointAnnotationManager?.create(pointAnnotationOptions);
-                            }
-                          }
-                        }
-                      },
-                      onScrollListener: _onScroll,
-                      onTapListener: _onTap,
-                      cameraOptions: CameraOptions(
-                        zoom: currentZoom,
-                        center: Point(
-                          coordinates: Position(
-                            currentSelectedPosition.lng,
-                            currentSelectedPosition.lat,
-                          ),
-                        ),
-                      ),
-                      key: const ValueKey("MapWidget"),
-                      onMapCreated: _onMapCreated,
+                        await addEventIconFromUrl(
+                            mapboxMap!, 'pointer:${event.id}', result);
+                        final pointAnnotationOptions =
+                            PointAnnotationOptions(
+                          geometry: Point(
+                              coordinates: Position(
+                                  event.longitude ?? 0.0,
+                                  event.latitude ?? 0.0)),
+                          iconSize: 0.75,
+                          image: result,
+                          iconImage: 'pointer:${event.id}',
+                        );
+                        await pointAnnotationManager?.create(pointAnnotationOptions);
+                      }
+                    }
+                  }
+                },
+                onScrollListener: _onScroll,
+                onTapListener: _onTap,
+                cameraOptions: CameraOptions(
+                  zoom: currentZoom,
+                  center: Point(
+                    coordinates: Position(
+                      currentSelectedPosition.lng,
+                      currentSelectedPosition.lat,
                     ),
-                    //   onScrollListener: _onScroll,
-                    //   onTapListener: _onTap,
-                    //   // styleUri: MapboxStyles.MAPBOX_STREETS,
-                    //   // https://api.mapbox.com/styles/v1/{username}/{style_id}
-                    //   // mapboxMap.loadStyleURI(),
-                    //   // styleUri:
-                    //   //     'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
-                    //   styleUri:
-                    //       'https://api.mapbox.com/styles/v1/acti/cmbf00t92005701s5d84c1cqp?access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg',
-                    //   cameraOptions: CameraOptions(
-                    //     zoom: currentZoom,
-                    //     center: Point(
-                    //       coordinates: Position(
-                    //         currentSelectedPosition.lng,
-                    //         currentSelectedPosition.lat,
-                    //       ),
-                    //     ),
-                    //   ),
-                    //   key: const ValueKey("MapWidget"),
-                    //   onMapCreated: _onMapCreated,
-                    // ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: buildMapControls(),
-                    ),
-                    if (showEvents)
-                      DraggableScrollableSheet(
-                        controller: sheetController,
-                        initialChildSize: 0.8,
-                        builder: (context, scrollController) {
-                          return EventsHomeListOnMapWidget(
-                              scrollController: scrollController);
-                        },
-                      ),
-                  ],
+                  ),
                 ),
+                key: const ValueKey("MapWidget"),
+                onMapCreated: _onMapCreated,
+              ),
+              if (isLoading) const LoaderWidget(),
+              Align(
+                alignment: Alignment.centerRight,
+                child: buildMapControls(),
+              ),
+              if (showEvents)
+                DraggableScrollableSheet(
+                  controller: sheetController,
+                  initialChildSize: 0.8,
+                  builder: (context, scrollController) {
+                    return EventsHomeListOnMapWidget(
+                        scrollController: scrollController);
+                  },
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -642,10 +669,15 @@ class _MapScreenState extends State<MapScreen> {
 
     if (searchedEventsModel != null) {
       for (var event in searchedEventsModel!.events) {
-        final result = await screenshotController.captureFromWidget(
-          CategoryMarker(
-              title: event.category!.name, iconUrl: event.category!.iconPath),
-        );
+        final markerKey = event.id;
+        Uint8List? result = _markerImageCache[markerKey];
+        if (result == null) {
+          result = await screenshotController.captureFromWidget(
+            CategoryMarker(
+                title: event.category!.name, iconUrl: event.category!.iconPath),
+          );
+          _markerImageCache[markerKey] = result;
+        }
         await addEventIconFromUrl(mapboxMap, 'pointer:${event.id}', result);
         final pointAnnotationOptions = PointAnnotationOptions(
           geometry:
