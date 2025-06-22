@@ -166,7 +166,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
           if (state is ProfileUpdatedErrorState) {
             setState(() {
               isLoading = false;
-              bioController.text = "Что-то плохое тут написано, прям фу";
+              //bioController.text = "Что-то плохое тут написано, прям фу";
               isError = true;
             });
             toastification.show(

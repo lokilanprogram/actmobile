@@ -297,8 +297,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             isLoading = false;
             if (state.message ==
                 "Название или описание содержит запрещенные слова") {
-              descriptionController.text =
-                  "Что-то плохое тут написано, прям фу";
               isError = true;
             }
           });

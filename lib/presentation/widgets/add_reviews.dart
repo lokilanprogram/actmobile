@@ -184,7 +184,7 @@ class _FormReviewsState extends State<FormReviews> {
                   });
                 },
                 child: SvgPicture.asset(
-                  'assets/icons/icon_star.svg',
+                  'assets/icons/icon_star_new.svg',
                   width: 49.47,
                   height: 47.47,
                   color: index >= _rating
