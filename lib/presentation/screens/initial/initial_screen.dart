@@ -5,6 +5,7 @@ import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/firebase/firebase.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
+import 'package:acti_mobile/domain/services/map_optimization_service.dart';
 import 'package:acti_mobile/presentation/screens/auth/select_input/select_input_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen_provider.dart';
@@ -26,6 +27,8 @@ class InitialScreen extends StatefulWidget {
 
 class _InitialScreenState extends State<InitialScreen> {
   ProfileModel? profile;
+  final MapOptimizationService _mapOptimizationService =
+      MapOptimizationService();
 
   Future<void> _requestLocationPermission() async {
     developer.log('Запрос разрешения геолокации', name: 'INITIAL_SCREEN');

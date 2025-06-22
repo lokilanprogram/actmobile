@@ -141,12 +141,20 @@ class _MainScreenState extends State<MainScreen> {
             'Координаты: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
             name: 'MAIN_SCREEN');
 
-        final events = await EventsApi().searchEvents(
+        // Запускаем загрузку событий в фоне с таймаутом
+        final events = await EventsApi()
+            .searchEvents(
           latitude: _currentPosition!.latitude,
           longitude: _currentPosition!.longitude,
-          // radius: 50, // Уменьшаем радиус до 50 км
-          limit: 20, // Уменьшаем лимит до 20
-          offset: 0, // Добавляем offset
+          limit: 15, // Уменьшаем с 20 до 15
+          offset: 0,
+        )
+            .timeout(
+          const Duration(seconds: 10), // Добавляем таймаут
+          onTimeout: () {
+            developer.log('Таймаут загрузки событий', name: 'MAIN_SCREEN');
+            return null;
+          },
         );
 
         developer.log('Получено событий: ${events?.events.length ?? 0}',

@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:acti_mobile/configs/geolocator_utils.dart';
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/api/map/map_api.dart';
 import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
+import 'package:acti_mobile/domain/services/map_optimization_service.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/card_event_on_map.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/cascade_cards_event_on_map.dart';
@@ -81,6 +83,10 @@ class _MapScreenState extends State<MapScreen> {
     'shop',
     'museum',
   ];
+
+  // Сервис оптимизации карты
+  final MapOptimizationService _mapOptimizationService =
+      MapOptimizationService();
 
   _onScroll(
     MapContentGestureContext gestureContext,
@@ -169,10 +175,17 @@ class _MapScreenState extends State<MapScreen> {
       isLoading = true;
     });
 
+    // iOS-специфичные оптимизации
+    if (Platform.isIOS) {
+      // Устанавливаем более консервативные настройки для iOS
+      currentZoom = 14.0; // Уменьшаем зум для iOS
+    }
+
+    // Быстрая инициализация сервиса оптимизации карты (без предварительной загрузки)
+    await _mapOptimizationService.quickInitialize();
+
     // Параллельное выполнение независимых операций
     final futures = await Future.wait<dynamic>([
-      // Инициализация DeepLinks
-      //Future.value(_deepLinkService = DeepLinkService(navigatorKey)),
       // Получение токена
       SecureStorageService().getAccessToken(),
       // Проверка разрешения геолокации
@@ -184,10 +197,20 @@ class _MapScreenState extends State<MapScreen> {
     final accessToken = futures[0] as String;
     currentPermission = futures[1] as geolocator.LocationPermission;
 
-    // Параллельное выполнение WebSocket и геолокации
-    connectToOnlineStatus(accessToken).catchError((e) {
-      developer.log('Ошибка при подключении к WebSocket: $e',
-          name: 'MAP_SCREEN');
+    // Запускаем WebSocket в фоне, не блокируя UI
+    Future.microtask(() {
+      connectToOnlineStatus(accessToken).catchError((e) {
+        developer.log('Ошибка при подключении к WebSocket: $e',
+            name: 'MAP_SCREEN');
+      });
+    });
+
+    // Запускаем предварительную загрузку данных карты в фоне
+    Future.microtask(() {
+      _mapOptimizationService.preloadMapData().catchError((e) {
+        developer.log('Ошибка предварительной загрузки карты: $e',
+            name: 'MAP_SCREEN');
+      });
     });
 
     if (currentPermission.name == 'denied') {
@@ -195,16 +218,49 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     if (currentPermission.name != 'denied' && await checkGeolocator()) {
-      final position = await geolocator.Geolocator.getCurrentPosition();
-      delayedLocationUpdate(position.latitude, position.longitude)
-          .catchError((e) {
-        developer.log('Ошибка при обновлении локации: $e', name: 'MAP_SCREEN');
-      });
-      setState(() {
-        currentUserPosition = Position(position.longitude, position.latitude);
-        currentSelectedPosition =
-            Position(position.longitude, position.latitude);
-      });
+      try {
+        // iOS-специфичные настройки геолокации
+        final locationSettings = Platform.isIOS
+            ? geolocator.LocationSettings(
+                accuracy: geolocator.LocationAccuracy.high,
+                distanceFilter: 10, // 10 метров
+                timeLimit: const Duration(seconds: 3),
+              )
+            : geolocator.LocationSettings(
+                accuracy: geolocator.LocationAccuracy.high,
+                timeLimit: const Duration(seconds: 3),
+              );
+
+        final position = await geolocator.Geolocator.getCurrentPosition(
+          locationSettings: locationSettings,
+        );
+
+        // Запускаем обновление локации в фоне
+        Future.microtask(() {
+          delayedLocationUpdate(position.latitude, position.longitude)
+              .catchError((e) {
+            developer.log('Ошибка при обновлении локации: $e',
+                name: 'MAP_SCREEN');
+          });
+        });
+
+        // Сохраняем локацию в сервисе оптимизации
+        await _mapOptimizationService.saveLastLocation(
+            position.latitude, position.longitude);
+
+        setState(() {
+          currentUserPosition = Position(position.longitude, position.latitude);
+          currentSelectedPosition =
+              Position(position.longitude, position.latitude);
+        });
+      } catch (e) {
+        developer.log('Ошибка получения геолокации: $e', name: 'MAP_SCREEN');
+        setState(() {
+          currentUserPosition = null;
+          currentSelectedPosition =
+              Position(37.60709779391965, 55.73523399526778);
+        });
+      }
     } else {
       setState(() {
         currentUserPosition = null;
@@ -245,17 +301,31 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _loadLocalStyle() async {
     try {
-      // 1. Загрузите JSON стиля из assets
-      final styleJson =
-          await rootBundle.loadString('assets/map_styles/custom_style.json');
+      // Проверяем, есть ли кэшированный стиль
+      final cachedStyle = _mapOptimizationService.getCachedStyle();
 
-      // 2. Замените access token в стиле, если нужно
-      final modifiedStyleJson = styleJson.replaceAll('YOUR_MAPBOX_ACCESS_TOKEN',
-          'pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg');
+      if (cachedStyle != null && cachedStyle.startsWith('mapbox://')) {
+        // Используем кэшированный стиль
+        if (_mapboxMap != null) {
+          await _mapboxMap!.loadStyleURI(cachedStyle);
+          developer.log('Использован кэшированный стиль карты',
+              name: 'MAP_SCREEN');
+        }
+      } else {
+        // Загружаем локальный стиль
+        final styleJson =
+            await rootBundle.loadString('assets/map_styles/custom_style.json');
 
-      // 3. Загрузите стиль в карту
-      if (_mapboxMap != null) {
-        await _mapboxMap!.loadStyleJson(modifiedStyleJson);
+        final modifiedStyleJson = styleJson.replaceAll(
+            'YOUR_MAPBOX_ACCESS_TOKEN',
+            'pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg');
+
+        if (_mapboxMap != null) {
+          await _mapboxMap!.loadStyleJson(modifiedStyleJson);
+          // Кэшируем стиль
+          await _mapOptimizationService
+              .cacheMapStyle('mapbox://styles/acti/cmbf00t92005701s5d84c1cqp');
+        }
       }
     } catch (e) {
       print('Ошибка загрузки локального стиля: $e');
@@ -461,7 +531,7 @@ class _MapScreenState extends State<MapScreen> {
                       onScrollListener: _onScroll,
                       onTapListener: _onTap,
                       cameraOptions: CameraOptions(
-                        zoom: currentZoom,
+                        zoom: 15.0, // Уменьшаем зум для быстрой загрузки
                         center: Point(
                           coordinates: Position(
                             currentSelectedPosition.lng,
@@ -472,27 +542,6 @@ class _MapScreenState extends State<MapScreen> {
                       key: const ValueKey("MapWidget"),
                       onMapCreated: _onMapCreated,
                     ),
-                    //   onScrollListener: _onScroll,
-                    //   onTapListener: _onTap,
-                    //   // styleUri: MapboxStyles.MAPBOX_STREETS,
-                    //   // https://api.mapbox.com/styles/v1/{username}/{style_id}
-                    //   // mapboxMap.loadStyleURI(),
-                    //   // styleUri:
-                    //   //     'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
-                    //   styleUri:
-                    //       'https://api.mapbox.com/styles/v1/acti/cmbf00t92005701s5d84c1cqp?access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg',
-                    //   cameraOptions: CameraOptions(
-                    //     zoom: currentZoom,
-                    //     center: Point(
-                    //       coordinates: Position(
-                    //         currentSelectedPosition.lng,
-                    //         currentSelectedPosition.lat,
-                    //       ),
-                    //     ),
-                    //   ),
-                    //   key: const ValueKey("MapWidget"),
-                    //   onMapCreated: _onMapCreated,
-                    // ),
                     Align(
                       alignment: Alignment.centerRight,
                       child: buildMapControls(),
@@ -723,8 +772,19 @@ class _MapScreenState extends State<MapScreen> {
       _mapboxMap = mapboxMap;
     });
 
-    // Загрузите локальный стиль вместо онлайн
-    await _loadLocalStyle();
+    // Применяем оптимизированные настройки жестов
+    try {
+      await mapboxMap.gestures.updateSettings(
+          _mapOptimizationService.getOptimizedGesturesSettings());
+    } catch (e) {
+      developer.log('Ошибка применения оптимизированных настроек жестов: $e',
+          name: 'MAP_SCREEN');
+    }
+
+    // Загружаем стиль в фоне, не блокируя UI
+    Future.microtask(() async {
+      await _loadLocalStyle();
+    });
 
     final pointNewAnnotationManager =
         await mapboxMap.annotations.createPointAnnotationManager();

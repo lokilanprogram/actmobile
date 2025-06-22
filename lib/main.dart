@@ -8,6 +8,7 @@ import 'package:acti_mobile/domain/bloc/notifications/notifications_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/domain/repositories/auth_repository.dart';
 import 'package:acti_mobile/domain/services/auth_service.dart';
+import 'package:acti_mobile/domain/services/map_optimization_service.dart';
 import 'package:acti_mobile/presentation/screens/events/providers/filter_provider.dart';
 import 'package:acti_mobile/presentation/screens/events/providers/vote_provider.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
@@ -59,6 +60,18 @@ void main() async {
   //     sound: true,
   //   );
   // }
+
+  // Инициализация сервиса оптимизации карты
+  try {
+    final mapOptimizationService = MapOptimizationService();
+    // Только быстрая инициализация без предварительной загрузки
+    await mapOptimizationService.quickInitialize();
+    developer.log('Сервис оптимизации карты быстро инициализирован',
+        name: 'MAIN');
+  } catch (e) {
+    developer.log('Ошибка инициализации сервиса оптимизации карты: $e',
+        name: 'MAIN');
+  }
 
   final deeplinkService = DeeplinkService();
   await deeplinkService.initDeeplink();
