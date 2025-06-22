@@ -38,9 +38,17 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   String? userId;
   int _count = 0;
 
+  late final ScrollController _scrollControllerPrivate = ScrollController();
+  bool isLoadingMorePrivate = false;
+
+  late final ScrollController _scrollControllerGroup = ScrollController();
+  bool isLoadingMoreGroup = false;
+
   @override
   void initState() {
     super.initState();
+    _scrollControllerPrivate.addListener(_onScrollPrivate);
+    _scrollControllerGroup.addListener(_onScrollGroup);
     initialize();
   }
 
@@ -74,8 +82,36 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
 
   @override
   void dispose() {
+    _scrollControllerPrivate.dispose();
+    _scrollControllerGroup.dispose();
     webSocketService?.dispose();
     super.dispose();
+  }
+
+  void _onScrollPrivate() {
+    final state = context.read<ChatBloc>().state;
+    if (_scrollControllerPrivate.position.pixels >=
+        _scrollControllerPrivate.position.maxScrollExtent - 200) {
+      if (!isLoadingMorePrivate &&
+          state is GotAllChatsState &&
+          state.hasMorePrivateChats) {
+        setState(() => isLoadingMorePrivate = true);
+        context.read<ChatBloc>().add(GetAllChatsEvent(loadMorePrivate: true));
+      }
+    }
+  }
+
+  void _onScrollGroup() {
+    final state = context.read<ChatBloc>().state;
+    if (_scrollControllerGroup.position.pixels >=
+        _scrollControllerGroup.position.maxScrollExtent - 200) {
+      if (!isLoadingMoreGroup &&
+          state is GotAllChatsState &&
+          state.hasMoreGroupChats) {
+        setState(() => isLoadingMoreGroup = true);
+        context.read<ChatBloc>().add(GetAllChatsEvent(loadMoreGroup: true));
+      }
+    }
   }
 
   @override
@@ -108,6 +144,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
               if (webSocketService == null &&
                   state.profileModel.status != 'blocked' &&
                   state.profileModel.isEmailVerified) {
+                // Контроллеры уже инициализированы в initState
                 final storage = SecureStorageService();
                 storage.setUserVerified(true);
                 final accessToken = await storage.getAccessToken();
@@ -241,7 +278,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                   )
                 : Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: ListView(
+                    child: Column(
                       children: [
                         TabBarWidget(
                           selectedTab: selectedTab,
@@ -336,11 +373,11 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                   }
                                 }
                               }
-                              return _buildChatList();
+                              return Expanded(child: _buildChatList());
                             },
                           )
                         else
-                          _buildChatList(),
+                          Expanded(child: _buildChatList()),
                         SizedBox(
                           height: 80,
                         ),
@@ -356,33 +393,43 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
       if (allPrivateChats.chats.isEmpty) {
         return _buildEmptyState('У вас пока нет чатов', showRefresh: true);
       }
-      return Column(
-        children: allPrivateChats.chats
-            .map((chat) => ChatListTileWidget(
-                  onTapFunction: () =>
-                      context.read<ChatBloc>().add(GetAllChatsEvent()),
-                  onDeletedFunction: () =>
-                      context.read<ChatBloc>().add(GetAllChatsEvent()),
-                  chat: chat,
-                  isPrivateChats: isPrivateChats,
-                ))
-            .toList(),
+      return ListView.builder(
+        controller: _scrollControllerPrivate,
+        shrinkWrap: true,
+        physics: BouncingScrollPhysics(),
+        itemCount: allPrivateChats.chats.length,
+        itemBuilder: (context, index) {
+          final chat = allPrivateChats.chats[index];
+          return ChatListTileWidget(
+            onTapFunction: () =>
+                context.read<ChatBloc>().add(GetAllChatsEvent()),
+            onDeletedFunction: () =>
+                context.read<ChatBloc>().add(GetAllChatsEvent()),
+            chat: chat,
+            isPrivateChats: isPrivateChats,
+          );
+        },
       );
     } else {
       if (allGroupChats.chats.isEmpty) {
         return _buildEmptyState('У вас пока нет групповых чатов');
       }
-      return Column(
-        children: allGroupChats.chats
-            .map((chat) => ChatListTileWidget(
-                  onTapFunction: () =>
-                      context.read<ChatBloc>().add(GetAllChatsEvent()),
-                  onDeletedFunction: () =>
-                      context.read<ChatBloc>().add(GetAllChatsEvent()),
-                  chat: chat,
-                  isPrivateChats: isPrivateChats,
-                ))
-            .toList(),
+      return ListView.builder(
+        controller: _scrollControllerGroup,
+        shrinkWrap: true,
+        physics: BouncingScrollPhysics(),
+        itemCount: allGroupChats.chats.length,
+        itemBuilder: (context, index) {
+          final chat = allGroupChats.chats[index];
+          return ChatListTileWidget(
+            onTapFunction: () =>
+                context.read<ChatBloc>().add(GetAllChatsEvent()),
+            onDeletedFunction: () =>
+                context.read<ChatBloc>().add(GetAllChatsEvent()),
+            chat: chat,
+            isPrivateChats: isPrivateChats,
+          );
+        },
       );
     }
   }
