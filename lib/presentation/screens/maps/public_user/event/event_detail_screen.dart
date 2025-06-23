@@ -21,6 +21,7 @@ import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -162,11 +163,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         }
 
         if (state is ProfileGotEventDetailErrorState) {
-          setState(() {
-            isLoading = false;
-          });
+          Navigator.pop(context);
           ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Ошибка')));
+              .showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -305,16 +304,16 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     Row(
                                       children: [
                                         IconButton(
+                                            alignment: Alignment.centerLeft,
                                             onPressed: () {
                                               setState(() {
                                                 showParticipants = false;
                                               });
                                             },
                                             icon: SvgPicture.asset(
-                                                'assets/icons/icon_back_blue.svg')),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
+                                              'assets/icons/icon_back_blue.svg',
+                                              alignment: Alignment.centerLeft,
+                                            )),
                                         InkWell(
                                           onTap: () {
                                             Navigator.push(
@@ -324,8 +323,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                         PublicUserScreen(
                                                             userId:
                                                                 organizedEvent
-                                                                    .creator
-                                                                    .id!)));
+                                                                        .creator
+                                                                        .id ??
+                                                                    "")));
                                           },
                                           child: Row(
                                             children: [
@@ -417,7 +417,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                 user.status == 'confirmed')
                                             .length,
                                         separatorBuilder: (context, index) =>
-                                            SizedBox(width: 15),
+                                            SizedBox(width: 1),
                                         itemBuilder: (context, index) {
                                           final participant = organizedEvent
                                               .participants
@@ -429,35 +429,64 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                             margin: EdgeInsets.only(right: 10),
                                             child: Column(
                                               children: [
-                                                CircleAvatar(
-                                                  radius: 30,
-                                                  backgroundColor:
-                                                      Colors.grey[300],
-                                                  child: ClipOval(
-                                                    child: CachedNetworkImage(
-                                                      imageUrl: participant
-                                                              .user.photoUrl ??
-                                                          '',
-                                                      width: 60,
-                                                      height: 60,
-                                                      fit: BoxFit.cover,
-                                                      placeholder:
-                                                          (context, url) =>
-                                                              Container(
-                                                        color: Colors.grey[300],
-                                                        child: Icon(
-                                                            Icons.person,
-                                                            color: Colors
-                                                                .grey[400]),
-                                                      ),
-                                                      errorWidget: (context,
-                                                              url, error) =>
-                                                          Container(
-                                                        color: Colors.grey[300],
-                                                        child: Icon(
-                                                            Icons.person,
-                                                            color: Colors
-                                                                .grey[400]),
+                                                InkWell(
+                                                  splashColor:
+                                                      Colors.transparent,
+                                                  highlightColor:
+                                                      Colors.transparent,
+                                                  hoverColor:
+                                                      Colors.transparent,
+                                                  focusColor:
+                                                      Colors.transparent,
+                                                  onTap: () {
+                                                    Future.delayed(
+                                                        Duration(
+                                                            milliseconds: 250),
+                                                        () async {
+                                                      Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                              builder: (context) =>
+                                                                  PublicUserScreen(
+                                                                      userId: participant
+                                                                              .user
+                                                                              .id ??
+                                                                          " ")));
+                                                    });
+                                                  },
+                                                  child: CircleAvatar(
+                                                    radius: 30,
+                                                    backgroundColor:
+                                                        Colors.grey[300],
+                                                    child: ClipOval(
+                                                      child: CachedNetworkImage(
+                                                        imageUrl: participant
+                                                                .user
+                                                                .photoUrl ??
+                                                            '',
+                                                        width: 60,
+                                                        height: 60,
+                                                        fit: BoxFit.cover,
+                                                        placeholder:
+                                                            (context, url) =>
+                                                                Container(
+                                                          color:
+                                                              Colors.grey[300],
+                                                          child: Icon(
+                                                              Icons.person,
+                                                              color: Colors
+                                                                  .grey[400]),
+                                                        ),
+                                                        errorWidget: (context,
+                                                                url, error) =>
+                                                            Container(
+                                                          color:
+                                                              Colors.grey[300],
+                                                          child: Icon(
+                                                              Icons.person,
+                                                              color: Colors
+                                                                  .grey[400]),
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
@@ -648,7 +677,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                           children: [
                                             organizedEvent.price == 0
                                                 ? buildTag('Бесплатное')
-                                                : buildTag("${organizedEvent.price} ₽"),
+                                                : buildTag(
+                                                    "${organizedEvent.price} ₽"),
                                             if (organizedEvent.status ==
                                                 'completed')
                                               buildTag('Завершено'),
@@ -821,8 +851,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                           ),
                                                           SizedBox(width: 5),
                                                           if (rewiewsModel
-                                                                      .reviews !=
-                                                                  [])
+                                                                  .reviews !=
+                                                              [])
                                                             Container(
                                                               padding:
                                                                   const EdgeInsets
@@ -1004,8 +1034,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                                   .start,
                                                           children: [
                                                             if (rewiewsModel
-                                                                        .reviews ==
-                                                                    []) ...[
+                                                                    .reviews ==
+                                                                []) ...[
                                                               Icon(
                                                                 Icons
                                                                     .chat_bubble_outline,
@@ -1028,8 +1058,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                                               ),
                                                             ],
                                                             if (rewiewsModel
-                                                                        .reviews !=
-                                                                    []) ...[
+                                                                    .reviews !=
+                                                                []) ...[
                                                               ListView
                                                                   .separated(
                                                                 shrinkWrap:

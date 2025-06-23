@@ -73,7 +73,7 @@ class ChatApi {
       if (response.statusCode == 200) {
         return Right(true);
       } else if (response.statusCode == 403) {
-        return Left("Пользователь вас заблокировал");
+        return Left(jsonDecode(response.body)["detail"]);
       } else {
         throw Exception('Error: ${response.body}');
       }

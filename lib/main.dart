@@ -76,7 +76,7 @@ void main() async {
   final deeplinkService = DeeplinkService();
   await deeplinkService.initDeeplink();
 
-  runApp(MyApp(navigatorKey: deeplinkService.navigatorKey));
+  runApp(MyApp(navigatorKey: navigatorKey));
 }
 
 class MyApp extends StatelessWidget {

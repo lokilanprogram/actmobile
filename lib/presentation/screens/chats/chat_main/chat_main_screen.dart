@@ -322,43 +322,60 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                         .add(GetAllChatsEvent());
                                   } else if (result.eventType ==
                                       'new_message') {
-                                    allPrivateChats.chats =
-                                        allPrivateChats.chats.map((chat) {
-                                      if (chat.id == result.chatId &&
+                                    final chatId = result.chatId;
+                                    final content =
+                                        result.data?.contentPreview ?? " ";
+                                    final isFromAnotherUser =
+                                        result.data?.senderId != userId;
+
+                                    // PRIVATE CHATS
+                                    final private = allPrivateChats.chats;
+                                    final updatedPrivate = <Chat>[];
+
+                                    for (var chat in private) {
+                                      if (chat.id == chatId &&
                                           chat.lastMessage != null) {
-                                        return chat.copyWith(
-                                          unreadCount:
-                                              result.data?.senderId != userId
-                                                  ? (chat.unreadCount ?? 0) + 1
-                                                  : 0,
+                                        final updatedChat = chat.copyWith(
+                                          unreadCount: isFromAnotherUser
+                                              ? (chat.unreadCount ?? 0) + 1
+                                              : 0,
                                           lastMessage:
                                               chat.lastMessage!.copyWith(
+                                            content: content,
                                             createdAt: DateTime.now(),
-                                            content:
-                                                result.data?.contentPreview ??
-                                                    "...",
                                           ),
                                         );
+                                        updatedPrivate.insert(
+                                            0, updatedChat); // перемещаем вверх
+                                      } else {
+                                        updatedPrivate.add(chat);
                                       }
-                                      return chat;
-                                    }).toList();
-                                    allGroupChats.chats =
-                                        allGroupChats.chats.map((chat) {
-                                      if (chat.id == result.chatId &&
+                                    }
+                                    allPrivateChats.chats = updatedPrivate;
+
+                                    // GROUP CHATS
+                                    final group = allGroupChats.chats;
+                                    final updatedGroup = <Chat>[];
+
+                                    for (var chat in group) {
+                                      if (chat.id == chatId &&
                                           chat.lastMessage != null) {
-                                        return chat.copyWith(
+                                        final updatedChat = chat.copyWith(
                                           unreadCount:
                                               (chat.unreadCount ?? 0) + 1,
                                           lastMessage:
                                               chat.lastMessage!.copyWith(
-                                            content:
-                                                result.data?.contentPreview ??
-                                                    "...",
+                                            content: content,
+                                            createdAt: DateTime.now(),
                                           ),
                                         );
+                                        updatedGroup.insert(
+                                            0, updatedChat); // перемещаем вверх
+                                      } else {
+                                        updatedGroup.add(chat);
                                       }
-                                      return chat;
-                                    }).toList();
+                                    }
+                                    allGroupChats.chats = updatedGroup;
                                   } else if (result.eventType ==
                                           "user_typing" &&
                                       result.data?.userId != userId) {
