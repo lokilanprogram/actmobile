@@ -45,6 +45,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   }
 
   Future<void> initialize() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       isVerified = true;
@@ -52,10 +53,12 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
     final storage = SecureStorageService();
     final id = await storage.getUserId();
     final verified = await storage.isUserVerified();
+    if (!mounted) return;
     setState(() {
       userId = id;
     });
     if (verified != true) {
+      if (!mounted) return;
       setState(() {
         isVerified = false;
         _isLoading = false;
@@ -80,7 +83,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final _unreadProvider = Provider.of<UnreadMessageProvider>(context);
+    final unreadProvider = Provider.of<UnreadMessageProvider>(context);
     return MultiBlocListener(
       listeners: [
         BlocListener<ChatBloc, ChatState>(
@@ -93,7 +96,8 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
               _count += state.allPrivateChats.chats
                   .where((e) => (e.unreadCount ?? 0) > 0)
                   .length;
-              _unreadProvider.setUnreadCount(_count);
+              unreadProvider.setUnreadCount(_count);
+              if (!mounted) return;
               setState(() {
                 allGroupChats = state.allGroupChats;
                 allPrivateChats = state.allPrivateChats;
@@ -113,16 +117,19 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                 final accessToken = await storage.getAccessToken();
                 context.read<ChatBloc>().add(GetAllChatsEvent());
                 webSocketService = AllChatWebSocketService(token: accessToken!);
+                if (!mounted) return;
                 setState(() {
                   _isLoading = false;
                   isVerified = state.profileModel.isEmailVerified;
                 });
               } else {
+                if (!mounted) return;
                 setState(() {
                   _isLoading = false;
                 });
               }
             } else if (state is ProfileResendEmailState) {
+              if (!mounted) return;
               setState(() {
                 _isLoading = false;
               });
@@ -133,6 +140,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                 ),
               );
             } else if (state is ProfileResendEmailErrorState) {
+              if (!mounted) return;
               setState(() {
                 _isLoading = false;
               });
@@ -202,6 +210,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                               context
                                   .read<ProfileBloc>()
                                   .add(ProfileGetEvent());
+                              if (!mounted) return;
                               setState(() {
                                 _isLoading = true;
                               });
@@ -222,6 +231,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                             context
                                 .read<ProfileBloc>()
                                 .add(ProfileResendEmailEvent());
+                            if (!mounted) return;
                             setState(() {
                               _isLoading = true;
                             });
@@ -245,10 +255,14 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                       children: [
                         TabBarWidget(
                           selectedTab: selectedTab,
-                          onTapMine: () =>
-                              setState(() => isPrivateChats = true),
-                          onTapVisited: () =>
-                              setState(() => isPrivateChats = false),
+                          onTapMine: () {
+                            if (!mounted) return;
+                            setState(() => isPrivateChats = true);
+                          },
+                          onTapVisited: () {
+                            if (!mounted) return;
+                            setState(() => isPrivateChats = false);
+                          },
                           firshTabText: 'Личные',
                           secondTabText: 'Групповые',
                           requestLentgh: null,
@@ -453,17 +467,17 @@ class ChatListTileWidget extends StatelessWidget {
             ? (chat.event!.photos.isNotEmpty
                 ? NetworkImage(chat.event!.photos.first)
                 : AssetImage('assets/images/image_default_event.png'))
-            : (chat.users.first.photoUrl == null
-                ? AssetImage('assets/images/image_profile.png')
-                : NetworkImage(
-                    chat.users.first.photoUrl!,
-                  )),
+            : (chat.users.isNotEmpty && chat.users.first.photoUrl != null
+                ? NetworkImage(chat.users.first.photoUrl!)
+                : AssetImage('assets/images/image_profile.png')),
         backgroundColor: Colors.transparent,
       ),
       title: Text(
         !isPrivateChats
             ? "${chat.event!.title} ${DateFormat('dd.MM.yy').format(chat.event!.dateStart)}"
-            : chat.users.first.name ?? 'not defined',
+            : (chat.users.isNotEmpty
+                ? chat.users.first.name ?? 'not defined'
+                : 'Unknown User'),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
@@ -525,13 +539,18 @@ class ChatListTileWidget extends StatelessWidget {
                     ? chat.event!.photos.isNotEmpty
                         ? chat.event!.photos.first
                         : null
-                    : chat.users.first.photoUrl,
+                    : (chat.users.isNotEmpty
+                        ? chat.users.first.photoUrl
+                        : null),
                 interlocutorName: !isPrivateChats
                     ? chat.event!.title
-                    : (chat.users.first.name ?? 'not defined'),
+                    : (chat.users.isNotEmpty
+                        ? chat.users.first.name ?? 'not defined'
+                        : 'Unknown User'),
                 interlocutorChatId: chat.id,
-                interlocutorUserId:
-                    !isPrivateChats ? null : (chat.users.first.id),
+                interlocutorUserId: !isPrivateChats
+                    ? null
+                    : (chat.users.isNotEmpty ? chat.users.first.id : null),
               ),
             ),
           );

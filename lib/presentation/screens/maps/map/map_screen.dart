@@ -40,6 +40,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:typed_data';
+import 'dart:async';
 
 class MapScreen extends StatefulWidget {
   // final int selectedScreenIndex;
@@ -88,9 +89,14 @@ class _MapScreenState extends State<MapScreen> {
   final MapOptimizationService _mapOptimizationService =
       MapOptimizationService();
 
+  // Анимация для виджета статуса геолокации
+  bool _showLocationStatus = true;
+  Timer? _locationStatusTimer;
+
   _onScroll(
     MapContentGestureContext gestureContext,
   ) async {
+    if (!mounted) return;
     double distance = geolocator.Geolocator.distanceBetween(
       currentSelectedPosition.lat.toDouble(),
       currentSelectedPosition.lng.toDouble(),
@@ -114,6 +120,7 @@ class _MapScreenState extends State<MapScreen> {
   _onTap(
     MapContentGestureContext context,
   ) async {
+    if (!mounted) return;
     if (searchedEventsModel == null) return;
     final groups = _groupEventsByLocation(searchedEventsModel!.events);
     List<OrganizedEventModel> tappedEvents = [];
@@ -162,15 +169,100 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Обновляем позицию при изменении зависимостей (например, при переключении экранов)
+    _updateLocationIfNeeded();
+  }
+
+  @override
   void dispose() {
     // TODO: Implement proper cleanup when Mapbox API is updated
     // _mapboxMap?.style.removeStyleImageMissingListener((event) {});
     _deepLinkService?.dispose();
     sheetController.dispose();
+    _stopLocationStatusTimer(); // Очищаем таймер
     super.dispose();
   }
 
+  /// Обновление позиции при необходимости
+  Future<void> _updateLocationIfNeeded() async {
+    // Проверяем, нужно ли обновить позицию (например, если карта была неактивна)
+    if (mounted && mapboxMap != null && currentUserPosition == null) {
+      developer.log('Обновляем позицию пользователя при активации экрана',
+          name: 'MAP_SCREEN');
+      await _getUserLocation();
+    }
+  }
+
+  /// Принудительное обновление позиции пользователя
+  Future<void> refreshUserLocation() async {
+    if (!mounted) return;
+
+    developer.log('Принудительное обновление позиции пользователя',
+        name: 'MAP_SCREEN');
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await _getUserLocation();
+
+      // Обновляем камеру к новой позиции
+      if (currentUserPosition != null && mapboxMap != null) {
+        await _updateCameraToUserLocation(
+          currentUserPosition!.lat.toDouble(),
+          currentUserPosition!.lng.toDouble(),
+        );
+      }
+
+      // Запускаем таймер анимации статуса геолокации
+      _startLocationStatusTimer();
+    } catch (e) {
+      developer.log('Ошибка при обновлении позиции: $e', name: 'MAP_SCREEN');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  /// Управление таймером анимации статуса геолокации
+  void _startLocationStatusTimer() {
+    _locationStatusTimer?.cancel();
+    setState(() {
+      _showLocationStatus = true;
+    });
+
+    // Таймер только если геолокация активна
+    if (currentUserPosition != null) {
+      _locationStatusTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _showLocationStatus = false;
+          });
+        }
+      });
+    } else {
+      // Если геолокация неактивна, статус всегда видим и не исчезает
+      _locationStatusTimer?.cancel();
+      setState(() {
+        _showLocationStatus = true;
+      });
+    }
+  }
+
+  /// Остановка таймера анимации статуса геолокации
+  void _stopLocationStatusTimer() {
+    _locationStatusTimer?.cancel();
+    _locationStatusTimer = null;
+  }
+
   void initialize() async {
+    if (!mounted) return;
     setState(() {
       isLoading = true;
     });
@@ -197,13 +289,8 @@ class _MapScreenState extends State<MapScreen> {
     final accessToken = futures[0] as String;
     currentPermission = futures[1] as geolocator.LocationPermission;
 
-    // Запускаем WebSocket в фоне, не блокируя UI
-    Future.microtask(() {
-      connectToOnlineStatus(accessToken).catchError((e) {
-        developer.log('Ошибка при подключении к WebSocket: $e',
-            name: 'MAP_SCREEN');
-      });
-    });
+    // Исправленный запуск WebSocket
+    _connectWebSocket(accessToken);
 
     // Запускаем предварительную загрузку данных карты в фоне
     Future.microtask(() {
@@ -213,27 +300,65 @@ class _MapScreenState extends State<MapScreen> {
       });
     });
 
-    if (currentPermission.name == 'denied') {
-      currentPermission = await geolocator.Geolocator.requestPermission();
-    }
+    // Получаем позицию пользователя с правильной обработкой
+    await _getUserLocation();
 
-    if (currentPermission.name != 'denied' && await checkGeolocator()) {
-      try {
+    // Инициализация карты
+    context.read<ProfileBloc>().add(InitializeMapEvent(
+        latitude: currentSelectedPosition.lat.toDouble(),
+        longitude: currentSelectedPosition.lng.toDouble()));
+
+    setState(() {
+      isLoading = false;
+    });
+
+    // Запускаем таймер анимации статуса геолокации после инициализации
+    _startLocationStatusTimer();
+  }
+
+  /// Получение позиции пользователя с правильной обработкой
+  Future<void> _getUserLocation() async {
+    try {
+      if (currentPermission.name == 'denied') {
+        currentPermission = await geolocator.Geolocator.requestPermission();
+      }
+
+      if (currentPermission.name != 'denied' && await checkGeolocator()) {
         // iOS-специфичные настройки геолокации
         final locationSettings = Platform.isIOS
             ? geolocator.LocationSettings(
                 accuracy: geolocator.LocationAccuracy.high,
                 distanceFilter: 10, // 10 метров
-                timeLimit: const Duration(seconds: 3),
+                timeLimit: const Duration(seconds: 5), // Увеличиваем таймаут
               )
             : geolocator.LocationSettings(
                 accuracy: geolocator.LocationAccuracy.high,
-                timeLimit: const Duration(seconds: 3),
+                timeLimit: const Duration(seconds: 5), // Увеличиваем таймаут
               );
 
         final position = await geolocator.Geolocator.getCurrentPosition(
           locationSettings: locationSettings,
         );
+
+        developer.log(
+            'Получена позиция пользователя: ${position.latitude}, ${position.longitude}',
+            name: 'MAP_SCREEN');
+
+        // Сохраняем локацию в сервисе оптимизации
+        await _mapOptimizationService.saveLastLocation(
+            position.latitude, position.longitude);
+
+        if (mounted) {
+          setState(() {
+            currentUserPosition =
+                Position(position.longitude, position.latitude);
+            currentSelectedPosition =
+                Position(position.longitude, position.latitude);
+          });
+        }
+
+        // Запускаем таймер анимации статуса геолокации
+        _startLocationStatusTimer();
 
         // Запускаем обновление локации в фоне
         Future.microtask(() {
@@ -244,39 +369,91 @@ class _MapScreenState extends State<MapScreen> {
           });
         });
 
-        // Сохраняем локацию в сервисе оптимизации
-        await _mapOptimizationService.saveLastLocation(
-            position.latitude, position.longitude);
-
-        setState(() {
-          currentUserPosition = Position(position.longitude, position.latitude);
-          currentSelectedPosition =
-              Position(position.longitude, position.latitude);
-        });
-      } catch (e) {
-        developer.log('Ошибка получения геолокации: $e', name: 'MAP_SCREEN');
-        setState(() {
-          currentUserPosition = null;
-          currentSelectedPosition =
-              Position(37.60709779391965, 55.73523399526778);
-        });
+        // Обновляем камеру карты, если карта уже создана
+        if (mapboxMap != null && mounted) {
+          await _updateCameraToUserLocation(
+              position.latitude, position.longitude);
+        }
+      } else {
+        // Если геолокация недоступна, используем кэшированную позицию или Москву
+        final lastLocation = await _mapOptimizationService.getLastLocation();
+        if (lastLocation != null) {
+          developer.log(
+              'Используем кэшированную позицию: ${lastLocation['latitude']}, ${lastLocation['longitude']}',
+              name: 'MAP_SCREEN');
+          if (mounted) {
+            setState(() {
+              currentUserPosition = Position(
+                  lastLocation['longitude'] as double,
+                  lastLocation['latitude'] as double);
+              currentSelectedPosition = Position(
+                  lastLocation['longitude'] as double,
+                  lastLocation['latitude'] as double);
+            });
+          }
+        } else {
+          // Используем Москву как fallback
+          developer.log('Используем позицию по умолчанию (Москва)',
+              name: 'MAP_SCREEN');
+          if (mounted) {
+            setState(() {
+              currentUserPosition = null;
+              currentSelectedPosition = Position(37.6173, 55.7558);
+            });
+          }
+        }
       }
-    } else {
-      setState(() {
-        currentUserPosition = null;
-        currentSelectedPosition =
-            Position(37.60709779391965, 55.73523399526778);
-      });
+    } catch (e) {
+      developer.log('Ошибка получения геолокации: $e', name: 'MAP_SCREEN');
+
+      // При ошибке используем кэшированную позицию или Москву
+      final lastLocation = await _mapOptimizationService.getLastLocation();
+      if (lastLocation != null) {
+        if (mounted) {
+          setState(() {
+            currentUserPosition = Position(lastLocation['longitude'] as double,
+                lastLocation['latitude'] as double);
+            currentSelectedPosition = Position(
+                lastLocation['longitude'] as double,
+                lastLocation['latitude'] as double);
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            currentUserPosition = null;
+            currentSelectedPosition = Position(37.6173, 55.7558);
+          });
+        }
+      }
     }
+  }
 
-    // Инициализация карты
-    context.read<ProfileBloc>().add(InitializeMapEvent(
-        latitude: currentSelectedPosition.lat.toDouble(),
-        longitude: currentSelectedPosition.lng.toDouble()));
+  /// Обновление камеры карты к позиции пользователя
+  Future<void> _updateCameraToUserLocation(
+      double latitude, double longitude) async {
+    if (mapboxMap == null || !mounted) return;
 
-    setState(() {
-      isLoading = false;
-    });
+    try {
+      await mapboxMap!.setCamera(CameraOptions(
+        center: Point(coordinates: Position(longitude, latitude)),
+        zoom: currentZoom,
+      ));
+      developer.log('Камера обновлена к позиции пользователя',
+          name: 'MAP_SCREEN');
+    } catch (e) {
+      developer.log('Ошибка обновления камеры: $e', name: 'MAP_SCREEN');
+    }
+  }
+
+  void _connectWebSocket(String accessToken) async {
+    if (accessToken.isEmpty) return;
+    try {
+      await connectToOnlineStatus(accessToken);
+    } catch (e, st) {
+      developer.log('Ошибка при подключении к WebSocket: $e',
+          name: 'MAP_SCREEN', error: e, stackTrace: st);
+    }
   }
 
   Future<void> delayedLocationUpdate(double lat, double lon) async {
@@ -368,6 +545,7 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) async {
+        if (!mounted) return;
         if (state is InitializeMapState) {
           setState(() {
             searchedEventsModel = state.searchedEventsModel;
@@ -459,6 +637,7 @@ class _MapScreenState extends State<MapScreen> {
                   children: [
                     MapWidget(
                       onStyleLoadedListener: (styleLoadedEventData) async {
+                        if (!mounted) return;
                         if (currentUserPosition != null && mapboxMap != null) {
                           await addUserIconToStyle(mapboxMap!);
                         }
@@ -545,6 +724,62 @@ class _MapScreenState extends State<MapScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: buildMapControls(),
+                    ),
+                    // Виджет статуса геолокации
+                    Positioned(
+                      top: 50,
+                      right: 80,
+                      left: 80,
+                      child: AnimatedOpacity(
+                        opacity: _showLocationStatus ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 500),
+                        child: GestureDetector(
+                          onLongPress: () {
+                            // Долгое нажатие для принудительного обновления позиции
+                            refreshUserLocation();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  currentUserPosition != null
+                                      ? Icons.location_on
+                                      : Icons.location_off,
+                                  size: 16,
+                                  color: currentUserPosition != null
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  currentUserPosition != null
+                                      ? 'Геолокация активна'
+                                      : 'Геолокация недоступна',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                     if (showEvents)
                       DraggableScrollableSheet(
@@ -753,9 +988,38 @@ class _MapScreenState extends State<MapScreen> {
                           coordinates: Position(currentUserPosition!.lng,
                               currentUserPosition!.lat)),
                       zoom: currentZoom));
+                  // Показываем статус только если геолокация активна
+                  _startLocationStatusTimer();
                 } else {
-                  // Re-initialize if location is not available
-                  if (await checkGeolocator()) initialize();
+                  // Если позиция не определена, пытаемся получить её заново
+                  developer.log(
+                      'Позиция пользователя не определена, получаем заново',
+                      name: 'MAP_SCREEN');
+                  await _getUserLocation();
+
+                  // Если после обновления позиция определена, перемещаем камеру и показываем статус
+                  if (currentUserPosition != null && mapboxMap != null) {
+                    await mapboxMap!.setCamera(CameraOptions(
+                        center: Point(
+                            coordinates: Position(currentUserPosition!.lng,
+                                currentUserPosition!.lat)),
+                        zoom: currentZoom));
+                    _startLocationStatusTimer();
+                  } else {
+                    // Если всё ещё не удалось получить позицию, показываем сообщение и явно показываем статус "недоступна"
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Не удалось определить вашу позицию. Проверьте настройки геолокации.'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                      setState(() {
+                        _showLocationStatus = true;
+                      });
+                    }
+                  }
                 }
               },
               icon: SvgPicture.asset('assets/left_drawer/my_location.svg'),
@@ -767,6 +1031,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _onMapCreated(MapboxMap mapboxMap) async {
+    if (!mounted) return;
     setState(() {
       this.mapboxMap = mapboxMap;
       _mapboxMap = mapboxMap;

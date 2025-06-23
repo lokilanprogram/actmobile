@@ -69,6 +69,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
   }
 
   initialize() {
+    if (!mounted) return;
     setState(() {
       isLoading = true;
     });
@@ -76,6 +77,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
   }
 
   void _openSettingsPage() {
+    if (!mounted) return;
     setState(() {
       showSettings = true;
     });
@@ -87,6 +89,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) async {
         if (state is ProfileLogoutState || state is ProfileDeleteState) {
+          if (!mounted) return;
           setState(() {
             isLoading = false;
           });
@@ -94,17 +97,20 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
               MaterialPageRoute(builder: (context) => InitialScreen()));
         }
         if (state is ProfileGotState) {
+          if (!mounted) return;
           setState(() {
             profileModel = state.profileModel;
             similiarUsersModel = state.similiarUsersModel;
           });
 
+          if (!mounted) return;
           setState(() {
             isLoading = false;
           });
         }
         if (state is ProfileLogoutErrorState ||
             state is ProfileDeleteErrorState) {
+          if (!mounted) return;
           setState(() {
             isLoading = false;
           });
@@ -113,6 +119,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
               .showSnackBar(SnackBar(content: Text('Ошибка')));
         }
         if (state is ProfileGotErrorState) {
+          if (!mounted) return;
           setState(() {
             isLoading = false;
           });
@@ -128,6 +135,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                   ? SettingsScreen(
                       notificationsEnabled: profileModel.notificationsEnabled,
                       onBack: () {
+                        if (!mounted) return;
                         setState(() {
                           showSettings = false;
                         });
@@ -217,6 +225,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                             ),
                                             PopUpProfileButtons(
                                               deleteFunction: () {
+                                                if (!mounted) return;
                                                 setState(() {
                                                   isLoading = true;
                                                 });

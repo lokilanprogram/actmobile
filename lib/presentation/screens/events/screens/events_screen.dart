@@ -85,6 +85,7 @@ class _EventsScreenState extends State<EventsScreen> {
     if (!_isInitialized) {
       _isInitialized = true;
       if (widget.initialEvents != null) {
+        if (!mounted) return;
         setState(() {
           eventsModel = widget.initialEvents;
         });
@@ -98,6 +99,7 @@ class _EventsScreenState extends State<EventsScreen> {
   void didUpdateWidget(EventsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialEvents != oldWidget.initialEvents) {
+      if (!mounted) return;
       setState(() {
         eventsModel = widget.initialEvents;
       });
@@ -105,6 +107,7 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Future<void> _initializeData() async {
+    if (!mounted) return;
     setState(() {
       isLoading = true;
     });
@@ -198,11 +201,13 @@ class _EventsScreenState extends State<EventsScreen> {
     if (reset) {
       _offset = 0;
       _hasMore = true;
+      if (!mounted) return;
       setState(() {
         eventsModel = null;
       });
     }
 
+    if (!mounted) return;
     setState(() {
       isLoading = true;
     });
@@ -280,6 +285,7 @@ class _EventsScreenState extends State<EventsScreen> {
         limit: _limit,
       );
 
+      if (!mounted) return;
       setState(() {
         if (reset) {
           eventsModel = events;
@@ -297,6 +303,7 @@ class _EventsScreenState extends State<EventsScreen> {
         _hasMore = events != null && events.events.length == _limit;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -344,12 +351,14 @@ class _EventsScreenState extends State<EventsScreen> {
 
   Future<void> _fetchSearchSuggestions(String query) async {
     if (query.isEmpty) {
+      if (!mounted) return;
       setState(() {
         _searchSuggestions = [];
       });
       _removeAutocompleteOverlay();
       return;
     }
+    if (!mounted) return;
     setState(() {
       _searchLoading = true;
     });
@@ -360,16 +369,19 @@ class _EventsScreenState extends State<EventsScreen> {
         search_query: query,
         limit: 10,
       );
+      if (!mounted) return;
       setState(() {
         _searchSuggestions = events?.events.cast<all_events.Event>() ?? [];
       });
       _showAutocompleteOverlay();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _searchSuggestions = [];
       });
       _removeAutocompleteOverlay();
     }
+    if (!mounted) return;
     setState(() {
       _searchLoading = false;
     });
@@ -479,6 +491,7 @@ class _EventsScreenState extends State<EventsScreen> {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
         if (state is ProfileGotListEventsState) {
+          if (!mounted) return;
           setState(() {
             isVerified = state.isVerified;
             isProfileCompleted = state.isProfileCompleted;
@@ -635,6 +648,7 @@ class _EventsScreenState extends State<EventsScreen> {
                                 ? IconButton(
                                     icon: Icon(Icons.clear, color: Colors.grey),
                                     onPressed: () {
+                                      if (!mounted) return;
                                       setState(() {
                                         _searchController.clear();
                                         _searchSuggestions = [];
@@ -705,6 +719,7 @@ class _EventsScreenState extends State<EventsScreen> {
                                   child: eventsModel != null
                                       ? RefreshIndicator(
                                           onRefresh: () async {
+                                            if (!mounted) return;
                                             setState(() {
                                               _offset = 0;
                                               _hasMore = true;

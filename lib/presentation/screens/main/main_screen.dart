@@ -21,6 +21,9 @@ import 'package:acti_mobile/presentation/screens/main/main_screen_provider.dart'
 import 'package:geolocator/geolocator.dart' as geolocator;
 import 'dart:developer' as developer;
 import 'package:toastification/toastification.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:acti_mobile/data/models/all_events_model.dart' as all_events;
 
@@ -120,16 +123,118 @@ class _MainScreenState extends State<MainScreen> {
 
     developer.log('Разрешение на геолокацию получено', name: 'MAIN_SCREEN');
     // Получаем текущую позицию
+    await _updateCurrentLocation();
+  }
+
+  /// Обновление текущей позиции пользователя
+  Future<void> _updateCurrentLocation() async {
     try {
-      _currentPosition = await geolocator.Geolocator.getCurrentPosition();
+      // iOS-специфичные настройки геолокации
+      final locationSettings = Platform.isIOS
+          ? geolocator.LocationSettings(
+              accuracy: geolocator.LocationAccuracy.high,
+              distanceFilter: 10, // 10 метров
+              timeLimit: const Duration(seconds: 5),
+            )
+          : geolocator.LocationSettings(
+              accuracy: geolocator.LocationAccuracy.high,
+              timeLimit: const Duration(seconds: 5),
+            );
+
+      _currentPosition = await geolocator.Geolocator.getCurrentPosition(
+        locationSettings: locationSettings,
+      );
+
       developer.log(
           'Текущая позиция: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
           name: 'MAIN_SCREEN');
+
+      // Сохраняем позицию в кэш
+      await _saveLocationToCache(
+          _currentPosition!.latitude, _currentPosition!.longitude);
 
       // Загружаем события после получения геолокации
       await _loadEvents();
     } catch (e) {
       developer.log('Ошибка при получении позиции: $e', name: 'MAIN_SCREEN');
+
+      // При ошибке используем кэшированную позицию или Москву
+      try {
+        final lastLocation = await _getLastKnownLocation();
+        if (lastLocation != null) {
+          _currentPosition = geolocator.Position(
+            latitude: lastLocation['latitude'] as double,
+            longitude: lastLocation['longitude'] as double,
+            timestamp: DateTime.now(),
+            accuracy: 0,
+            altitude: 0,
+            heading: 0,
+            speed: 0,
+            speedAccuracy: 0,
+            altitudeAccuracy: 0,
+            headingAccuracy: 0,
+          );
+          developer.log(
+              'Используем кэшированную позицию: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
+              name: 'MAIN_SCREEN');
+          await _loadEvents();
+        }
+      } catch (cacheError) {
+        developer.log('Ошибка получения кэшированной позиции: $cacheError',
+            name: 'MAIN_SCREEN');
+      }
+    }
+  }
+
+  /// Получение последней известной позиции из кэша
+  Future<Map<String, double>?> _getLastKnownLocation() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final locationString = prefs.getString('last_known_location');
+
+      if (locationString != null) {
+        final locationData = jsonDecode(locationString) as Map<String, dynamic>;
+        final timestamp = locationData['timestamp'] as int;
+        final locationTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+
+        // Проверяем, что данные не старше 24 часов
+        if (DateTime.now().difference(locationTime).inHours < 24) {
+          return {
+            'latitude': locationData['latitude'] as double,
+            'longitude': locationData['longitude'] as double,
+          };
+        }
+      }
+    } catch (e) {
+      developer.log('Ошибка получения кэшированной позиции: $e',
+          name: 'MAIN_SCREEN');
+    }
+    return null;
+  }
+
+  /// Сохранение позиции в кэш
+  Future<void> _saveLocationToCache(double latitude, double longitude) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final locationData = {
+        'latitude': latitude,
+        'longitude': longitude,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      };
+      await prefs.setString('last_known_location', jsonEncode(locationData));
+      developer.log('Позиция сохранена в кэш: $latitude, $longitude',
+          name: 'MAIN_SCREEN');
+    } catch (e) {
+      developer.log('Ошибка сохранения позиции в кэш: $e', name: 'MAIN_SCREEN');
+    }
+  }
+
+  /// Обновление позиции при переключении на экран карты
+  Future<void> _updateLocationForMapScreen() async {
+    if (Provider.of<MainScreenProvider>(context, listen: false).currentIndex ==
+        0) {
+      // Если переключились на экран карты, обновляем позицию
+      await _updateCurrentLocation();
     }
   }
 
@@ -186,6 +291,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _loadProfileIcon() async {
+    if (!mounted) return;
     try {
       final profile = await ProfileApi().getProfile();
       setState(() {
@@ -214,10 +320,12 @@ class _MainScreenState extends State<MainScreen> {
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
         if (state is ProfileGotListEventsState) {
-          setState(() {
-            _isVerified = state.isVerified;
-            _isProfileCompleted = state.isProfileCompleted;
-          });
+          if (mounted) {
+            setState(() {
+              _isVerified = state.isVerified;
+              _isProfileCompleted = state.isProfileCompleted;
+            });
+          }
         } else if (state is ProfileBlockedAdminState) {
           Navigator.pushAndRemoveUntil(
               context,
@@ -313,6 +421,12 @@ class _MainScreenState extends State<MainScreen> {
                         } else {
                           provider.setIndex(index);
                         }
+
+                        // Обновляем позицию при переключении на экран карты
+                        if (index == 0) {
+                          _updateLocationForMapScreen();
+                        }
+
                         // Обновляем состояние при изменении индекса
                         // context
                         //     .read<ProfileBloc>()

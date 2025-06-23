@@ -72,6 +72,7 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
   }
 
   void _onPageChanged(int page) {
+    if (!mounted) return;
     setState(() {
       _currentPage = page;
     });
@@ -124,6 +125,7 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
+        if (!mounted) return;
         if (state is ActiSavedOnbordingState) {
           setState(() {
             isLoading = false;

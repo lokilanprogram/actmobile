@@ -78,6 +78,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
       if (!isLoadingMoreMy &&
           state is ProfileGotListEventsState &&
           state.hasMoreEvents) {
+        if (!mounted) return;
         setState(() => isLoadingMoreMy = true);
         context.read<ProfileBloc>().add(
             ProfileGetListEventsEvent(loadMoreMy: true, loadMoreVisited: true));
@@ -92,6 +93,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
       if (!isLoadingMoreVisited &&
           state is ProfileGotListEventsState &&
           state.hasMoreVisitedEvents) {
+        if (!mounted) return;
         setState(() => isLoadingMoreVisited = true);
         context.read<ProfileBloc>().add(
             ProfileGetListEventsEvent(loadMoreVisited: true, loadMoreMy: true));
@@ -112,6 +114,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           initialize();
         }
         if (state is ProfileGotListEventsState) {
+          if (!mounted) return;
           setState(() {
             isLoading = false;
             isVerified = state.isVerified;
@@ -134,6 +137,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           });
         }
         if (state is ProfileGotListEventsErrorState) {
+          if (!mounted) return;
           setState(() {
             isLoading = false;
           });
@@ -180,12 +184,14 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                             secondTabText: 'Учавствую',
                             selectedTab: selectedTab,
                             onTapMine: () {
+                              if (!mounted) return;
                               setState(() {
                                 selectedTab = "mine";
                                 isMineEvents = true;
                               });
                             },
                             onTapVisited: () {
+                              if (!mounted) return;
                               setState(() {
                                 selectedTab = "notMine";
                                 isMineEvents = false;
@@ -220,6 +226,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                             child: SizedBox(
                               child: RefreshIndicator(
                                 onRefresh: () async {
+                                  if (!mounted) return;
                                   initialize();
                                 },
                                 child: ListView(
@@ -271,7 +278,10 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: initialize,
+              onPressed: () {
+                if (!mounted) return;
+                initialize();
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF4293EF),
                 shape: RoundedRectangleBorder(

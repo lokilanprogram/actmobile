@@ -99,7 +99,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (widget.interlocutorChatId != "") {
       context
           .read<ChatBloc>()
-          .add(GetChatHistoryEvent(chatId: widget.interlocutorChatId!));
+          .add(GetChatHistoryEvent(chatId: widget.interlocutorChatId));
     } else {
       setState(() {
         isLoading = false;
@@ -109,7 +109,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     if (widget.interlocutorChatId != "" && widget.interlocutorName != '...') {
       webSocketService = ChatWebSocketService(
-        chatId: widget.interlocutorChatId!,
+        chatId: widget.interlocutorChatId,
         token: accessToken!,
       );
     } else if (widget.interlocutorChatId != "" &&
@@ -118,12 +118,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         widget.interlocutorAvatar == null &&
         widget.trailingText == null) {
       webSocketService = ChatWebSocketService(
-        chatId: widget.interlocutorChatId!,
+        chatId: widget.interlocutorChatId,
         token: accessToken!,
       );
       context
           .read<ChatBloc>()
-          .add(GetChatFromPushHistoryEvent(chatId: widget.interlocutorChatId!));
+          .add(GetChatFromPushHistoryEvent(chatId: widget.interlocutorChatId));
     }
 
     setState(() {
@@ -613,8 +613,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                               .addPostFrameCallback((_) {
                                             setState(() {
                                               status = "Печатает...";
-                                              messages.forEach(
-                                                  (i) => i.status = "read");
+                                              for (var i in messages) {
+                                                i.status = "read";
+                                              }
                                               isReaded = true;
                                             });
                                           });
@@ -627,8 +628,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                               .addPostFrameCallback((_) {
                                             setState(() {
                                               status = "Онлайн";
-                                              messages.forEach(
-                                                  (i) => i.status = "read");
+                                              for (var i in messages) {
+                                                i.status = "read";
+                                              }
                                               isReaded = true;
                                             });
                                           });

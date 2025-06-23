@@ -48,6 +48,7 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
+            if (!mounted) return;
             setState(() {
               _isLoading = true;
               _hasError = false;
@@ -55,11 +56,13 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
             });
           },
           onPageFinished: (String url) {
+            if (!mounted) return;
             setState(() {
               _isLoading = false;
             });
           },
           onWebResourceError: (WebResourceError error) {
+            if (!mounted) return;
             developer.log('WebView error: ${error.description}',
                 name: 'SOCIAL_AUTH_WEBVIEW');
             setState(() {

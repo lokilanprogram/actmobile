@@ -61,17 +61,20 @@ class _VotesScreenState extends State<VotesScreen> {
 
   Future<void> _fetchSearchSuggestions(String query) async {
     if (query.isEmpty) {
+      if (!mounted) return;
       setState(() {
         _searchSuggestions = [];
       });
       _removeAutocompleteOverlay();
       return;
     }
+    if (!mounted) return;
     setState(() {
       _searchLoading = true;
     });
     try {
       final votes = await EventsApi().getVotesList();
+      if (!mounted) return;
       setState(() {
         _searchSuggestions = votes
             .where((vote) =>
@@ -80,11 +83,13 @@ class _VotesScreenState extends State<VotesScreen> {
       });
       _showAutocompleteOverlay();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _searchSuggestions = [];
       });
       _removeAutocompleteOverlay();
     }
+    if (!mounted) return;
     setState(() {
       _searchLoading = false;
     });
@@ -275,6 +280,7 @@ class _VotesScreenState extends State<VotesScreen> {
                           IconButton(
                             icon: const Icon(Icons.clear, color: Colors.grey),
                             onPressed: () {
+                              if (!mounted) return;
                               setState(() {
                                 _searchController.clear();
                                 _searchSuggestions = [];
