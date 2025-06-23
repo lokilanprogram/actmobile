@@ -8,9 +8,14 @@ class ChatInitial extends ChatState {}
 class GotAllChatsState extends ChatState {
   final AllChatsModel allPrivateChats;
   final AllChatsModel allGroupChats;
+  final bool hasMorePrivateChats;
+  final bool hasMoreGroupChats;
 
   GotAllChatsState(
-      {required this.allPrivateChats, required this.allGroupChats});
+      {required this.allPrivateChats,
+      required this.allGroupChats,
+      this.hasMorePrivateChats = true,
+      this.hasMoreGroupChats = true});
 }
 
 class GotAllChatsErrorState extends ChatState {}

@@ -80,8 +80,9 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           state.hasMoreEvents) {
         if (!mounted) return;
         setState(() => isLoadingMoreMy = true);
-        context.read<ProfileBloc>().add(
-            ProfileGetListEventsEvent(loadMoreMy: true, loadMoreVisited: true));
+        context
+            .read<ProfileBloc>()
+            .add(ProfileGetListEventsEvent(loadMoreMy: true));
       }
     }
   }
@@ -95,8 +96,9 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           state.hasMoreVisitedEvents) {
         if (!mounted) return;
         setState(() => isLoadingMoreVisited = true);
-        context.read<ProfileBloc>().add(
-            ProfileGetListEventsEvent(loadMoreVisited: true, loadMoreMy: true));
+        context
+            .read<ProfileBloc>()
+            .add(ProfileGetListEventsEvent(loadMoreVisited: true));
       }
     }
   }

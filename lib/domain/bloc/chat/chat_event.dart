@@ -17,11 +17,13 @@ class SendMessageEvent extends ChatEvent {
 }
 
 class GetAllChatsEvent extends ChatEvent {
-  final bool isLoadMore;
+  final bool loadMorePrivate;
+  final bool loadMoreGroup;
   final String chatType;
 
   GetAllChatsEvent({
-    this.isLoadMore = false,
+    this.loadMorePrivate = false,
+    this.loadMoreGroup = false,
     this.chatType = 'private',
   });
 }

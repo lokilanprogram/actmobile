@@ -403,21 +403,11 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                         ),
                                       ),
                                     ),
-                                    SizedBox(
-                                      height: 16,
-                                    ),
+                                    // SizedBox(
+                                    //   height: 16,
+                                    // ),
                                     if (organizedEvent.status !=
                                         "completed") ...[
-                                      Text(
-                                        'Обзор',
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          fontFamily: 'Gilroy',
-                                          height: 1,
-                                          color: mainBlueColor,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
                                       Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -528,7 +518,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                   padding: EdgeInsets.only(
                                                       right: 20,
                                                       top: 10,
-                                                      bottom: 10),
+                                                      bottom: 0),
                                                   child: Text(
                                                     'Обзор',
                                                     style: TextStyle(
@@ -556,7 +546,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                   padding: EdgeInsets.only(
                                                       right: 20,
                                                       top: 10,
-                                                      bottom: 10),
+                                                      bottom: 0),
                                                   child: Row(
                                                     children: [
                                                       Text(

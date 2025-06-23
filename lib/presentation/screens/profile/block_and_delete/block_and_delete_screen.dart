@@ -3,6 +3,7 @@ import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void _launchEmail() async {
@@ -32,10 +33,10 @@ class BlockedScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
-              Icons.close,
-              color: Colors.red,
-              size: 129,
+            SvgPicture.asset(
+              'assets/icons/icon_close.svg',
+              width: 129,
+              height: 129,
             ),
             SizedBox(
               height: 40,
@@ -129,10 +130,10 @@ class DeletedScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
-              Icons.delete,
-              color: Colors.red,
-              size: 129,
+            SvgPicture.asset(
+              'assets/icons/icon_delete_big.svg',
+              width: 129,
+              height: 129,
             ),
             SizedBox(
               height: 40,
