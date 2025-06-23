@@ -12,12 +12,14 @@ class EventsSelectScreen extends StatefulWidget {
   final bool fromUpdate;
   final Function(List<EventOnboarding>)? onCategoriesSelected;
   final List<EventOnboarding> categories;
+  final List<EventOnboarding> selectedCategories;
 
   const EventsSelectScreen({
     super.key,
     required this.fromUpdate,
     required this.categories,
     this.onCategoriesSelected,
+    this.selectedCategories = const [],
   });
 
   @override
@@ -31,7 +33,24 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
   @override
   void initState() {
     super.initState();
-    selected = List<bool>.filled(widget.categories.length, false);
+    selected = List<bool>.generate(
+        widget.categories.length,
+        (index) =>
+            widget.selectedCategories.contains(widget.categories[index]));
+    listOnboarding = List<EventOnboarding>.from(widget.selectedCategories);
+  }
+
+  @override
+  void didUpdateWidget(covariant EventsSelectScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedCategories != oldWidget.selectedCategories) {
+      selected = List<bool>.generate(
+          widget.categories.length,
+          (index) =>
+              widget.selectedCategories.contains(widget.categories[index]));
+      listOnboarding = List<EventOnboarding>.from(widget.selectedCategories);
+      setState(() {});
+    }
   }
 
   Widget _buildShimmerGrid() {
@@ -59,6 +78,9 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Container(
@@ -74,19 +96,19 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
         ),
         child: Padding(
           padding: EdgeInsets.only(
-            right: 35,
-            left: 35,
+            right: width * 0.09,
+            left: width * 0.09,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 15),
+              SizedBox(height: height * 0.02),
               GridView.count(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
                 crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
+                mainAxisSpacing: height * 0.01,
+                crossAxisSpacing: width * 0.03,
                 childAspectRatio: 4,
                 children: List.generate(widget.categories.length, (index) {
                   final event = widget.categories[index];
@@ -110,16 +132,17 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                         color: isSelected ? Colors.blue : Colors.white,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: width * 0.025),
                         child: Row(
                           children: [
                             Image.network(
                               event.iconPath,
-                              width: 18,
-                              height: 18,
+                              width: width * 0.045,
+                              height: width * 0.045,
                               color: isSelected ? Colors.white : null,
                             ),
-                            SizedBox(width: 5),
+                            SizedBox(width: width * 0.012),
                             Expanded(
                               child: Text(
                                 event.name,
@@ -127,7 +150,7 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                                 maxLines: 1,
                                 style: TextStyle(
                                   fontFamily: 'Gilroy',
-                                  fontSize: 15,
+                                  fontSize: width * 0.038,
                                   fontWeight: FontWeight.w400,
                                   color:
                                       isSelected ? Colors.white : Colors.black,
@@ -142,15 +165,17 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                 }),
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 30, right: 10),
+                padding:
+                    EdgeInsets.only(top: height * 0.0, right: width * 0.025),
                 child: Center(
                   child: SvgPicture.asset(
                     'assets/texts/text_select_event.svg',
                     fit: BoxFit.fill,
+                    width: width * 0.7,
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              // SizedBox(height: height * 0.02),
             ],
           ),
         ),

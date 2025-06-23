@@ -4,38 +4,105 @@ import 'package:cached_network_image/cached_network_image.dart';
 class CategoryMarker extends StatelessWidget {
   final String iconUrl;
   final String title;
+  final double opacity;
 
   const CategoryMarker({
     super.key,
     required this.iconUrl,
     required this.title,
+    this.opacity = 1.0,
   });
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: SpeechBubblePainter(),
-      child: Container(
-        padding: EdgeInsets.only(bottom: 15, right: 15),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.network(
-              iconUrl,
-              width: 52,
-              height: 52,
-            ),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16.8,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-                fontFamily: 'Inter',
+    return AnimatedOpacity(
+      opacity: opacity,
+      duration: const Duration(milliseconds: 350),
+      child: CustomPaint(
+        painter: SpeechBubblePainter(),
+        child: Container(
+          padding: EdgeInsets.only(bottom: 15, right: 15),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.network(
+                iconUrl,
+                width: 52,
+                height: 52,
               ),
-            ),
-          ],
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16.8,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class GroupedMarker extends StatelessWidget {
+  final int count;
+  final double opacity;
+  const GroupedMarker({super.key, required this.count, this.opacity = 1.0});
+
+  @override
+  Widget build(BuildContext context) {
+    String eventWord;
+    if (count >= 5 || count == 0) {
+      eventWord = 'Событий';
+    } else if (count >= 2 && count <= 4) {
+      eventWord = 'События';
+    } else {
+      eventWord = 'Событие';
+    }
+    return AnimatedOpacity(
+      opacity: opacity,
+      duration: const Duration(milliseconds: 350),
+      child: CustomPaint(
+        painter: SpeechBubblePainter(),
+        child: Container(
+          padding: EdgeInsets.only(bottom: 25, right: 25, left: 25, top: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.blueAccent),
+                  // color: Colors.blueAccent,
+                ),
+                child: Text(
+                  '$count',
+                  style: const TextStyle(
+                    fontSize: 16.8,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                    fontFamily: 'Inter',
+                  ),
+                ),
+              ),
+              SizedBox(width: 5),
+              Text(
+                eventWord,
+                style: const TextStyle(
+                  fontSize: 16.8,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

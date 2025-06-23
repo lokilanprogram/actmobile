@@ -28,6 +28,7 @@ import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/deeplink_service.dart';
 import 'dart:developer' as developer;
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/bloc/map_bloc.dart';
 
 final baseUrl = API;
 
@@ -102,6 +103,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<NotificationBloc>(
           create: (context) => NotificationBloc(),
+        ),
+        BlocProvider<MapBloc>(
+          create: (context) => MapBloc(),
         ),
         ChangeNotifierProvider<FilterProvider>(
           create: (context) => FilterProvider(),

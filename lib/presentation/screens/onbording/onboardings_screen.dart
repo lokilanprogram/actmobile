@@ -24,7 +24,6 @@ class OnboardingsScreen extends StatefulWidget {
 }
 
 class _OnboardingsScreenState extends State<OnboardingsScreen> {
-  late PageController _pageController;
   late List<Widget> _pages;
   int _currentPage = 0;
   bool isLoading = false;
@@ -53,9 +52,10 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
           });
         },
         categories: listOnbordingModel?.categories ?? [],
+        selectedCategories: selectedCategories,
       ),
+      EventsStartScreen(),
     ];
-    _pageController = PageController();
   }
 
   void _loadCategories() {
@@ -63,12 +63,6 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
       isLoading = true;
     });
     context.read<AuthBloc>().add(ActiGetOnbordingEvent());
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
   }
 
   void _onPageChanged(int page) {
@@ -104,20 +98,38 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
       context
           .read<AuthBloc>()
           .add(ActiSaveOnbordingEvent(listOnboarding: selectedCategories));
+    } else if (_currentPage == _pages.length - 1) {
+      // На последнем слайде — переход на MainScreen
+      setState(() {
+        isFinishing = true;
+      });
+      ProfileApi().getProfile().then((profile) {
+        if (profile != null) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MainScreen(
+                initialIndex: 3,
+                showUpdateProfileOnStart: true,
+                profileModel: profile,
+              ),
+            ),
+            (route) => false,
+          );
+        }
+      });
     } else if (_currentPage < _pages.length - 1) {
-      _pageController.nextPage(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      setState(() {
+        _currentPage++;
+      });
     }
   }
 
   void _previousPage() {
     if (_currentPage > 0) {
-      _pageController.previousPage(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      setState(() {
+        _currentPage--;
+      });
     }
   }
 
@@ -129,22 +141,9 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
         if (state is ActiSavedOnbordingState) {
           setState(() {
             isLoading = false;
-            isFinishing = true;
+            isFinishing = false;
+            _currentPage = _pages.length - 1;
           });
-          final profile = await ProfileApi().getProfile();
-          if (profile != null) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (_) => MainScreen(
-                  initialIndex: 3,
-                  showUpdateProfileOnStart: true,
-                  profileModel: profile,
-                ),
-              ),
-              (route) => false,
-            );
-          }
         }
         if (state is ActiSavedOnbordingErrorState) {
           setState(() {
@@ -163,6 +162,7 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
                 });
               },
               categories: listOnbordingModel!.categories,
+              selectedCategories: selectedCategories,
             );
           });
         }
@@ -178,17 +178,16 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
             ? LoaderWidget()
             : Stack(
                 children: [
-                  PageView(
-                    controller: _pageController,
-                    onPageChanged: _onPageChanged,
+                  IndexedStack(
+                    index: _currentPage,
                     children: _pages,
                   ),
                   Positioned(
                     left: 35,
                     right: 35,
-                    bottom: 35,
+                    bottom: 65,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         if (_currentPage > 0)
                           PopNavButton(
@@ -196,7 +195,7 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
                             function: _previousPage,
                           )
                         else
-                          SizedBox(width: 100),
+                          SizedBox(width: 47),
                         PopNavButton(
                           text: _currentPage == _pages.length - 1
                               ? 'Завершить'

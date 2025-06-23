@@ -430,10 +430,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 PublicUserScreen(
-                                                    userId: widget
-                                                            .interlocutorUserId ??
-                                                        chatInfo!
-                                                            .users!.first.id)));
+                                                    userId: (widget
+                                                                .interlocutorUserId !=
+                                                            null)
+                                                        ? widget
+                                                            .interlocutorUserId!
+                                                        : (chatInfo?.users !=
+                                                                    null &&
+                                                                chatInfo!.users!
+                                                                    .isNotEmpty)
+                                                            ? chatInfo!
+                                                                .users!.first.id
+                                                            : "")));
                                   } else {
                                     Navigator.push(
                                         context,
@@ -449,29 +457,56 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                 });
                               },
                               child: chatInfo?.event == null &&
-                                      chatInfo?.users?.first.photoUrl == null
+                                      (chatInfo?.users == null ||
+                                          chatInfo!.users!.isEmpty ||
+                                          chatInfo?.users?.first.photoUrl ==
+                                              null)
                                   ? CircleAvatar(
                                       maxRadius: 26,
                                       backgroundImage: AssetImage(
                                         'assets/images/image_profile.png',
                                       ))
-                                  : chatInfo?.event?.photos?.first == null &&
-                                          chatInfo?.users?.first.photoUrl ==
-                                              null
+                                  : (chatInfo?.event?.photos == null ||
+                                              chatInfo?.event?.photos
+                                                      ?.isEmpty ==
+                                                  true) &&
+                                          (chatInfo?.users == null ||
+                                              chatInfo!.users!.isEmpty ||
+                                              chatInfo?.users?.first.photoUrl ==
+                                                  null)
                                       ? CircleAvatar(
                                           maxRadius: 26,
                                           backgroundImage: AssetImage(
                                             'assets/images/image_default_event.png',
                                           ))
-                                      : CircleAvatar(
-                                          maxRadius: 26,
-                                          backgroundImage:
-                                              CachedNetworkImageProvider(
-                                            chatInfo?.event?.photos?.first ??
-                                                chatInfo!
-                                                    .users!.first.photoUrl!,
-                                          ),
-                                        ),
+                                      : (chatInfo?.event?.photos != null &&
+                                              chatInfo!
+                                                  .event!.photos!.isNotEmpty)
+                                          ? CircleAvatar(
+                                              maxRadius: 26,
+                                              backgroundImage:
+                                                  CachedNetworkImageProvider(
+                                                chatInfo!.event!.photos!.first,
+                                              ),
+                                            )
+                                          : (chatInfo?.users != null &&
+                                                  chatInfo!.users!.isNotEmpty &&
+                                                  chatInfo!.users!.first
+                                                          .photoUrl !=
+                                                      null)
+                                              ? CircleAvatar(
+                                                  maxRadius: 26,
+                                                  backgroundImage:
+                                                      CachedNetworkImageProvider(
+                                                    chatInfo!
+                                                        .users!.first.photoUrl!,
+                                                  ),
+                                                )
+                                              : CircleAvatar(
+                                                  maxRadius: 26,
+                                                  backgroundImage: AssetImage(
+                                                    'assets/images/image_profile.png',
+                                                  )),
                             ),
                             SizedBox(
                               width: 10,
@@ -491,7 +526,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                               overflow: TextOverflow.visible,
                                               fontWeight: FontWeight.bold),
                                         )
-                                      : chatInfo?.users != null
+                                      : (chatInfo?.users != null &&
+                                              chatInfo!.users!.isNotEmpty)
                                           ? Text(
                                               chatInfo?.users!.first.name ??
                                                   '...',
@@ -547,7 +583,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     child: Column(
                       children: [
                         if (chatInfo?.type == "private" &&
-                            chatInfo?.users?.first.hasRecentBan == true)
+                            chatInfo?.users != null &&
+                            chatInfo!.users!.isNotEmpty &&
+                            chatInfo!.users!.first.hasRecentBan == true)
                           Padding(
                             padding: const EdgeInsets.only(
                                 left: 30, right: 30, top: 5),

@@ -5,6 +5,9 @@ class EventsCreateScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
     return Scaffold(
       body: Stack(
         children: [
@@ -21,19 +24,20 @@ class EventsCreateScreen extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 100,
-            left: 20,
-            right: 20,
+            top: height * 0.15,
+            left: width * 0.05,
+            right: width * 0.05,
             child: Image.asset(
-              height: 420,
+              height: height * 0.45,
+              width: width * 0.9,
               'assets/images/onboard_card2.png',
             ),
           ),
           Padding(
             padding: EdgeInsets.only(
-              top: MediaQuery.of(context).size.height * 0.6,
-              right: 40,
-              left: 40,
+              top: height * 0.5,
+              right: width * 0.1,
+              left: width * 0.1,
             ),
             child: Align(
               child: Column(
@@ -44,19 +48,19 @@ class EventsCreateScreen extends StatelessWidget {
                     "Создавай активность",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 35,
+                      fontSize: width * 0.085,
                       fontFamily: "Gilroy",
                       fontWeight: FontWeight.w800,
                       height: 0.7,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: height * 0.01),
                   Text(
                     "Если не нашли интересующее вас, создайте свою активность! Мы уверены, вы соберёте команду единомышленников",
                     style: TextStyle(
                       letterSpacing: 0.5,
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: width * 0.045,
                       fontFamily: "Gilroy",
                       fontWeight: FontWeight.w400,
                       height: 0.9,

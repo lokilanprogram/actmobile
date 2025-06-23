@@ -18,6 +18,11 @@ import 'dart:developer' as developer;
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:toastification/toastification.dart';
+import 'package:acti_mobile/presentation/screens/profile/settings/user_agreement_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/settings/privacy_policy_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/settings/pd_agreement_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/settings/faq_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/settings/about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -170,16 +175,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
                           const Divider(indent: 24, endIndent: 24),
-                          _buildSettingsTile('Пользовательское соглашение',
-                              () => _showAgreement()),
-                          _buildSettingsTile('Политика конфиденциальности',
-                              () => _showAgreement()),
-                          _buildSettingsTile('Согласие на обработку ПД',
-                              () => _showAgreement()),
+                          _buildSettingsTile(
+                              'Пользовательское соглашение',
+                              () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const UserAgreementScreen()),
+                                  )),
+                          _buildSettingsTile(
+                              'Политика конфиденциальности',
+                              () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const PrivacyPolicyScreen()),
+                                  )),
+                          _buildSettingsTile(
+                              'Согласие на обработку ПД',
+                              () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const PdAgreementScreen()),
+                                  )),
                           _buildSettingsTile(
                               'Часто задаваемые вопросы и ответы',
-                              () => _showFaq()),
-                          _buildSettingsTile('О нас', () => _showAgreement()),
+                              () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const FaqScreen()),
+                                  )),
+                          _buildSettingsTile(
+                              'О нас',
+                              () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const AboutScreen()),
+                                  )),
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 vertical: 22, horizontal: 24),
@@ -308,226 +343,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         const Divider(height: 1, indent: 24, endIndent: 24),
       ],
-    );
-  }
-
-  void _showAgreement() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 1,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 48),
-            Row(
-              children: [
-                SizedBox(
-                  width: 15,
-                ),
-                IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: Icon(Icons.arrow_back_ios)),
-                SizedBox(
-                  width: 30,
-                ),
-                Text('Условия использования',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: "Gilroy")),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                        text: 'Acti',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(
-                        text:
-                            ' — это приложение, которое помогает пользователям находить мероприятия по их увлечениям.\n\n'),
-                    TextSpan(
-                        text:
-                            'Пользователи находят здесь разнообразные мероприятия — мастер-классы, спортивные тренировки, культурные события и многое другое. Всего в Acti представлено более 3 000 000 мероприятий по 900 различным категориям.\n\n'),
-                    TextSpan(
-                        text:
-                            'Организаторы мероприятий и частные специалисты находят с помощью Acti заинтересованных участников. Каждый день в нашем приложении появляется более 25 тысяч новых предложений.\n\n'),
-                    TextSpan(
-                        text:
-                            'Как пользователю выбрать мероприятие?\nКак организатору найти участников?'),
-                  ],
-                ),
-                style: TextStyle(fontSize: 17, height: 1.4),
-              ),
-            ),
-            const Spacer(),
-            // Center(
-            //   child: Text('Версия 1.1.1.0',
-            //       style: TextStyle(color: Colors.grey, fontSize: 15)),
-            // ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showFaq() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ChangeNotifierProvider(
-        create: (_) => FaqProvider()..loadFaqs(),
-        child: Consumer<FaqProvider>(
-          builder: (context, faqProvider, child) {
-            if (faqProvider.isLoading ?? false) {
-              return Container(
-                height: MediaQuery.of(context).size.height * 0.9,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            if (faqProvider.error != null) {
-              return Container(
-                height: MediaQuery.of(context).size.height * 0.9,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                child: Center(
-                  child: Text('Ошибка загрузки: ${faqProvider.error}'),
-                ),
-              );
-            }
-
-            final faqs = faqProvider.faqs ?? [];
-            return Container(
-              height: MediaQuery.of(context).size.height * 1,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 16.0, right: 16.0, top: 36),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            icon: Icon(Icons.arrow_back_ios)),
-                        // SizedBox(
-                        //   width: 30,
-                        // ),
-                        SizedBox(
-                          width: 300,
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Text('Часто задаваемые вопросы и ответы',
-                                maxLines: 3,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: "Gilroy",
-                                )),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Expanded(
-                    child: ListView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: faqs.length,
-                      itemBuilder: (context, idx) {
-                        final isOpen = faqProvider.openedFaqIndex == idx;
-                        return GestureDetector(
-                          onTap: () => faqProvider.toggleFaq(idx),
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 200),
-                            margin: EdgeInsets.symmetric(vertical: 8),
-                            padding: EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              color: Color(0xFFEAF3FF),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        faqs[idx].question,
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ),
-                                    Icon(
-                                      isOpen
-                                          ? Icons.expand_less
-                                          : Icons.expand_more,
-                                      size: 28,
-                                    ),
-                                  ],
-                                ),
-                                if (isOpen) ...[
-                                  Divider(height: 24, color: Colors.blue[100]),
-                                  Text(
-                                    'Ответ:',
-                                    style: TextStyle(
-                                        color: const Color.fromARGB(
-                                            255, 26, 107, 199),
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 12),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    faqs[idx].answer,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 10,
-                                        height: 1),
-                                  ),
-                                ]
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
     );
   }
 }

@@ -36,6 +36,8 @@ PODS:
   - Flutter (1.0.0)
   - flutter_local_notifications (0.0.1):
     - Flutter
+  - flutter_pdfview (1.0.2):
+    - Flutter
   - flutter_secure_storage (6.0.0):
     - Flutter
   - gallery_saver_plus (0.0.1):
@@ -118,6 +120,7 @@ DEPENDENCIES:
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - flutter_pdfview (from `.symlinks/plugins/flutter_pdfview/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - gallery_saver_plus (from `.symlinks/plugins/gallery_saver_plus/ios`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
@@ -159,6 +162,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  flutter_pdfview:
+    :path: ".symlinks/plugins/flutter_pdfview/ios"
   flutter_secure_storage:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
   gallery_saver_plus:
@@ -197,6 +202,7 @@ SPEC CHECKSUMS:
   FirebaseMessaging: 2b9f56aa4ed286e1f0ce2ee1d413aabb8f9f5cb9
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_local_notifications: ff50f8405aaa0ccdc7dcfb9022ca192e8ad9688f
+  flutter_pdfview: 2e4d13ffb774858562ffbdfdb61b40744b191adc
   flutter_secure_storage: d33dac7ae2ea08509be337e775f6b59f1ff45f12
   gallery_saver_plus: c4b59c605df1049a02d036ef81d82972b6dfd606
   geocoding_ios: d7460f56e80e118d57678efe5c2cdc888739ff18

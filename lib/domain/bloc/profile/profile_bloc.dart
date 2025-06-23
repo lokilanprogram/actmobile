@@ -78,8 +78,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           if (profile.isProfileCompleted == true) {
             final isSend = await ProfileApi().postResendEmail();
             isSend.fold(
-              (_l) => emit(ProfileResendEmailErrorState(message: _l)),
-              (_r) => emit(ProfileResendEmailState()),
+              (l) => emit(ProfileResendEmailErrorState(message: l)),
+              (r) => emit(ProfileResendEmailState()),
             );
           } else {
             emit(ProfileResendEmailErrorState(
@@ -201,27 +201,27 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           event.profileModel,
         );
 
-        late final profile;
+        late final ProfileModel profile;
 
         postProfile.fold(
-            (_l) => emit(ProfileUpdatedErrorState(errorMessage: _l)),
-            (_r) => profile = _r);
+            (l) => emit(ProfileUpdatedErrorState(errorMessage: l)),
+            (r) => profile = r);
 
         if (postProfile.isRight()) {
           developer.log(
             '=== Ответ сервера на обновление профиля ===\n'
             'Статус: Успешно\n'
             'Обновленные данные профиля:\n'
-            'ID: ${profile?.id}\n'
-            'Имя: ${profile?.name}\n'
-            'Фамилия: ${profile?.surname}\n'
-            'Email: ${profile?.email}\n'
-            'Город: ${profile?.city}\n'
-            'О себе: ${profile?.bio}\n'
-            'Организация: ${profile?.isOrganization}\n'
-            'Категории: ${profile?.categories.map((e) => e.name).toList()}\n'
-            'Скрыть мои мероприятия: ${profile?.hideMyEvents}\n'
-            'Скрыть посещенные мероприятия: ${profile?.hideAttendedEvents}',
+            'ID: ${profile.id}\n'
+            'Имя: ${profile.name}\n'
+            'Фамилия: ${profile.surname}\n'
+            'Email: ${profile.email}\n'
+            'Город: ${profile.city}\n'
+            'О себе: ${profile.bio}\n'
+            'Организация: ${profile.isOrganization}\n'
+            'Категории: ${profile.categories.map((e) => e.name).toList()}\n'
+            'Скрыть мои мероприятия: ${profile.hideMyEvents}\n'
+            'Скрыть посещенные мероприятия: ${profile.hideAttendedEvents}',
             name: 'ProfileBloc',
           );
 

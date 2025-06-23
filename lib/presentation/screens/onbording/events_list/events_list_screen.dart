@@ -5,6 +5,9 @@ class EventsListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
     return Scaffold(
       body: Stack(
         children: [
@@ -21,26 +24,28 @@ class EventsListScreen extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 100,
-            left: 20,
-            right: 20,
+            top: height * 0.13,
+            left: width * 0.05,
+            right: width * 0.05,
             child: Image.asset(
               'assets/images/onboard_card.png',
+              width: width * 0.9,
             ),
           ),
           Positioned(
-            top: 320,
-            left: 20,
-            right: 20,
+            top: height * 0.42,
+            left: width * 0.05,
+            right: width * 0.05,
             child: Image.asset(
               'assets/images/onboard_card1.png',
+              width: width * 0.9,
             ),
           ),
           Padding(
             padding: EdgeInsets.only(
-              top: MediaQuery.of(context).size.height * 0.6,
-              right: 40,
-              left: 40,
+              top: height * 0.5,
+              right: width * 0.1,
+              left: width * 0.1,
             ),
             child: Align(
               child: Column(
@@ -51,22 +56,22 @@ class EventsListScreen extends StatelessWidget {
                     "Список мероприятий",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 35,
+                      fontSize: width * 0.085,
                       fontFamily: "Gilroy",
                       fontWeight: FontWeight.w800,
                       height: 0.7,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: height * 0.01),
                   Text(
                     "Выбирай понравившееся событие, знакомься \nи наслаждайся вместе с Acti",
                     style: TextStyle(
                       letterSpacing: 0.5,
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: width * 0.045,
                       fontFamily: "Gilroy",
                       fontWeight: FontWeight.w400,
-                      height: 0.7,
+                      height: 0.9,
                     ),
                   ),
                 ],

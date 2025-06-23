@@ -8,6 +8,9 @@ class EventsStartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
     return Scaffold(
       //backgroundColor:Color.fromARGB(255, 188, 219, 253), //Color.fromARGB(255,81,156,241),
       body: Stack(
@@ -36,15 +39,40 @@ class EventsStartScreen extends StatelessWidget {
           ),
           Padding(
             padding: EdgeInsets.only(
-                top: MediaQuery.of(context).size.height * 0.6,
-                right: 40,
-                left: 40),
+                top: height * 0.5, right: width * 0.1, left: width * 0.1),
             child: Align(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SvgPicture.asset('assets/texts/text_events_start.svg'),
+                  SvgPicture.asset('assets/texts/text_events_start.svg',
+                      width: width * 0.7),
+                  SizedBox(height: height * 0.04),
+                  // Center(
+                  //   child: ElevatedButton(
+                  //     onPressed: () {
+                  //       // Получаем родительский OnboardingsScreen и вызываем _nextPage
+                  //       Navigator.of(context)
+                  //           .maybePop(); // Просто для примера, заменим на вызов _nextPage через callback
+                  //     },
+                  //     style: ElevatedButton.styleFrom(
+                  //       backgroundColor: Color.fromARGB(255, 66, 147, 239),
+                  //       shape: RoundedRectangleBorder(
+                  //         borderRadius: BorderRadius.circular(16),
+                  //       ),
+                  //       padding: EdgeInsets.symmetric(
+                  //           horizontal: width * 0.18, vertical: height * 0.022),
+                  //     ),
+                  //     child: Text(
+                  //       'Завершить',
+                  //       style: TextStyle(
+                  //         color: Colors.white,
+                  //         fontSize: width * 0.055,
+                  //         fontWeight: FontWeight.bold,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
