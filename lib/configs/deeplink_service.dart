@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:acti_mobile/main.dart';
 import 'package:app_links/app_links.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:flutter/material.dart';
@@ -9,10 +10,7 @@ class DeeplinkService {
   DeeplinkService._internal();
 
   StreamSubscription? _sub;
-  final _navigatorKey = GlobalKey<NavigatorState>();
   late AppLinks _appLinks;
-
-  GlobalKey<NavigatorState> get navigatorKey => _navigatorKey;
 
   Future<void> initDeeplink() async {
     _appLinks = AppLinks();
@@ -44,7 +42,7 @@ class DeeplinkService {
       if (uri.pathSegments.first == '/api/event') {
         final eventId = uri.pathSegments.last;
         if (eventId.isNotEmpty) {
-          _navigatorKey.currentState?.push(
+          navigatorKey.currentState?.push(
             MaterialPageRoute(
               builder: (context) => EventDetailScreen(eventId: eventId),
             ),

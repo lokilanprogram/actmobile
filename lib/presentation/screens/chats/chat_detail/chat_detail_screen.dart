@@ -6,6 +6,7 @@ import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/chat_info_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
+import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
@@ -167,89 +168,102 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (!isScroll && messages.isNotEmpty)
       WidgetsBinding.instance.addPostFrameCallback((_) => scrollToEnd());
 
-    return BlocListener<ChatBloc, ChatState>(
-      listener: (context, state) {
-        if (state is SentMessageState) {
-          if (state.chatModel != null) {
-            setState(() {
-              messages = state.chatModel!.messages;
-              isScroll = false;
-            });
-            scrollToEnd();
-          } else {
-            setState(() {
-              isScroll = false;
-            });
-          }
-        }
-        if (state is SentMessageErrorState) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error)),
-          );
-        }
-        if (state is StartedChatMessageState) {
-          setState(() {
-            webSocketService = ChatWebSocketService(
-              chatId: state.chatId,
-              token: state.accessToken,
-            );
-            messages = state.chatModel.messages;
-            chatId = state.chatId;
-          });
-          scrollToEnd();
-        }
-        if (state is GotChatHistoryState) {
-          setState(() {
-            isLoading = false;
-            chatInfo = state.chatInfoModel;
-            messages = state.chatModel.messages;
-            isPrivate = state.chatInfoModel.users?.length == 1;
-            isOk = true;
-            total = state.chatModel.total;
-            isLoad = true;
-          });
-          // if (!state.chatModel.messages.isEmpty && !state.isLoadMore) {
-          //   scrollToEnd();
-          // }
-        }
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ChatBloc, ChatState>(
+          listener: (context, state) {
+            if (state is SentMessageState) {
+              if (state.chatModel != null) {
+                setState(() {
+                  messages = state.chatModel!.messages;
+                  isScroll = false;
+                });
+                scrollToEnd();
+              } else {
+                setState(() {
+                  isScroll = false;
+                });
+              }
+            }
+            if (state is SentMessageErrorState) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.error)),
+              );
+            }
+            if (state is StartedChatMessageState) {
+              setState(() {
+                webSocketService = ChatWebSocketService(
+                  chatId: state.chatId,
+                  token: state.accessToken,
+                );
+                messages = state.chatModel.messages;
+                chatId = state.chatId;
+              });
+              scrollToEnd();
+            }
+            if (state is GotChatHistoryState) {
+              setState(() {
+                state.chatInfoModel.type == "private" &&
+                        state.chatInfoModel.users?.first.status == "online"
+                    ? status = "Онлайн"
+                    : "Офлайн";
+                isLoading = false;
+                chatInfo = state.chatInfoModel;
+                messages = state.chatModel.messages;
+                isPrivate = state.chatInfoModel.users?.length == 1;
+                isOk = true;
+                total = state.chatModel.total;
+                isLoad = true;
+              });
+              // if (!state.chatModel.messages.isEmpty && !state.isLoadMore) {
+              //   scrollToEnd();
+              // }
+            }
 
-        if (state is DeletedChatState) {
-          setState(() {
-            isLoading = false;
-          });
-          webSocketService?.dispose();
-          Navigator.pop(context, true);
-        }
+            if (state is DeletedChatState) {
+              setState(() {
+                isLoading = false;
+              });
+              webSocketService?.dispose();
+              Navigator.pop(context, true);
+            }
 
-        if (state is CreatedChatState) {
-          setState(() {
-            webSocketService = ChatWebSocketService(
-              chatId: state.chatId,
-              token: state.accessToken,
-            );
-            messages = state.chatModel.messages;
-            total = state.chatModel.total;
-            isLoading = false;
-          });
-          chatId = state.chatId;
-        }
-        if (state is CreatedChatErrorState) {
-          setState(() {
-            isLoading = false;
-          });
-        }
-        if (state is GotChatHistoryErrorState) {
-          setState(() {
-            isLoading = false;
-          });
-        }
+            if (state is CreatedChatState) {
+              setState(() {
+                webSocketService = ChatWebSocketService(
+                  chatId: state.chatId,
+                  token: state.accessToken,
+                );
+                messages = state.chatModel.messages;
+                total = state.chatModel.total;
+                isLoading = false;
+              });
+              chatId = state.chatId;
+            }
+            if (state is CreatedChatErrorState) {
+              setState(() {
+                isLoading = false;
+              });
+            }
+            if (state is GotChatHistoryErrorState) {
+              setState(() {
+                isLoading = false;
+              });
+            }
 
-        if (state is DeletedChatErrorState) {
-          setState(() {
-            isLoading = false;
-          });
-        }
-      },
+            if (state is DeletedChatErrorState) {
+              setState(() {
+                isLoading = false;
+              });
+            }
+          },
+        ),
+        BlocListener<ProfileBloc, ProfileState>(
+          listener: (context, state) {
+            // TODO: implement listener
+          },
+        ),
+      ],
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
@@ -375,7 +389,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                       'Удалить диалог?',
                                       trailing != null
                                           ? 'Вы точно хотите удалить групповой чат?'
-                                          : 'Вы точно хотите удалить диалог c пользователем $interlocutorName?',
+                                          : 'Вы точно хотите удалить диалог c пользователем //?',
                                       () async {
                                     if (!mounted) return;
                                     await Future.delayed(
