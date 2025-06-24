@@ -100,7 +100,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       if (selectedDate == null) {
         final pickedDateNow = DateTime.now();
         dateController.text = formatDate(
-            '${pickedDateNow!.day}.${pickedDateNow.month}.${pickedDateNow.year}');
+            '${pickedDateNow.day}.${pickedDateNow.month}.${pickedDateNow.year}');
       } else {
         dateController.text = formatDate(
             '${pickedDate!.day}.${pickedDate.month}.${pickedDate.year}');
@@ -529,8 +529,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                                         fontFamily: 'Gilroy')),
                                                 onTap: () {
                                                   final parts = city.placeName
-                                                      ?.split(', ');
-                                                  if (parts!.length == 6) {
+                                                      .split(', ');
+                                                  if (parts.length == 6) {
                                                     addressController.text =
                                                         'г. ${parts[2]}, ${parts[5]}';
                                                   } else {

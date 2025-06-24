@@ -9,6 +9,7 @@ import 'package:acti_mobile/domain/services/map_optimization_service.dart';
 
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/card_event_on_map.dart';
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/cascade_cards_event_on_map.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/widgets/filter_map_sheet.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
@@ -46,11 +47,57 @@ import 'bloc/map_bloc.dart';
 import 'bloc/map_event.dart';
 import 'bloc/map_state.dart';
 
+// Порог зума для смены CategoryMarker на GroupedMarker
+const double GROUPED_MARKER_MIN_ZOOM = 13.0;
+
 /// Вспомогательный класс для хранения события и его экранных координат
 class _EventWithScreen {
   final OrganizedEventModel event;
   final ScreenCoordinate screen;
   _EventWithScreen(this.event, this.screen);
+}
+
+// Глобальная переменная для хранения profileId
+String? _lastProfileId;
+
+// Класс-обёртка для колбека (top-level)
+class _MyPointAnnotationClickListener
+    implements OnPointAnnotationClickListener {
+  @override
+  void onPointAnnotationClick(PointAnnotation annotation) {
+    onPointAnnotationTap(annotation);
+  }
+}
+
+// Глобальный обработчик клика по маркеру (top-level)
+void onPointAnnotationTap(PointAnnotation annotation) {
+  final iconImage = annotation.iconImage;
+  if (iconImage == null) return;
+  final eventId = iconImage.replaceFirst('pointer:', '');
+  final ctx = navigatorKey.currentContext;
+  if (ctx == null) return;
+  final mapState = BlocProvider.of<MapBloc>(ctx, listen: false).state;
+  final group = mapState.groupedEvents.firstWhere(
+    (g) => g.any((e) => e.id.toString() == eventId),
+    orElse: () => [],
+  );
+  if (group.isEmpty) return;
+  if (group.length > 1) {
+    Get.bottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      CascadeCardsEventOnMap(
+        organizedEvents: group,
+        profileId: _lastProfileId ?? '',
+      ),
+    );
+  } else {
+    Get.bottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      CardEventOnMap(organizedEvent: group.first),
+    );
+  }
 }
 
 class MapScreen extends StatefulWidget {
@@ -109,6 +156,9 @@ class _MapScreenState extends State<MapScreen> {
 
   final Map<String, Uint8List> _markerCache = {};
 
+  // Флаг для атомарного обновления маркеров
+  bool isMarkersLoading = false;
+
   Future<void> _onScroll(
     MapContentGestureContext gestureContext,
   ) async {
@@ -143,35 +193,9 @@ class _MapScreenState extends State<MapScreen> {
       print('[DEBUG] onMapTap: groupedEvents is empty');
       return;
     }
-    List<OrganizedEventModel> tappedEvents = [];
-    for (var group in mapState.groupedEvents) {
-      final first = group.first;
-      final distance = geolocator.Geolocator.distanceBetween(
-        (first.latitude ?? 0.0).toDouble(),
-        (first.longitude ?? 0.0).toDouble(),
-        gestureContext.point.coordinates.lat.toDouble(),
-        gestureContext.point.coordinates.lng.toDouble(),
-      );
-      if (distance <= 500) {
-        tappedEvents = group;
-        break;
-      }
-    }
-    print('[DEBUG] onMapTap: tappedEvents.length = ${tappedEvents.length}');
-    if (tappedEvents.isNotEmpty) {
-      if (tappedEvents.length == 1) {
-        await Get.bottomSheet(
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            CardEventOnMap(organizedEvent: tappedEvents.first));
-      } else {
-        await Get.bottomSheet(
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            CascadeCardsEventOnMap(
-                organizedEvents: tappedEvents, profileId: profileId ?? ''));
-      }
-    }
+    // Теперь обработка маркеров происходит через onPointAnnotationTap
+    // Здесь можно оставить обработку только для пустых мест карты, если нужно
+    print('[DEBUG] onMapTap: пустое место карты');
   }
 
   @override
@@ -557,7 +581,8 @@ class _MapScreenState extends State<MapScreen> {
       child: BlocListener<MapBloc, MapState>(
         listenWhen: (prev, curr) => prev.groupedEvents != curr.groupedEvents,
         listener: (context, mapState) {
-          if (mapState.groupedEvents.isNotEmpty &&
+          if (!isMarkersLoading &&
+              mapState.groupedEvents.isNotEmpty &&
               mapboxMap != null &&
               pointAnnotationManager != null) {
             _drawBlocMarkers(mapState.groupedEvents);
@@ -644,6 +669,17 @@ class _MapScreenState extends State<MapScreen> {
                             alignment: Alignment.centerRight,
                             child: buildMapControls(),
                           ),
+                          if (isMarkersLoading)
+                            // Аккуратный индикатор загрузки маркеров
+                            Center(
+                              child: const Padding(
+                                padding: EdgeInsets.all(12.0),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           // Виджет статуса геолокации
                           Positioned(
                             top: 50,
@@ -746,7 +782,7 @@ class _MapScreenState extends State<MapScreen> {
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (context) => FilterBottomSheet(
+                  builder: (context) => FilterMapSheet(
                     currentPosition: currentUserPosition != null
                         ? geolocator.Position(
                             latitude: currentUserPosition!.lat.toDouble(),
@@ -869,9 +905,9 @@ class _MapScreenState extends State<MapScreen> {
                               'date_to': formattedDateTo,
                               'time_from': filterProvider.selectedTimeFrom,
                               'time_to': filterProvider.selectedTimeTo,
-                              // 'type': filterProvider.isOnlineSelected
-                              //     ? 'online'
-                              //     : 'offline',
+                              'type': filterProvider.isOnlineSelected
+                                  ? 'online'
+                                  : 'offline',
                               'slots_min': filterProvider.slotsMin,
                               'slots_max': filterProvider.slotsMax,
                               'is_organization': filterProvider.isOrganization,
@@ -969,6 +1005,9 @@ class _MapScreenState extends State<MapScreen> {
     context.read<MapBloc>().setMapbox(mapboxMap);
     print('[DEBUG] MapScreen: mapboxMap передан в MapBloc');
 
+    // Сохраняем profileId глобально для обработчика
+    _lastProfileId = profileId;
+
     // Применяем оптимизированные настройки жестов
     try {
       await mapboxMap.gestures.updateSettings(
@@ -996,16 +1035,50 @@ class _MapScreenState extends State<MapScreen> {
     });
     // Удаляем все маркеры при создании карты
     await pointAnnotationManager?.deleteAll();
-    // Не рисуем маркеры здесь! Только через onStyleLoadedListener
+
+    // Регистрируем обработчик нажатия на маркеры
+    pointAnnotationManager
+        ?.addOnPointAnnotationClickListener(_MyPointAnnotationClickListener());
+  }
+
+  // Вспомогательная функция для выбора типа маркера группы
+  Widget _buildGroupMarker(int groupLength, double zoom) {
+    if (groupLength > 1 && zoom < 12) {
+      return CircleCountMarker(count: groupLength);
+    } else {
+      return GroupedMarker(count: groupLength);
+    }
+  }
+
+  // Вспомогательная функция для выбора типа маркера события/группы
+  Widget _buildMarker(List<OrganizedEventModel> group, double zoom) {
+    if (group.length > 1) {
+      // Для групп: при сильном отдалении — круг, иначе GroupedMarker
+      if (zoom < 12) {
+        return CircleCountMarker(count: group.length);
+      } else {
+        return GroupedMarker(count: group.length);
+      }
+    } else {
+      // Для одиночных событий: всегда CategoryMarker
+      final event = group.first;
+      return CategoryMarker(
+        title: event.category!.name,
+        iconUrl: event.category!.iconPath,
+      );
+    }
   }
 
   // Новый метод для отрисовки маркеров по состоянию Bloc
   Future<void> _drawBlocMarkers(List<List<OrganizedEventModel>> groups) async {
     if (mapboxMap == null) return;
-    // 1. Создаём новый менеджер
-    final newManager =
-        await mapboxMap!.annotations.createPointAnnotationManager();
-    final List<PointAnnotation> newAnnotations = [];
+    setState(() {
+      isMarkersLoading = true;
+    });
+    final mapState = BlocProvider.of<MapBloc>(context, listen: false).state;
+    final double zoom = mapState.zoom;
+    final List<PointAnnotationOptions> optionsList = [];
+    final List<String> iconIds = [];
     for (var group in groups) {
       final avgLat =
           group.map((e) => e.latitude ?? 0.0).reduce((a, b) => a + b) /
@@ -1014,11 +1087,9 @@ class _MapScreenState extends State<MapScreen> {
           group.map((e) => e.longitude ?? 0.0).reduce((a, b) => a + b) /
               group.length;
       final event = group.first;
-      // DEBUG PRINTS
-      print(
-          '[DEBUG] draw marker: id=${event.id}, lat=$avgLat, lng=$avgLng, groupSize=${group.length}');
       try {
-        final cacheKey = '${event.id}_${group.length}';
+        final cacheKey =
+            '${event.id}_${group.length}_${zoom.toStringAsFixed(1)}';
         Uint8List result;
         if (_markerCache.containsKey(cacheKey)) {
           result = _markerCache[cacheKey]!;
@@ -1027,31 +1098,27 @@ class _MapScreenState extends State<MapScreen> {
             Stack(
               alignment: Alignment.center,
               children: [
-                group.length > 1
-                    ? GroupedMarker(count: group.length)
-                    : CategoryMarker(
-                        title: event.category!.name,
-                        iconUrl: event.category!.iconPath,
-                      ),
+                _buildMarker(group, zoom),
               ],
             ),
           );
           _markerCache[cacheKey] = result;
         }
-        await addEventIconFromUrl(mapboxMap!, 'pointer:${event.id}', result);
+        final iconId = 'pointer:${event.id}';
+        await addEventIconFromUrl(mapboxMap!, iconId, result);
+        iconIds.add(iconId);
         final pointAnnotationOptions = PointAnnotationOptions(
           geometry: Point(coordinates: Position(avgLng, avgLat)),
           iconSize: 0.75,
           image: result,
-          iconImage: 'pointer:${event.id}',
+          iconImage: iconId,
         );
-        final annotation = await newManager.create(pointAnnotationOptions);
-        newAnnotations.add(annotation);
+        optionsList.add(pointAnnotationOptions);
       } catch (e, st) {
         print('[ERROR] draw marker: $e\n$st');
       }
     }
-    // 2. После успешного рендера удаляем старый менеджер и его маркеры
+    // 1. После подготовки новых маркеров удаляем старые и убираем менеджер
     if (pointAnnotationManager != null) {
       try {
         await pointAnnotationManager!.deleteAll();
@@ -1059,12 +1126,57 @@ class _MapScreenState extends State<MapScreen> {
       } catch (e) {
         print('[ERROR] Не удалось очистить старый PointAnnotationManager: $e');
       }
+      setState(() {
+        pointAnnotationManager = null;
+      });
     }
-    // 3. Обновляем ссылку на новый менеджер
+    // 2. Создаём новый менеджер и добавляем все новые маркеры разом
+    final newManager =
+        await mapboxMap!.annotations.createPointAnnotationManager();
+    final List<PointAnnotation> newAnnotations = [];
+    for (final options in optionsList) {
+      final annotation = await newManager.create(options);
+      newAnnotations.add(annotation);
+    }
     setState(() {
       pointAnnotationManager = newManager;
+      isMarkersLoading = false;
     });
     print(
-        '[DEBUG] Новый PointAnnotationManager установлен, маркеров: ${newAnnotations.length}');
+        '[DEBUG] Новый PointAnnotationManager установлен, маркеров: \u001b[32m${newAnnotations.length}\u001b[0m');
+  }
+}
+
+class CircleCountMarker extends StatelessWidget {
+  final int count;
+  const CircleCountMarker({super.key, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white, width: 2),
+        color: Colors.green,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '$count',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+    );
   }
 }

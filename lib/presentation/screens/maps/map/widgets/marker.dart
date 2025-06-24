@@ -5,42 +5,47 @@ class CategoryMarker extends StatelessWidget {
   final String iconUrl;
   final String title;
   final double opacity;
+  final VoidCallback? onTap;
 
   const CategoryMarker({
     super.key,
     required this.iconUrl,
     required this.title,
     this.opacity = 1.0,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: opacity,
-      duration: const Duration(milliseconds: 350),
-      child: CustomPaint(
-        painter: SpeechBubblePainter(),
-        child: Container(
-          padding: EdgeInsets.only(bottom: 15, right: 15),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.network(
-                iconUrl,
-                width: 52,
-                height: 52,
-              ),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16.8,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                  fontFamily: 'Inter',
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedOpacity(
+        opacity: opacity,
+        duration: const Duration(milliseconds: 350),
+        child: CustomPaint(
+          painter: SpeechBubblePainter(),
+          child: Container(
+            padding: EdgeInsets.only(bottom: 15, right: 15),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.network(
+                  iconUrl,
+                  width: 52,
+                  height: 52,
                 ),
-              ),
-            ],
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16.8,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                    fontFamily: 'Inter',
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -51,7 +56,9 @@ class CategoryMarker extends StatelessWidget {
 class GroupedMarker extends StatelessWidget {
   final int count;
   final double opacity;
-  const GroupedMarker({super.key, required this.count, this.opacity = 1.0});
+  final VoidCallback? onTap;
+  const GroupedMarker(
+      {super.key, required this.count, this.opacity = 1.0, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -63,26 +70,38 @@ class GroupedMarker extends StatelessWidget {
     } else {
       eventWord = 'Событие';
     }
-    return AnimatedOpacity(
-      opacity: opacity,
-      duration: const Duration(milliseconds: 350),
-      child: CustomPaint(
-        painter: SpeechBubblePainter(),
-        child: Container(
-          padding: EdgeInsets.only(bottom: 25, right: 25, left: 25, top: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.blueAccent),
-                  // color: Colors.blueAccent,
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedOpacity(
+        opacity: opacity,
+        duration: const Duration(milliseconds: 350),
+        child: CustomPaint(
+          painter: SpeechBubblePainter(),
+          child: Container(
+            padding: EdgeInsets.only(bottom: 25, right: 25, left: 25, top: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.blueAccent),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: const TextStyle(
+                      fontSize: 16.8,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                      fontFamily: 'Inter',
+                    ),
+                  ),
                 ),
-                child: Text(
-                  '$count',
+                SizedBox(width: 5),
+                Text(
+                  eventWord,
                   style: const TextStyle(
                     fontSize: 16.8,
                     fontWeight: FontWeight.bold,
@@ -90,18 +109,8 @@ class GroupedMarker extends StatelessWidget {
                     fontFamily: 'Inter',
                   ),
                 ),
-              ),
-              SizedBox(width: 5),
-              Text(
-                eventWord,
-                style: const TextStyle(
-                  fontSize: 16.8,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                  fontFamily: 'Inter',
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -202,6 +211,39 @@ class ClusterMarker extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class CircleCountMarker extends StatelessWidget {
+  final int count;
+  const CircleCountMarker({super.key, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.blueAccent,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '$count',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
     );
   }
 }
