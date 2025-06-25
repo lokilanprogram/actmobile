@@ -94,7 +94,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileGetPublicUserEvent>((event, emit) async {
       try {
         final user = await ProfileApi().getPublicUser(event.userId);
-        final blockedUser = await ProfileApi().getBlockedUser(event.userId);
+        bool blockedUser = false;
+        try {
+          blockedUser = await ProfileApi().getBlockedUser(event.userId);
+        } catch (e) {
+          blockedUser = false;
+        }
         user.fold((l) {
           emit(ProfileGotPublicUserState(
               publicUserModel: l, isBlocked: blockedUser));

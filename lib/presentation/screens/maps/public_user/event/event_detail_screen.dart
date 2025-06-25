@@ -1217,7 +1217,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   } else if (!profileModel!.isEmailVerified) {
                                     showAlertOKDialog(context, null,
                                         isTitled: true,
-                                        title: 'Заполните профиль');
+                                        title: 'Подтвердите почту');
                                   } else if (organizedEvent.freeSlots < 1) {
                                     showAlertOKDialog(context, null,
                                         isTitled: true,

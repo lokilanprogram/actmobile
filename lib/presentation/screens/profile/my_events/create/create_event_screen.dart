@@ -78,9 +78,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   List<MapBoxSuggestion> _suggestions = [];
   bool _isLoading = false;
-  final FocusNode dateFocusNode = FocusNode();
 
   bool isError = false;
+
+  final FocusNode titleFocusNode = FocusNode();
+  final FocusNode descriptionFocusNode = FocusNode();
+  final FocusNode addressFocusNode = FocusNode();
+  final FocusNode dateFocusNode = FocusNode();
+  final FocusNode priceFocusNode = FocusNode();
 
   Future<void> selectDate() async {
     final DateTime? pickedDate = await showDatePicker(
@@ -105,9 +110,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         dateController.text = formatDate(
             '${pickedDate!.day}.${pickedDate.month}.${pickedDate.year}');
       }
-    });
-    Future.delayed(Duration.zero, () {
-      dateFocusNode.requestFocus();
     });
   }
 
@@ -181,7 +183,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   @override
   void dispose() {
+    titleFocusNode.dispose();
+    descriptionFocusNode.dispose();
+    addressFocusNode.dispose();
     dateFocusNode.dispose();
+    priceFocusNode.dispose();
     super.dispose();
   }
 
@@ -400,7 +406,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           ),
                           const SizedBox(height: 8),
                           _buildTextField("Введите название вашего события",
-                              controller: titleController),
+                              controller: titleController,
+                              focusNode: titleFocusNode),
                           const SizedBox(height: 20),
                           _buildSwitchTile("Событие ОНЛАЙН", isOnline,
                               (v) => setState(() => isOnline = v)),
@@ -434,7 +441,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                                   TextCapitalization.sentences,
                                               onChanged: _searchLocation,
                                               maxLines: 1,
+                                              autofocus: false,
                                               controller: addressController,
+                                              focusNode: addressFocusNode,
                                               decoration: InputDecoration(
                                                   fillColor: Colors.grey[200],
                                                   filled: true,
@@ -581,10 +590,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                     children: [
                                       Expanded(
                                           child: TextFormField(
+                                        focusNode: dateFocusNode,
                                         textCapitalization:
                                             TextCapitalization.sentences,
                                         maxLines: 1,
-                                        focusNode: dateFocusNode,
                                         controller: dateController,
                                         inputFormatters: [dateFormatter],
                                         decoration: InputDecoration(
@@ -610,11 +619,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                         width: 5,
                                       ),
                                       InkWell(
-                                        onTap: () {
-                                          Future.delayed(Duration.zero, () {
-                                            dateFocusNode.requestFocus();
-                                          });
-                                          selectDate();
+                                        onTap: () async {
+                                          dateFocusNode.unfocus();
+                                          await selectDate();
+                                          unfocusAllFields();
                                         },
                                         child: Container(
                                           width: 49,
@@ -663,7 +671,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           _buildTextField("Введите цену",
                               isPrice: true,
                               suffixText: "₽",
-                              controller: priceController),
+                              controller: priceController,
+                              focusNode: priceFocusNode),
                           const SizedBox(height: 24),
                           _buildSwitchTile("Ограничение 18+", is18plus, (v) {
                             setState(() {
@@ -721,11 +730,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
+                            focusNode: descriptionFocusNode,
                             textCapitalization: TextCapitalization.sentences,
                             maxLines: 4,
                             onChanged: (value) =>
                                 setState(() => isError = false),
-                            autofocus: true,
+                            autofocus: false,
                             controller: descriptionController,
                             keyboardType: TextInputType.multiline,
                             autovalidateMode:
@@ -770,8 +780,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                               errorStyle: TextStyle(color: Colors.red),
                             ),
                           ),
-                          // _buildTextField("Опишите ваше событие",
-                          //     maxLines: 4, controller: descriptionController),
                           const SizedBox(height: 28),
                           Text(
                             'Категория:',
@@ -906,13 +914,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       {int maxLines = 1,
       bool isPrice = false,
       String? suffixText,
-      required TextEditingController controller}) {
+      required TextEditingController controller,
+      FocusNode? focusNode}) {
     return TextFormField(
+      focusNode: focusNode,
       textCapitalization: TextCapitalization.sentences,
       inputFormatters:
           isPrice ? [FilteringTextInputFormatter.digitsOnly] : null,
       maxLines: maxLines,
-      autofocus: true,
+      autofocus: false,
       controller: controller,
       keyboardType: isPrice ? TextInputType.number : null,
       decoration: InputDecoration(
@@ -1316,5 +1326,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         'assets/icons/icon_add_photo_activity.svg',
       ),
     );
+  }
+
+  void unfocusAllFields() {
+    titleFocusNode.unfocus();
+    descriptionFocusNode.unfocus();
+    addressFocusNode.unfocus();
+    dateFocusNode.unfocus();
+    priceFocusNode.unfocus();
   }
 }

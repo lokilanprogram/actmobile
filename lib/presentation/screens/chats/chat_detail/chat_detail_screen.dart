@@ -202,6 +202,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               scrollToEnd();
             }
             if (state is GotChatHistoryState) {
+              if (state.chatInfoModel.users?.isEmpty ?? true) {
+                Navigator.pop(context, false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Пользователь удален"),
+                  ),
+                );
+              } else {
               setState(() {
                 state.chatInfoModel.type == "private" &&
                         state.chatInfoModel.users?.first.status == "online"
@@ -215,6 +223,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 total = state.chatModel.total;
                 isLoad = true;
               });
+              }
               // if (!state.chatModel.messages.isEmpty && !state.isLoadMore) {
               //   scrollToEnd();
               // }

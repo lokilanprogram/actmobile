@@ -189,7 +189,7 @@ class ProfileApi {
       } else if (response.statusCode == 403) {
         return Right("Пользователь вас заблокировал");
       } else {
-        throw Exception('Error: ${response.body}');
+        throw Exception(jsonDecode(response.body)['detail']);
       }
     }
     throw Exception('Error');

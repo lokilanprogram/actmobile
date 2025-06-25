@@ -211,11 +211,17 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                               height: 40,
                                               child: InkWell(
                                                 onTap: () async {
-                                                  await Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (_) =>
-                                                              NotificationsScreen()));
+                                                  if (profileModel
+                                                      .isEmailVerified) {
+                                                    await Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                            builder: (_) =>
+                                                                NotificationsScreen()));
+                                                  } else {
+                                                    showAlertOKDialog(context, null,
+                isTitled: true, title: 'Подтвердите почту');
+                                                  }
                                                 },
                                                 child: Icon(
                                                     Icons
