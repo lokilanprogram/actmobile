@@ -1075,6 +1075,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   void goToNextSearchResult() {
+    if (filteredMessages.isEmpty) return;
     if (currentSearchIndex < filteredMessages.length - 1) {
       setState(() {
         currentSearchIndex++;

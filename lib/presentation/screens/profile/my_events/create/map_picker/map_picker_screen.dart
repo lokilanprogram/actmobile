@@ -176,6 +176,16 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       final currentLat =
           widget.position?.lat ?? currentPosition?.latitude ?? 55.7558;
 
+      final RegExp regExp = RegExp(
+        r'(\d+)\s*(корпус|кор|к)\s*(\d+)',
+        caseSensitive: false,
+      );
+      place = place.replaceAllMapped(regExp, (match) {
+        final houseNumber = match.group(1);
+        final buildingNumber = match.group(3);
+        return '$houseNumberк$buildingNumber';
+      });
+
       final encodedPlace = Uri.encodeComponent(place);
       final url =
           'https://api.mapbox.com/geocoding/v5/mapbox.places/$encodedPlace.json'
@@ -350,7 +360,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                               final s = _suggestions[idx];
                               return ListTile(
                                 title: Text(s.text,
-                                    style: TextStyle(fontSize: 16, fontFamily: 'Gilroy')),
+                                    style: TextStyle(
+                                        fontSize: 16, fontFamily: 'Gilroy')),
                                 subtitle: Text(s.placeName,
                                     style: TextStyle(
                                         fontSize: 13, color: Colors.grey)),
@@ -633,7 +644,9 @@ class MapBoxSuggestion {
   }
 
   String get shortAddress {
-    final parts = [region, city, streetAndHouse].where((e) => e != null && e.isNotEmpty).cast<String>();
+    final parts = [region, city, streetAndHouse]
+        .where((e) => e != null && e.isNotEmpty)
+        .cast<String>();
     return parts.join(', ');
   }
 }

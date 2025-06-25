@@ -12,6 +12,7 @@ import 'package:acti_mobile/domain/websocket/websocket.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/tab_bar_widget.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -225,10 +226,10 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                           "Для продолжения, требуется  подтвердить почту",
                           textAlign: TextAlign.center,
                           style: TextStyle(
+                            fontSize: 18,
+                            fontFamily: 'Gilroy',
+                            fontWeight: FontWeight.w600,
                             color: Colors.black,
-                            fontSize: 18.35,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'Inter',
                           ),
                         ),
                         SizedBox(height: 20),
@@ -263,26 +264,41 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        InkWell(
-                          onTap: () {
-                            context
-                                .read<ProfileBloc>()
-                                .add(ProfileResendEmailEvent());
-                            if (!mounted) return;
-                            setState(() {
-                              _isLoading = true;
-                            });
-                          },
-                          child: Text(
-                            "Отправить еще раз",
-                            style: TextStyle(
-                              color: mainBlueColor,
-                              fontFamily: 'Gilroy',
-                              fontSize: 14.7,
-                              fontWeight: FontWeight.w400,
-                            ),
+                        RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "Не пришло уведомление на почту?\n",
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 14.7,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "Отправить еще раз",
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    context
+                                        .read<ProfileBloc>()
+                                        .add(ProfileResendEmailEvent());
+                                    if (!mounted) return;
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                  },
+                                style: TextStyle(
+                                  color: mainBlueColor,
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 14.7,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                   )

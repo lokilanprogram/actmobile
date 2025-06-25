@@ -210,9 +210,14 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                           },
                           icon: Icon(Icons.arrow_back_ios)),
                     ),
-                    title: Padding(
-                      padding: const EdgeInsets.only(top: 5),
-                      child: SvgPicture.asset('assets/texts/text_profile.svg'),
+                    title: const Text(
+                      'Профиль',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 28,
+                        fontWeight: FontWeight.w300,
+                      ),
                     ),
                     actions: [
                       Padding(
@@ -354,9 +359,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   Text(
                                     'Имя',
                                     style: TextStyle(
-                                        fontFamily: 'Inter',
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w400),
+                                      fontFamily: 'Inter',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.black,
+                                    ),
                                   ),
                                   SizedBox(height: 4),
                                   TextInputNameWidget(
@@ -790,7 +797,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     return Stack(
       children: [
         CircleAvatar(
-          radius: 50,
+          radius: 58,
           backgroundImage: isUpdatedImage
               ? FileImage(File(imagePath))
               : (imagePath == 'assets/images/image_profile.png'
@@ -804,7 +811,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             onTap: onEdit,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: mainBlueColor,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -814,11 +821,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                   ),
                 ],
               ),
-              padding: EdgeInsets.all(6),
+              padding: EdgeInsets.all(6.5),
               child: Icon(
                 Icons.edit,
                 color: Colors.white,
-                size: 18,
+                size: 24,
               ),
             ),
           ),
@@ -829,7 +836,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   Widget cupertinoSwitch() {
     return CupertinoSwitch(
-        activeTrackColor: Colors.blue,
+        activeTrackColor: mainBlueColor,
         value: isOrganizationRepresentative,
         onChanged: (val) {
           setState(() {
@@ -944,29 +951,39 @@ class TextInputNameWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      textCapitalization: TextCapitalization.sentences,
-      style: TextStyle(fontSize: 18, fontFamily: 'Inter'),
-      controller: controller,
-      validator: validator ?? _validateName,
-      onChanged: (value) {
-        final formattedValue = _formatName(value);
-        if (formattedValue != value) {
-          controller.value = TextEditingValue(
-            text: formattedValue,
-            selection: TextSelection.collapsed(offset: formattedValue.length),
-          );
-        }
-      },
-      decoration: InputDecoration(
-        hintText: text,
-        hintStyle: hintTextStyleEdit,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: 40,
+      ),
+      child: TextFormField(
+        textCapitalization: TextCapitalization.sentences,
+        style: TextStyle(
+          fontSize: 18.82,
+          fontFamily: 'Inter',
+          fontWeight: FontWeight.w400,
+          color: Colors.black,
         ),
-        filled: true,
-        fillColor: Colors.grey[100],
+        controller: controller,
+        validator: validator ?? _validateName,
+        onChanged: (value) {
+          final formattedValue = _formatName(value);
+          if (formattedValue != value) {
+            controller.value = TextEditingValue(
+              text: formattedValue,
+              selection: TextSelection.collapsed(offset: formattedValue.length),
+            );
+          }
+        },
+        decoration: InputDecoration(
+          hintText: text,
+          hintStyle: hintTextStyleEdit,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5.0),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Color.fromARGB(80, 224, 222, 222),
+        ),
       ),
     );
   }
