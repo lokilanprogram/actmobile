@@ -38,7 +38,7 @@ class DeeplinkService {
   }
 
   void _handleDeeplink(Uri uri) {
-    if (uri.host == '93.183.81.104') {
+    if (uri.host == 'https://api.actiadmin.ru') {
       if (uri.pathSegments.first == '/api/event') {
         final eventId = uri.pathSegments.last;
         if (eventId.isNotEmpty) {

@@ -165,7 +165,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         final isCreated = await EventsApi()
             .alterEvent(alterEvent: event.createEventModel, isCreated: true);
-        isCreated.fold((l) => emit(ActiUpdatedActivityErrorState(message: l)),
+        emit(ActiCreatedActivityState());
+              isCreated.fold((l) => emit(ActiUpdatedActivityErrorState(message: l)),
             (r) => emit(ActiCreatedActivityState()));
       } catch (e) {
         emit(ActiCreatedActivityErrorState());

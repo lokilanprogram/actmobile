@@ -168,7 +168,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   void _removeImage(String imagePath) {
     setState(() {
-      if (imagePath.contains('http://93.183.81.104')) {
+      if (imagePath.contains('https://api.actiadmin.ru')) {
         deletedImages.add(imagePath);
       }
       _images.removeWhere((image) => image == imagePath);
@@ -1253,7 +1253,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: imagePath.contains('http://93.183.81.104')
+            child: imagePath.contains('https://api.actiadmin.ru')
                 ? Image.network(
                     imagePath,
                     width: width,

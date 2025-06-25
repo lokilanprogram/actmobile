@@ -18,15 +18,12 @@ import 'package:acti_mobile/main.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/marker.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
-import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/searched_events_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
-import 'package:acti_mobile/presentation/screens/chats/chat_main/chat_main_screen.dart';
-import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
+
 import 'package:acti_mobile/presentation/screens/maps/event/widgets/events_home_map_widget.dart';
-import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
-import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
+
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -34,7 +31,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geolocator;
-import 'package:acti_mobile/presentation/screens/events/widgets/filter_bottom_sheet.dart';
+
 import 'package:acti_mobile/presentation/screens/events/providers/filter_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -42,7 +39,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:typed_data';
 import 'dart:async';
-import 'dart:math' as math;
+
 import 'bloc/map_bloc.dart';
 import 'bloc/map_event.dart';
 import 'bloc/map_state.dart';
@@ -158,6 +155,11 @@ class _MapScreenState extends State<MapScreen> {
 
   // Флаг для атомарного обновления маркеров
   bool isMarkersLoading = false;
+
+  // Храним текущие id маркеров
+  Set<String> _currentMarkerIds = {};
+  // Храним текущие объекты аннотаций
+  final Set<PointAnnotation> _currentAnnotations = {};
 
   Future<void> _onScroll(
     MapContentGestureContext gestureContext,
@@ -669,6 +671,27 @@ class _MapScreenState extends State<MapScreen> {
                             alignment: Alignment.centerRight,
                             child: buildMapControls(),
                           ),
+                          // Отображение текущего зума
+                          Positioned(
+                            top: 24,
+                            right: 24,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Зум: ${mapState.zoom.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
                           if (isMarkersLoading)
                             // Аккуратный индикатор загрузки маркеров
                             Center(
@@ -1069,17 +1092,36 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  // Новый метод для отрисовки маркеров по состоянию Bloc
+  // Новый метод для эффективного обновления маркеров по состоянию Bloc
   Future<void> _drawBlocMarkers(List<List<OrganizedEventModel>> groups) async {
-    if (mapboxMap == null) return;
+    if (mapboxMap == null || pointAnnotationManager == null) return;
     setState(() {
       isMarkersLoading = true;
     });
     final mapState = BlocProvider.of<MapBloc>(context, listen: false).state;
     final double zoom = mapState.zoom;
-    final List<PointAnnotationOptions> optionsList = [];
-    final List<String> iconIds = [];
-    for (var group in groups) {
+    final Set<String> newMarkerIds =
+        groups.map((g) => 'pointer:${g.first.id}').toSet();
+    final Map<String, List<OrganizedEventModel>> groupById = {
+      for (var g in groups) 'pointer:${g.first.id}': g
+    };
+
+    // 1. Удаляем только те маркеры, которых больше нет
+    final toRemove = _currentMarkerIds.difference(newMarkerIds);
+    if (toRemove.isNotEmpty) {
+      final toRemoveAnnotations = _currentAnnotations
+          .where((a) => toRemove.contains(a.iconImage))
+          .toList();
+      for (final annotation in toRemoveAnnotations) {
+        await pointAnnotationManager!.delete(annotation);
+        _currentAnnotations.remove(annotation);
+      }
+    }
+
+    // 2. Добавляем только новые маркеры
+    final toAdd = newMarkerIds.difference(_currentMarkerIds);
+    for (final id in toAdd) {
+      final group = groupById[id]!;
       final avgLat =
           group.map((e) => e.latitude ?? 0.0).reduce((a, b) => a + b) /
               group.length;
@@ -1104,46 +1146,28 @@ class _MapScreenState extends State<MapScreen> {
           );
           _markerCache[cacheKey] = result;
         }
-        final iconId = 'pointer:${event.id}';
-        await addEventIconFromUrl(mapboxMap!, iconId, result);
-        iconIds.add(iconId);
+        await addEventIconFromUrl(mapboxMap!, id, result);
         final pointAnnotationOptions = PointAnnotationOptions(
           geometry: Point(coordinates: Position(avgLng, avgLat)),
           iconSize: 0.75,
           image: result,
-          iconImage: iconId,
+          iconImage: id,
         );
-        optionsList.add(pointAnnotationOptions);
+        final annotation =
+            await pointAnnotationManager!.create(pointAnnotationOptions);
+        _currentAnnotations.add(annotation);
       } catch (e, st) {
         print('[ERROR] draw marker: $e\n$st');
       }
     }
-    // 1. После подготовки новых маркеров удаляем старые и убираем менеджер
-    if (pointAnnotationManager != null) {
-      try {
-        await pointAnnotationManager!.deleteAll();
-        print('[DEBUG] Старый PointAnnotationManager очищен');
-      } catch (e) {
-        print('[ERROR] Не удалось очистить старый PointAnnotationManager: $e');
-      }
-      setState(() {
-        pointAnnotationManager = null;
-      });
-    }
-    // 2. Создаём новый менеджер и добавляем все новые маркеры разом
-    final newManager =
-        await mapboxMap!.annotations.createPointAnnotationManager();
-    final List<PointAnnotation> newAnnotations = [];
-    for (final options in optionsList) {
-      final annotation = await newManager.create(options);
-      newAnnotations.add(annotation);
-    }
+
+    // 3. Обновляем список текущих id
+    _currentMarkerIds = newMarkerIds;
     setState(() {
-      pointAnnotationManager = newManager;
       isMarkersLoading = false;
     });
     print(
-        '[DEBUG] Новый PointAnnotationManager установлен, маркеров: \u001b[32m${newAnnotations.length}\u001b[0m');
+        '[DEBUG] Маркеры обновлены эффективно, всего: \u001b[32m${_currentMarkerIds.length}\u001b[0m');
   }
 }
 
