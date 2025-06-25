@@ -22,6 +22,7 @@ class MyEventsScreen extends StatefulWidget {
 
 class _MyEventsScreenState extends State<MyEventsScreen> {
   bool isLoading = false;
+  bool isRefreshing = false;
   bool isVerified = false;
   bool isProfileCompleted = false;
   bool hasCompleted = false;
@@ -119,6 +120,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           if (!mounted) return;
           setState(() {
             isLoading = false;
+            isRefreshing = false;
             isVerified = state.isVerified;
             isLoadingMoreMy = false;
             isLoadingMoreVisited = false;
@@ -142,6 +144,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           if (!mounted) return;
           setState(() {
             isLoading = false;
+            isRefreshing = false;
           });
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text('Ошибка')));
@@ -229,29 +232,38 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                               child: RefreshIndicator(
                                 onRefresh: () async {
                                   if (!mounted) return;
-                                  initialize();
+                                  setState(() {
+                                    isRefreshing = true;
+                                    context
+                                        .read<ProfileBloc>()
+                                        .add(ProfileGetListEventsEvent());
+                                  });
                                 },
-                                child: ListView(
-                                  controller: isMineEvents
-                                      ? _scrollControllerMy
-                                      : _scrollControllerVisited,
-                                  children: [
-                                    if (isMineEvents)
-                                      buildMyEvents(query)
-                                    else
-                                      buildVisitedEvents(query),
-                                    if ((isMineEvents && isLoadingMoreMy) ||
-                                        (!isMineEvents && isLoadingMoreVisited))
-                                      Center(
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 16),
-                                          child: CircularProgressIndicator(),
-                                        ),
+                                child: isRefreshing
+                                    ? LoaderWidget()
+                                    : ListView(
+                                        controller: isMineEvents
+                                            ? _scrollControllerMy
+                                            : _scrollControllerVisited,
+                                        children: [
+                                          if (isMineEvents)
+                                            buildMyEvents(query)
+                                          else
+                                            buildVisitedEvents(query),
+                                          if ((isMineEvents &&
+                                                  isLoadingMoreMy) ||
+                                              (!isMineEvents &&
+                                                  isLoadingMoreVisited))
+                                            Center(
+                                              child: Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                    vertical: 16),
+                                                child: LoaderWidget(),
+                                              ),
+                                            ),
+                                          const SizedBox(height: 150),
+                                        ],
                                       ),
-                                    const SizedBox(height: 150),
-                                  ],
-                                ),
                               ),
                             ),
                           ),

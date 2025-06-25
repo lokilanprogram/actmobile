@@ -123,9 +123,18 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final RegExp regExp = RegExp(
+        r'(\d+)\s*(корпус|кор|к)\s*(\d+)',
+        caseSensitive: false,
+      );
+      place = place.replaceAllMapped(regExp, (match) {
+        final houseNumber = match.group(1);
+        final buildingNumber = match.group(3);
+        return '$houseNumberк$buildingNumber';
+      });
       final url =
           'https://api.mapbox.com/geocoding/v5/mapbox.places/$place.json'
-          '?language=ru&proximity=-74.70850,40.78375&country=ru&types=address,place'
+          '?language=ru&proximity=-74.70850,40.78375&country=ru&types=address,place,neighborhood,district,locality'
           '&access_token=pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg';
 
       final response = await http.get(Uri.parse(url));
