@@ -337,7 +337,7 @@ class EventsApi {
           '${timezoneOffset.isNegative ? '-' : '+'}${timezoneOffset.inHours.abs().toString().padLeft(2, '0')}:${(timezoneOffset.inMinutes.abs() % 60).toString().padLeft(2, '0')}';
 
       for (var photo in alterEvent.images) {
-        if (!photo.contains('http://93.183.81.104')) {
+        if (!photo.contains('https://api.actiadmin.ru')) {
           final file = File(photo);
           if (!await file.exists()) {
             return Left('Файл не найден: $photo');

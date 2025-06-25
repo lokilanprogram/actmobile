@@ -29,6 +29,7 @@ import 'package:acti_mobile/configs/deeplink_service.dart';
 import 'dart:developer' as developer;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/bloc/map_bloc.dart';
+import 'package:acti_mobile/domain/services/token_refresh_service.dart';
 
 final baseUrl = API;
 
@@ -48,6 +49,9 @@ void main() async {
               : "1:927589486813:ios:f0ce8032174c9c6ca40b34", //"1:368466897752:ios:d78a2747650774472dd32d",
           messagingSenderId: "927589486813",
           projectId: "acti-54f96"));
+
+  // Запуск автообновления токена
+  await TokenRefreshService().start();
 
   // Инициализация Firebase Messaging
   // if (Platform.isIOS) {

@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../domain/websocket/websocket.dart';
+import 'package:acti_mobile/domain/services/token_refresh_service.dart';
 
 class InitialScreen extends StatefulWidget {
   const InitialScreen({super.key});
@@ -130,6 +131,8 @@ class _InitialScreenState extends State<InitialScreen> {
 
   initialize() async {
     final storage = SecureStorageService();
+    // Запуск автообновления токена (на случай, если main не вызвал повторно)
+    await TokenRefreshService().start();
     try {
       // Запрашиваем разрешение на геолокацию
       await _requestLocationPermission();

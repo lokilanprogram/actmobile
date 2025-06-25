@@ -127,8 +127,8 @@ String formatDuration(String startTime, String endTime) {
   }
 }
 
-const API = 'http://93.183.81.104';
-const WS_API = 'ws://93.183.81.104';
+const API = 'https://api.actiadmin.ru';
+const WS_API = 'wss://api.actiadmin.ru';
 
 String normalizePhone(String input) {
   return input.replaceAll(RegExp(r'[^\d+]'), '');
@@ -205,7 +205,6 @@ String utcTime(String time) {
     hour,
     minute,
   );
-
 
   // Форматируем время в формат HH:mm:ss
   String formattedTime = '${localDateTime.hour.toString().padLeft(2, '0')}:'

@@ -15,6 +15,7 @@ import 'package:acti_mobile/domain/api/events/events_api.dart';
 import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
+import 'package:acti_mobile/domain/services/token_refresh_service.dart';
 
 part 'profile_event.dart';
 part 'profile_state.dart';
@@ -203,8 +204,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
         late final ProfileModel profile;
 
-        postProfile.fold(
-            (l) => emit(ProfileUpdatedErrorState(errorMessage: l)),
+        postProfile.fold((l) => emit(ProfileUpdatedErrorState(errorMessage: l)),
             (r) => profile = r);
 
         if (postProfile.isRight()) {
@@ -379,6 +379,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         final isLogout = await AuthApi().authLogout();
         if (isLogout) {
           await storage.deleteAll();
+          TokenRefreshService().stop();
           emit(ProfileLogoutState());
         }
       } catch (e) {
@@ -391,6 +392,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         final isDelete = await AuthApi().authDelete();
         if (isDelete) {
           await storage.deleteAll();
+          TokenRefreshService().stop();
           emit(ProfileDeleteState());
         }
       } catch (e) {
