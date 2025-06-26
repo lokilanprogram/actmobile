@@ -24,28 +24,28 @@ class EventsListScreen extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: height * 0.13,
-            left: width * 0.05,
-            right: width * 0.05,
+            top: height * 0.07,
+            left: width * 0.01,
+            right: width * 0.01,
             child: Image.asset(
               'assets/images/onboard_card.png',
-              width: width * 0.9,
+              width: width * 0.95,
             ),
           ),
           Positioned(
-            top: height * 0.42,
-            left: width * 0.05,
-            right: width * 0.05,
+            top: height * 0.35,
+            left: width * 0.01,
+            right: width * 0.01,
             child: Image.asset(
               'assets/images/onboard_card1.png',
-              width: width * 0.9,
+              width: width * 0.95,
             ),
           ),
           Padding(
             padding: EdgeInsets.only(
-              top: height * 0.5,
-              right: width * 0.1,
-              left: width * 0.1,
+              top: height * 0.45,
+              right: width * 0.07,
+              left: width * 0.07,
             ),
             child: Align(
               child: Column(
@@ -53,18 +53,18 @@ class EventsListScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Список мероприятий",
+                    "Список \nмероприятий",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: width * 0.085,
+                      fontSize: width * 0.09,
                       fontFamily: "Gilroy",
-                      fontWeight: FontWeight.w800,
-                      height: 0.7,
+                      fontWeight: FontWeight.w700,
+                      height: 0.8,
                     ),
                   ),
                   SizedBox(height: height * 0.01),
                   Text(
-                    "Выбирай понравившееся событие, знакомься \nи наслаждайся вместе с Acti",
+                    "Выбирай понравившееся событие, знакомься и наслаждайся вместе с \nActi",
                     style: TextStyle(
                       letterSpacing: 0.5,
                       color: Colors.white,

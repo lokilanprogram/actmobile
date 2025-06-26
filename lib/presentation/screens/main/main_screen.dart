@@ -10,6 +10,7 @@ import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar
 import 'package:acti_mobile/presentation/screens/profile/block_and_delete/block_and_delete_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/profile_menu/profile_menu_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/settings/settings_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/update_profile/update_profile_screen.dart';
 import 'package:acti_mobile/presentation/widgets/activity_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/my_events_widget.dart';
@@ -58,10 +59,6 @@ class _MainScreenState extends State<MainScreen> {
     ProfileMenuScreen(onSettingsChanged: null),
     const MyEventsScreen(),
     const VotesScreen(),
-    // UpdateProfileScreen(
-    //                                                           profileModel:
-    //                                                               profileModel,
-    //                                                         )
   ];
 
   Future<void> _checkLocationPermission() async {
@@ -349,9 +346,21 @@ class _MainScreenState extends State<MainScreen> {
             MapScreen(),
             EventsScreen(initialEvents: _eventsModel),
             const ChatMainScreen(),
-            ProfileMenuScreen(onSettingsChanged: null),
+            ProfileMenuScreen(
+              onSettingsChanged: (goToSettings) {
+                if (goToSettings == true) {
+                  provider.setIndex(6);
+                }
+              },
+            ),
             const MyEventsScreen(),
             const VotesScreen(),
+            SettingsScreen(
+              notificationsEnabled: true, // или получить из профиля
+              onBack: () {
+                provider.setIndex(3); // Возврат к профилю
+              },
+            ),
           ];
 
           return Scaffold(

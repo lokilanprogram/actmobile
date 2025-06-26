@@ -615,19 +615,8 @@ class _MapScreenState extends State<MapScreen> {
                                 final camera =
                                     await mapboxMap!.getCameraState();
                                 final zoom = camera.zoom;
-                                // Находим ближайший ключевой уровень
-                                final clusterZoom =
-                                    _clusterZoomLevels.lastWhere(
-                                  (z) => zoom >= z,
-                                  orElse: () => _clusterZoomLevels.first,
-                                );
-                                if (_lastClusterZoomLevel == null ||
-                                    _lastClusterZoomLevel != clusterZoom) {
-                                  _lastClusterZoomLevel = clusterZoom;
-                                  context
-                                      .read<MapBloc>()
-                                      .add(ZoomChanged(zoom));
-                                }
+                                // Удаляем фильтрацию по _clusterZoomLevels
+                                context.read<MapBloc>().add(ZoomChanged(zoom));
                               }
                             },
                             onZoomListener: (ctx) {},
@@ -672,26 +661,26 @@ class _MapScreenState extends State<MapScreen> {
                             child: buildMapControls(),
                           ),
                           // Отображение текущего зума
-                          Positioned(
-                            top: 24,
-                            right: 24,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'Зум: ${mapState.zoom.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
+                          // Positioned(
+                          //   top: 24,
+                          //   right: 24,
+                          //   child: Container(
+                          //     padding: const EdgeInsets.symmetric(
+                          //         horizontal: 12, vertical: 6),
+                          //     decoration: BoxDecoration(
+                          //       color: Colors.black.withOpacity(0.5),
+                          //       borderRadius: BorderRadius.circular(12),
+                          //     ),
+                          //     child: Text(
+                          //       'Зум: ${mapState.zoom.toStringAsFixed(2)}',
+                          //       style: const TextStyle(
+                          //         color: Colors.white,
+                          //         fontSize: 16,
+                          //         fontWeight: FontWeight.bold,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                           if (isMarkersLoading)
                             // Аккуратный индикатор загрузки маркеров
                             Center(
@@ -1094,6 +1083,8 @@ class _MapScreenState extends State<MapScreen> {
 
   // Новый метод для эффективного обновления маркеров по состоянию Bloc
   Future<void> _drawBlocMarkers(List<List<OrganizedEventModel>> groups) async {
+    print(
+        '[DEBUG] _drawBlocMarkers вызван, групп: \u001b[33m${groups.length}\u001b[0m');
     if (mapboxMap == null || pointAnnotationManager == null) return;
     setState(() {
       isMarkersLoading = true;
@@ -1108,6 +1099,7 @@ class _MapScreenState extends State<MapScreen> {
 
     // 1. Удаляем только те маркеры, которых больше нет
     final toRemove = _currentMarkerIds.difference(newMarkerIds);
+    print('[DEBUG] Маркеры к удалению: ${toRemove.length}');
     if (toRemove.isNotEmpty) {
       final toRemoveAnnotations = _currentAnnotations
           .where((a) => toRemove.contains(a.iconImage))
@@ -1120,6 +1112,7 @@ class _MapScreenState extends State<MapScreen> {
 
     // 2. Добавляем только новые маркеры
     final toAdd = newMarkerIds.difference(_currentMarkerIds);
+    print('[DEBUG] Маркеры к добавлению: ${toAdd.length}');
     for (final id in toAdd) {
       final group = groupById[id]!;
       final avgLat =
@@ -1128,6 +1121,8 @@ class _MapScreenState extends State<MapScreen> {
       final avgLng =
           group.map((e) => e.longitude ?? 0.0).reduce((a, b) => a + b) /
               group.length;
+      print(
+          '[DEBUG] Добавляю маркер: id=$id, groupSize=${group.length}, avgLat=$avgLat, avgLng=$avgLng');
       final event = group.first;
       try {
         final cacheKey =
@@ -1156,6 +1151,7 @@ class _MapScreenState extends State<MapScreen> {
         final annotation =
             await pointAnnotationManager!.create(pointAnnotationOptions);
         _currentAnnotations.add(annotation);
+        print('[DEBUG] Маркер успешно добавлен: $id');
       } catch (e, st) {
         print('[ERROR] draw marker: $e\n$st');
       }
@@ -1167,7 +1163,7 @@ class _MapScreenState extends State<MapScreen> {
       isMarkersLoading = false;
     });
     print(
-        '[DEBUG] Маркеры обновлены эффективно, всего: \u001b[32m${_currentMarkerIds.length}\u001b[0m');
+        '[DEBUG] Маркеры обновлены: всего сейчас ${_currentMarkerIds.length}');
   }
 }
 

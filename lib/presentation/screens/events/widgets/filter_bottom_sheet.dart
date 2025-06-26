@@ -15,6 +15,7 @@ import 'package:acti_mobile/data/models/all_events_model.dart' as events;
 import 'dart:convert';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
 import 'package:flutter_xlider/flutter_xlider.dart';
+import 'package:acti_mobile/data/metro_stations.dart';
 
 class TimeRange {
   final TimeOfDay startTime;
@@ -412,6 +413,20 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
         );
       },
     );
+  }
+
+  List<Map<String, dynamic>> getRelevantStations(String query) {
+    if (query.isEmpty) return metroStations;
+    final lower = query.toLowerCase();
+    final startsWith = metroStations
+        .where((s) => s['name'].toLowerCase().startsWith(lower))
+        .toList();
+    final contains = metroStations
+        .where((s) =>
+            !s['name'].toLowerCase().startsWith(lower) &&
+            s['name'].toLowerCase().contains(lower))
+        .toList();
+    return [...startsWith, ...contains];
   }
 
   @override
@@ -1051,41 +1066,177 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                                 ),
                               ),
                             ),
-                            // // "Метро" segment
-                            // GestureDetector(
-                            //   onTap: () {
-                            //     if (_cityController.text.isNotEmpty) {
-                            //       _cityController.clear();
-                            //       filterProvider.updateCityFilter('');
-                            //     }
-                            //     filterProvider.updateLocationType('metro');
-                            //   },
-                            //   child: AnimatedContainer(
-                            //     duration: Duration(milliseconds: 100),
-                            //     curve: Curves.easeInBack,
-                            //     decoration: BoxDecoration(
-                            //       color: filterProvider.selectedLocationType ==
-                            //               'metro'
-                            //           ? mainBlueColor
-                            //           : Colors.grey[200],
-                            //       borderRadius: BorderRadius.circular(30.0),
-                            //     ),
-                            //     padding: EdgeInsets.symmetric(
-                            //         vertical: 8.0, horizontal: 16.0),
-                            //     child: Text(
-                            //       'Метро',
-                            //       style: TextStyle(
-                            //         fontSize: 11,
-                            //         color:
-                            //             filterProvider.selectedLocationType ==
-                            //                     'metro'
-                            //                 ? Colors.white
-                            //                 : Colors.black,
-                            //         fontWeight: FontWeight.w500,
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
+                            // "Метро" segment
+                            StatefulBuilder(
+                              builder: (context, setState) {
+                                return GestureDetector(
+                                  onTap: () async {
+                                    final filterProvider =
+                                        Provider.of<FilterProvider>(context,
+                                            listen: false);
+                                    filterProvider.updateMetroSuggestions(
+                                        '', metroStations);
+                                    Map<String, dynamic>? selectedStationResult;
+                                    final selectedStation =
+                                        await showModalBottomSheet<
+                                            Map<String, dynamic>>(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(24)),
+                                      ),
+                                      builder: (context) {
+                                        return DraggableScrollableSheet(
+                                          expand: false,
+                                          initialChildSize: 0.7,
+                                          minChildSize: 0.4,
+                                          maxChildSize: 0.95,
+                                          builder: (context, scrollController) {
+                                            return Consumer<FilterProvider>(
+                                              builder: (context, provider, _) {
+                                                return Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 12),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Text(
+                                                              'Выберите станцию метро',
+                                                              style: TextStyle(
+                                                                  fontSize: 18,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold)),
+                                                          IconButton(
+                                                            icon: Icon(
+                                                                Icons.close),
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop(),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(height: 8),
+                                                      TextField(
+                                                        decoration:
+                                                            InputDecoration(
+                                                          hintText:
+                                                              'Поиск по названию',
+                                                          border: OutlineInputBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          16)),
+                                                          contentPadding:
+                                                              EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          12,
+                                                                      vertical:
+                                                                          8),
+                                                        ),
+                                                        onChanged: (value) {
+                                                          provider
+                                                              .updateMetroSuggestions(
+                                                                  value,
+                                                                  metroStations);
+                                                        },
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 10),
+                                                      Expanded(
+                                                        child: ListView.builder(
+                                                          controller:
+                                                              scrollController,
+                                                          itemCount: provider
+                                                              .metroSuggestionList
+                                                              .length,
+                                                          itemBuilder:
+                                                              (context, idx) {
+                                                            final station =
+                                                                provider.metroSuggestionList[
+                                                                    idx];
+                                                            return ListTile(
+                                                              title: Text(
+                                                                  station[
+                                                                      'name']),
+                                                              onTap: () {
+                                                                selectedStationResult =
+                                                                    station;
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop(
+                                                                        station);
+                                                              },
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        );
+                                      },
+                                    );
+                                    if (selectedStation != null) {
+                                      filterProvider
+                                          .updateLocationType('metro');
+                                      filterProvider.updateLocationFilter(
+                                        'metro',
+                                        address: LocalAddressModel(
+                                          address: selectedStation['name'],
+                                          latitude: selectedStation['lat'],
+                                          longitude: selectedStation['lng'],
+                                          properties: null,
+                                        ),
+                                      );
+                                    }
+                                    filterProvider.clearMetroSuggestions();
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: Duration(milliseconds: 100),
+                                    curve: Curves.easeInBack,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          filterProvider.selectedLocationType ==
+                                                  'metro'
+                                              ? mainBlueColor
+                                              : Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: 8.0, horizontal: 8.0),
+                                    child: Text(
+                                      'Метро',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: filterProvider
+                                                    .selectedLocationType ==
+                                                'metro'
+                                            ? Colors.white
+                                            : Colors.black,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ],
                         ),
                         // const SizedBox(height: 20),
@@ -1222,6 +1373,18 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Text(
                               'Выбрана точка: ${filterProvider.selectedMapAddressModel!.address}',
+                              style: TextStyle(
+                                color: mainBlueColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        if (filterProvider.selectedLocationType == 'metro' &&
+                            filterProvider.selectedMapAddressModel != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'Выбрано метро: ${filterProvider.selectedMapAddressModel!.address}',
                               style: TextStyle(
                                 color: mainBlueColor,
                                 fontWeight: FontWeight.w500,

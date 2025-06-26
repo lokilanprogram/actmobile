@@ -12,6 +12,13 @@ class FaqScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          centerTitle: false,
           backgroundColor: Colors.white,
           title: const Text('Часто задаваемые вопросы и ответы',
               maxLines: 2,

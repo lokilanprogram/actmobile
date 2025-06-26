@@ -165,14 +165,11 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                 }),
               ),
               Padding(
-                padding:
-                    EdgeInsets.only(top: height * 0.0, right: width * 0.025),
-                child: Center(
-                  child: SvgPicture.asset(
-                    'assets/texts/text_select_event.svg',
-                    fit: BoxFit.fill,
-                    width: width * 0.7,
-                  ),
+                padding: EdgeInsets.only(top: height * 0.05, left: width * 0),
+                child: SvgPicture.asset(
+                  'assets/texts/text_select_event.svg',
+                  fit: BoxFit.fill,
+                  width: width * 0.7,
                 ),
               ),
               // SizedBox(height: height * 0.02),

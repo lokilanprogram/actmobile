@@ -29,6 +29,8 @@ class FilterProvider extends ChangeNotifier {
   int? slotsMin;
   int? slotsMax;
 
+  List<Map<String, dynamic>> metroSuggestionList = [];
+
   void updateDateFilter(String filter, {DateTime? from, DateTime? to}) {
     // Если нажали на уже выбранный фильтр - сбрасываем его
     if (selectedDateFilter == filter) {
@@ -279,6 +281,30 @@ class FilterProvider extends ChangeNotifier {
     } else {
       selectedAgeRestrictions.remove('isUnlimited');
     }
+    notifyListeners();
+  }
+
+  void updateMetroSuggestions(
+      String query, List<Map<String, dynamic>> allStations) {
+    if (query.isEmpty) {
+      metroSuggestionList = allStations;
+    } else {
+      final lower = query.toLowerCase();
+      final startsWith = allStations
+          .where((s) => s['name'].toLowerCase().startsWith(lower))
+          .toList();
+      final contains = allStations
+          .where((s) =>
+              !s['name'].toLowerCase().startsWith(lower) &&
+              s['name'].toLowerCase().contains(lower))
+          .toList();
+      metroSuggestionList = [...startsWith, ...contains];
+    }
+    notifyListeners();
+  }
+
+  void clearMetroSuggestions() {
+    metroSuggestionList = [];
     notifyListeners();
   }
 }

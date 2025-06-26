@@ -24,20 +24,20 @@ class EventsCreateScreen extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: height * 0.15,
+            top: height * 0.07,
             left: width * 0.05,
             right: width * 0.05,
             child: Image.asset(
-              height: height * 0.45,
-              width: width * 0.9,
+              height: height * 0.55,
+              width: width * 0.8,
               'assets/images/onboard_card2.png',
             ),
           ),
           Padding(
             padding: EdgeInsets.only(
-              top: height * 0.5,
-              right: width * 0.1,
-              left: width * 0.1,
+              top: height * 0.45,
+              right: width * 0.05,
+              left: width * 0.07,
             ),
             child: Align(
               child: Column(
@@ -45,20 +45,21 @@ class EventsCreateScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Создавай активность",
+                    "Создавай \nактивность",
                     style: TextStyle(
+                      letterSpacing: 0.01,
                       color: Colors.white,
-                      fontSize: width * 0.085,
+                      fontSize: width * 0.09,
                       fontFamily: "Gilroy",
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                       height: 0.7,
                     ),
                   ),
                   SizedBox(height: height * 0.01),
                   Text(
-                    "Если не нашли интересующее вас, создайте свою активность! Мы уверены, вы соберёте команду единомышленников",
+                    "Если не нашли интересующее вас, создайте свою активность! \nМы уверены, вы соберёте команду единомышленников",
                     style: TextStyle(
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.1,
                       color: Colors.white,
                       fontSize: width * 0.045,
                       fontFamily: "Gilroy",

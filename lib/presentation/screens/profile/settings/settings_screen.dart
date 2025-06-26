@@ -136,7 +136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: widget.onBack,
           ),
           title: Text('Настройки',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w500)),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w300)),
         ),
         backgroundColor: Colors.white,
         body: SafeArea(

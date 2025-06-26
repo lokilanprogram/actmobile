@@ -36,6 +36,12 @@ class _UserAgreementScreenState extends State<UserAgreementScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         backgroundColor: Colors.white,
         title: const Text('Пользовательское соглашение',
             style: TextStyle(

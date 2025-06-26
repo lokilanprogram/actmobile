@@ -37,6 +37,12 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
     super.initState();
     _initializePages();
     _loadCategories();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      precacheImage(
+        const AssetImage("assets/images/image_start_events.png"),
+        context,
+      );
+    });
   }
 
   void _initializePages() {
@@ -185,7 +191,7 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
                   Positioned(
                     left: 35,
                     right: 35,
-                    bottom: 65,
+                    bottom: 75,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -198,7 +204,7 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
                           SizedBox(width: 47),
                         PopNavButton(
                           text: _currentPage == _pages.length - 1
-                              ? 'Завершить'
+                              ? 'Далее'
                               : 'Далее',
                           function: _nextPage,
                         ),

@@ -58,9 +58,20 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     _markerVersion++;
     final currentVersion = _markerVersion;
     emit(state.copyWith(zoom: event.zoom, isLoading: true));
-    // Берём группы из кэша
-    final grouped = _zoomClusterCache[event.zoom.round()] ??
-        _groupEventsByGrid(_serverEventsCache, event.zoom);
+    final int zoomKey = event.zoom.round();
+    // Берём группы из кэша для округлённого зума, если есть
+    List<List<OrganizedEventModel>> grouped;
+    if (_zoomClusterCache.containsKey(zoomKey)) {
+      grouped = _zoomClusterCache[zoomKey]!;
+      print(
+          '[DEBUG] MapBloc: кластеризация из кэша для зума $zoomKey, групп: ${grouped.length}');
+    } else {
+      grouped = _groupEventsByGrid(_serverEventsCache, event.zoom);
+      print(
+          '[DEBUG] MapBloc: кластеризация на лету для зума ${event.zoom}, групп: ${grouped.length}');
+      // Кэшируем для округлённого зума
+      _zoomClusterCache[zoomKey] = grouped;
+    }
     if (currentVersion != _markerVersion) return;
     emit(state.copyWith(isLoading: false, groupedEvents: grouped));
   }
