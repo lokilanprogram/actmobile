@@ -158,6 +158,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       }
     });
 
+    on<DeleteMessageEvent>((event, emit) async {
+      try {
+        final sentMessageModel = await ChatApi().deleteMessage(event.messageId);
+        if (sentMessageModel != null) {
+          emit(DeletedMessageState());
+        }
+      } catch (e) {
+        emit(DeletedMessageErrorState());
+      }
+    });
+
     on<SendMessageEvent>((event, emit) async {
       ChatMessagesModel? chatModel;
       Either<String, bool>? isSent;

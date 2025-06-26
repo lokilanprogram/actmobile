@@ -102,6 +102,22 @@ class ChatApi {
     return null;
   }
 
+  Future<bool?> deleteMessage(String messageId) async {
+    final accessToken = await storage.getAccessToken();
+    if (accessToken != null) {
+      final response = await http.delete(Uri.parse('$API/api/v1/messages/$messageId/delete'), headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $accessToken'
+      });
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        throw Exception(jsonDecode(response.body)['detail']);
+      }
+    }
+    return null;
+  }
+
   Future<AllChatsModel?> getAllChats(String chatType, {int limit = 30, int offset = 0}) async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {

@@ -34,6 +34,12 @@ class DeleteChatEvent extends ChatEvent {
   DeleteChatEvent({required this.chatId});
 }
 
+class DeleteMessageEvent extends ChatEvent {
+  final String messageId;
+
+  DeleteMessageEvent({required this.messageId});
+}
+
 class StartChatMessageEvent extends ChatEvent {
   final String userId;
   final String message;

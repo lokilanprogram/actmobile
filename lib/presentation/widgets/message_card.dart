@@ -216,9 +216,9 @@ class _MessageCardState extends State<MessageCard>
                                 ],
                               ),
                             ),
-                          SelectableText.rich(
+                          RichText(
                             maxLines: null,
-                            TextSpan(
+                            text: TextSpan(
                               children: [
                                 ..._highlightOccurrences(
                                   widget.message.content,

@@ -81,8 +81,8 @@ class _OrgToggleTooltipState extends State<OrgToggleTooltip> {
       onTap: _toggleTooltip,
       child: SvgPicture.asset(
         'assets/icons/icon_info.svg',
-        width: 20,
-        height: 20,
+        width: 18,
+        height: 18,
         fit: BoxFit.cover,
       ),
     );

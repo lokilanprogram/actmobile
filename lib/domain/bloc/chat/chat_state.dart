@@ -37,6 +37,10 @@ class DeletedChatState extends ChatState {}
 
 class DeletedChatErrorState extends ChatState {}
 
+class DeletedMessageState extends ChatState {}
+
+class DeletedMessageErrorState extends ChatState {}
+
 class SentMessageState extends ChatState {
   final ChatMessagesModel? chatModel;
 

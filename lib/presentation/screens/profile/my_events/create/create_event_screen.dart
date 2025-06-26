@@ -79,7 +79,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   List<MapBoxSuggestion> _suggestions = [];
   bool _isLoading = false;
 
-  bool isError = false;
+  bool isErrorTitle = false;
+  bool isErrorDescription = false;
 
   final FocusNode titleFocusNode = FocusNode();
   final FocusNode descriptionFocusNode = FocusNode();
@@ -308,13 +309,22 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         }
 
         if (state is ActiUpdatedActivityErrorState) {
-          setState(() {
-            isLoading = false;
-            if (state.message ==
-                "Название или описание содержит запрещенные слова") {
-              isError = true;
-            }
-          });
+          if (state.message.toLowerCase().contains("название")) {
+            setState(() {
+              isErrorTitle = true;
+              isLoading = false;
+            });
+          } else if (state.message.toLowerCase().contains("описание")) {
+            setState(() {
+              isErrorDescription = true;
+              isLoading = false;
+            });
+          } else {
+            setState(() {
+              isLoading = false;
+            });
+          }
+
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(state.message)));
         }
@@ -365,6 +375,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,22 +398,30 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                             ],
                             const SizedBox(height: 16),
                             if (bottomGrid.isNotEmpty)
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: bottomGrid,
+                              Column(
+                                children: [
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: bottomGrid,
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
                               ),
-                            const SizedBox(height: 16),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        //const SizedBox(height: 16),
                         if (widget.organizedEventModel?.status != 'completed' &&
                             widget.organizedEventModel?.status != 'canceled' &&
                             widget.organizedEventModel?.status !=
                                 'rejected') ...[
                           Text(
                             'Название события',
-                            style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                            style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black),
                           ),
                           const SizedBox(height: 8),
                           _buildTextField("Введите название вашего события",
@@ -432,37 +451,70 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 8),
                                   child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
+                                      Text(
+                                        'Адрес',
+                                        style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.black),
+                                      ),
+                                      const SizedBox(height: 8),
                                       Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
                                           Expanded(
-                                            child: TextFormField(
-                                              textCapitalization:
-                                                  TextCapitalization.sentences,
-                                              onChanged: _searchLocation,
-                                              maxLines: 1,
-                                              autofocus: false,
-                                              controller: addressController,
-                                              focusNode: addressFocusNode,
-                                              decoration: InputDecoration(
-                                                  fillColor: Colors.grey[200],
+                                            child: Container(
+                                              alignment: Alignment.centerLeft,
+                                              constraints: BoxConstraints(
+                                                maxHeight: 40,
+                                              ),
+                                              child: TextFormField(
+                                                textCapitalization:
+                                                    TextCapitalization
+                                                        .sentences,
+                                                onChanged: _searchLocation,
+                                                maxLines: 1,
+                                                textAlignVertical:
+                                                    TextAlignVertical.center,
+                                                style: TextStyle(
+                                                  fontFamily: 'Inter',
+                                                  fontSize: 18.82,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: Colors.black,
+                                                ),
+                                                autofocus: false,
+                                                controller: addressController,
+                                                focusNode: addressFocusNode,
+                                                decoration: InputDecoration(
+                                                  contentPadding: EdgeInsets.only(left: 20),
+                                                  fillColor: Color.fromARGB(
+                                                      80, 224, 222, 222),
                                                   filled: true,
                                                   border: OutlineInputBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              15),
+                                                              5),
                                                       borderSide:
                                                           BorderSide.none),
                                                   hintText: 'Адрес',
                                                   hintStyle: TextStyle(
-                                                      fontFamily: 'Gilroy',
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w400)),
+                                                    fontFamily: 'Inter',
+                                                    fontSize: 14.06,
+                                                    fontWeight: FontWeight.w300,
+                                                    color: Color.fromARGB(
+                                                        255, 137, 137, 137),
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                           ),
                                           SizedBox(
-                                            width: 5,
+                                            width: 10,
                                           ),
                                           InkWell(
                                             onTap: () async {
@@ -497,14 +549,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                             },
                                             child: Container(
                                               width: 49,
+                                              height: 40,
                                               decoration: BoxDecoration(
-                                                  color: Colors.grey[200],
+                                                  color: Color.fromARGB(
+                                                      80, 224, 222, 222),
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          10)),
+                                                      BorderRadius.circular(5)),
                                               child: Padding(
                                                 padding: const EdgeInsets.only(
-                                                    top: 15, bottom: 15),
+                                                    top: 5, bottom: 5),
                                                 child: SvgPicture.asset(
                                                     'assets/icons/icon_map.svg'),
                                               ),
@@ -586,58 +639,99 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                               ? Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 8),
-                                  child: Row(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                          child: TextFormField(
-                                        focusNode: dateFocusNode,
-                                        textCapitalization:
-                                            TextCapitalization.sentences,
-                                        maxLines: 1,
-                                        controller: dateController,
-                                        inputFormatters: [dateFormatter],
-                                        decoration: InputDecoration(
-                                          hintText: 'Дата',
-                                          hintStyle: TextStyle(
-                                            fontFamily: 'Gilroy',
-                                            fontSize: 16,
+                                      Text(
+                                        'Дата',
+                                        style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 13,
                                             fontWeight: FontWeight.w400,
-                                          ),
-                                          filled: true,
-                                          fillColor: Colors.grey[200],
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                  horizontal: 12, vertical: 16),
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            borderSide: BorderSide.none,
-                                          ),
-                                        ),
-                                      )),
-                                      SizedBox(
-                                        width: 5,
+                                            color: Colors.black),
                                       ),
-                                      InkWell(
-                                        onTap: () async {
-                                          dateFocusNode.unfocus();
-                                          await selectDate();
-                                          unfocusAllFields();
-                                        },
-                                        child: Container(
-                                          width: 49,
-                                          decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(10)),
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                top: 15, bottom: 15),
-                                            child: SvgPicture.asset(
-                                                'assets/icons/icon_calendar_activity.svg'),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Container(
+                                                constraints: BoxConstraints(
+                                                  maxHeight: 40,
+                                                ),
+                                                child: TextFormField(
+                                                  focusNode: dateFocusNode,
+                                                  textCapitalization:
+                                                      TextCapitalization
+                                                          .sentences,
+                                                  maxLines: 1,
+                                                  controller: dateController,
+                                                  style: TextStyle(
+                                                    fontFamily: 'Inter',
+                                                    fontSize: 18.82,
+                                                    fontWeight: FontWeight.w400,
+                                                    color: Colors.black,
+                                                  ),
+                                                  textAlignVertical:
+                                                      TextAlignVertical.center,
+                                                  inputFormatters: [
+                                                    dateFormatter
+                                                  ],
+                                                  decoration: InputDecoration(
+                                                    hintText: 'Дата',
+                                                    hintStyle: TextStyle(
+                                                      fontFamily: 'Inter',
+                                                      fontSize: 14.06,
+                                                      fontWeight:
+                                                          FontWeight.w300,
+                                                      color: Color.fromARGB(
+                                                          255, 137, 137, 137),
+                                                    ),
+                                                    filled: true,
+                                                    fillColor: Color.fromARGB(
+                                                        80, 224, 222, 222),
+                                                    contentPadding:
+                                                        const EdgeInsets
+                                                            .symmetric(
+                                                            horizontal: 12,
+                                                            vertical: 16),
+                                                    border: OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                      borderSide:
+                                                          BorderSide.none,
+                                                    ),
+                                                  ),
+                                                )),
                                           ),
-                                        ),
-                                      )
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+                                          InkWell(
+                                            onTap: () async {
+                                              dateFocusNode.unfocus();
+                                              await selectDate();
+                                              unfocusAllFields();
+                                            },
+                                            child: Container(
+                                              width: 49,
+                                              height: 40,
+                                              decoration: BoxDecoration(
+                                                  color: Color.fromARGB(
+                                                      80, 224, 222, 222),
+                                                  borderRadius:
+                                                      BorderRadius.circular(5)),
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 5, bottom: 5),
+                                                child: SvgPicture.asset(
+                                                    'assets/icons/icon_calendar_activity.svg'),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
                                     ],
                                   ),
                                 )
@@ -648,24 +742,36 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                       recurringDay = val!;
                                     });
                                   }),
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 20),
                           Text(
                             'Время начала:',
-                            style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                            style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black),
                           ),
                           const SizedBox(height: 8),
                           startTimePicker(),
                           const SizedBox(height: 28),
                           Text(
                             'Время конца:',
-                            style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                            style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black),
                           ),
                           const SizedBox(height: 8),
                           endTimePicker(),
                           const SizedBox(height: 28),
                           Text(
                             'Стоимость участия',
-                            style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                            style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black),
                           ),
                           const SizedBox(height: 8),
                           _buildTextField("Введите цену",
@@ -708,7 +814,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                     Text(
                                       'Количество человек',
                                       style: TextStyle(
-                                          fontFamily: 'Inter', fontSize: 13),
+                                        fontFamily: 'Inter',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black,
+                                      ),
                                     ),
                                     const SizedBox(height: 8),
                                     _buildPeopleCounter(),
@@ -726,7 +836,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                   widget.organizedEventModel != null ? 12 : 24),
                           Text(
                             'Описание',
-                            style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                            style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black),
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
@@ -734,56 +848,69 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                             textCapitalization: TextCapitalization.sentences,
                             maxLines: 4,
                             onChanged: (value) =>
-                                setState(() => isError = false),
+                                setState(() => isErrorDescription = false),
                             autofocus: false,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 14.06,
+                              fontWeight: FontWeight.w300,
+                              color: Colors.black,
+                            ),
                             controller: descriptionController,
                             keyboardType: TextInputType.multiline,
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
                             decoration: InputDecoration(
-                              labelText: isError
+                              labelText: isErrorDescription
                                   ? "Обнаружены недопустимые слова"
                                   : "",
                               labelStyle: TextStyle(color: Colors.red),
                               filled: true,
-                              fillColor: Colors.grey[200],
-                              enabledBorder: isError
+                              fillColor: Color.fromARGB(80, 224, 222, 222),
+                              enabledBorder: isErrorDescription
                                   ? OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(15),
+                                      borderRadius: BorderRadius.circular(5),
                                       borderSide: BorderSide(color: Colors.red))
                                   : OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(15),
+                                      borderRadius: BorderRadius.circular(5),
                                       borderSide: BorderSide.none),
-                              focusedBorder: isError
+                              focusedBorder: isErrorDescription
                                   ? OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(15),
+                                      borderRadius: BorderRadius.circular(5),
                                       borderSide: BorderSide(color: Colors.red))
                                   : OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(15),
+                                      borderRadius: BorderRadius.circular(5),
                                       borderSide: BorderSide.none),
-                              border: isError
+                              border: isErrorDescription
                                   ? OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(15),
+                                      borderRadius: BorderRadius.circular(5),
                                       borderSide: BorderSide(color: Colors.red))
                                   : OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(15),
+                                      borderRadius: BorderRadius.circular(5),
                                       borderSide: BorderSide.none),
                               suffixIconConstraints:
                                   BoxConstraints(minWidth: 0, minHeight: 0),
                               suffixStyle: TextStyle(color: Colors.black),
                               hintText: "Опишите ваше событие",
                               hintStyle: TextStyle(
-                                  color: isError ? Colors.red : Colors.black,
-                                  fontFamily: 'Gilroy',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400),
+                                  color: isErrorDescription
+                                      ? Colors.red
+                                      : Color.fromARGB(
+                                          255, 137, 137, 137),
+                                  fontFamily: 'Inter',
+                                  fontSize: 14.06,
+                                  fontWeight: FontWeight.w300),
                               errorStyle: TextStyle(color: Colors.red),
                             ),
                           ),
                           const SizedBox(height: 28),
                           Text(
                             'Категория:',
-                            style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+                            style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black),
                           ),
                           const SizedBox(height: 8),
                           _buildCategoryChips(),
@@ -804,8 +931,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     return Container(
       height: 150,
       decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(15),
+        color: Color.fromARGB(80, 224, 222, 222),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -859,8 +986,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     return Container(
       height: 150,
       decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(15),
+        color: Color.fromARGB(80, 224, 222, 222),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -916,46 +1043,86 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       String? suffixText,
       required TextEditingController controller,
       FocusNode? focusNode}) {
-    return TextFormField(
-      focusNode: focusNode,
-      textCapitalization: TextCapitalization.sentences,
-      inputFormatters:
-          isPrice ? [FilteringTextInputFormatter.digitsOnly] : null,
-      maxLines: maxLines,
-      autofocus: false,
-      controller: controller,
-      keyboardType: isPrice ? TextInputType.number : null,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.grey[200],
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide.none),
-        suffixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
-        suffixIcon: suffixText != null
-            ? Padding(
-                padding: EdgeInsets.only(right: 30),
-                child: Text(
-                  suffixText,
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 14),
-                ),
-              )
-            : null,
-        suffixStyle: TextStyle(color: Colors.black),
-        hintText: label,
-        hintStyle: TextStyle(
-            fontFamily: 'Gilroy', fontSize: 16, fontWeight: FontWeight.w400),
-        errorStyle: TextStyle(color: Colors.red),
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: 40,
       ),
-      validator: (value) {
-        if (value == "Что-то плохое тут написано, прям фу") {
-          return "";
-        }
-        if (value == null || value.isEmpty) {
-          return "Обнаружены недопустимые слова";
-        }
-        return null;
-      },
+      child: TextFormField(
+        onChanged: (value) => setState(() => isErrorTitle = false),
+        focusNode: focusNode,
+        style: TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 18.82,
+          fontWeight: FontWeight.w400,
+          color: Colors.black,
+        ),
+        textCapitalization: TextCapitalization.sentences,
+        inputFormatters:
+            isPrice ? [FilteringTextInputFormatter.digitsOnly] : null,
+        maxLines: maxLines,
+        textAlignVertical: TextAlignVertical.center,
+        autofocus: false,
+        controller: controller,
+        keyboardType: isPrice ? TextInputType.number : null,
+        decoration: InputDecoration(
+          labelText: isErrorTitle
+              ? "Обнаружены недопустимые слова"
+              : "",
+          labelStyle: TextStyle(color: Colors.red),
+          contentPadding: EdgeInsets.only(left: 20),
+          filled: true,
+          fillColor: Color.fromARGB(80, 224, 222, 222),
+          border: isErrorTitle
+              ? OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide(color: Colors.red))
+              : OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide.none),
+          focusedBorder: isErrorTitle
+              ? OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide(color: Colors.red))
+              : OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide.none),
+          enabledBorder: isErrorTitle
+              ? OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide(color: Colors.red))
+              : OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide.none),
+          suffixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
+          suffixIcon: suffixText != null
+              ? Padding(
+                  padding: EdgeInsets.only(right: 30),
+                  child: Text(
+                    suffixText,
+                    style: TextStyle(fontFamily: 'Inter', fontSize: 14),
+                  ),
+                )
+              : null,
+          suffixStyle: TextStyle(color: Colors.black),
+          hintText: label,
+          hintStyle: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 14.06,
+            fontWeight: FontWeight.w300,
+            color: Color.fromARGB(255, 137, 137, 137),
+          ),
+          errorStyle: TextStyle(color: Colors.red),
+        ),
+        validator: (value) {
+          if (value == "Что-то плохое тут написано, прям фу") {
+            return "";
+          }
+          if (value == null || value.isEmpty) {
+            return "Обнаружены недопустимые слова";
+          }
+          return null;
+        },
+      ),
     );
   }
 
@@ -968,11 +1135,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           activeTrackColor: Colors.blue,
         ),
         SizedBox(
-          width: 5,
+          width: 10,
         ),
         Text(
           title,
-          style: TextStyle(fontFamily: 'Inter', fontSize: 13),
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 13,
+            fontWeight: FontWeight.w400,
+            color: Colors.black,
+          ),
         )
       ],
     );
@@ -981,8 +1153,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   Widget _buildPeopleCounter() {
     return Container(
       width: double.infinity,
+      height: 69,
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
-          color: Colors.grey[200], borderRadius: BorderRadius.circular(25)),
+          color: Color.fromARGB(80, 224, 222, 222),
+          borderRadius: BorderRadius.circular(36)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -997,7 +1172,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 5),
+                      padding: const EdgeInsets.only(left: 0),
                       child: Icon(
                         Icons.arrow_back_ios,
                         size: 32,
@@ -1007,7 +1182,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 )),
           ),
           Text('$peopleCount',
-              style: const TextStyle(fontSize: 45, fontFamily: 'Inter')),
+              style: const TextStyle(
+                fontSize: 45,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
+              )),
           GestureDetector(
             onTap: () => setState(() => peopleCount++),
             child: Container(
