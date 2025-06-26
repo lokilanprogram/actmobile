@@ -138,7 +138,7 @@ const hintTextStyleEdit = TextStyle(
     fontFamily: 'Inter',
     fontSize: 14,
     fontWeight: FontWeight.w300,
-    color: Colors.grey);
+    color: Color.fromARGB(255, 137, 137, 137));
 const titleTextStyleEdit =
     TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w400);
 String getWeeklyRepeatOnlyWeekText(DateTime date) {

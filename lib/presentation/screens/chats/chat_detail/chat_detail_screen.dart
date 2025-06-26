@@ -12,6 +12,7 @@ import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_de
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/message_card.dart';
+import 'package:acti_mobile/presentation/widgets/toggle_message.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -202,7 +203,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               scrollToEnd();
             }
             if (state is GotChatHistoryState) {
-              if (state.chatInfoModel.users?.isEmpty ?? true) {
+              if (state.chatInfoModel.users!.isEmpty &&
+                  state.chatInfoModel.type == "private") {
                 Navigator.pop(context, false);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -210,19 +212,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   ),
                 );
               } else {
-              setState(() {
-                state.chatInfoModel.type == "private" &&
-                        state.chatInfoModel.users?.first.status == "online"
-                    ? status = "Онлайн"
-                    : "Офлайн";
-                isLoading = false;
-                chatInfo = state.chatInfoModel;
-                messages = state.chatModel.messages;
-                isPrivate = state.chatInfoModel.users?.length == 1;
-                isOk = true;
-                total = state.chatModel.total;
-                isLoad = true;
-              });
+                setState(() {
+                  state.chatInfoModel.type == "private" &&
+                          state.chatInfoModel.users?.first.status == "online"
+                      ? status = "Онлайн"
+                      : "Офлайн";
+                  isLoading = false;
+                  chatInfo = state.chatInfoModel;
+                  messages = state.chatModel.messages;
+                  isPrivate = state.chatInfoModel.users?.length == 1;
+                  isOk = true;
+                  total = state.chatModel.total;
+                  isLoad = true;
+                });
               }
               // if (!state.chatModel.messages.isEmpty && !state.isLoadMore) {
               //   scrollToEnd();
@@ -682,6 +684,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                           });
                                           print(result);
                                         } else if (result.type ==
+                                            "message_deleted") {
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                            setState(() {
+                                              messages.removeWhere((m) =>
+                                                  m.id ==
+                                                  jsonDecode(snapshot.data)[
+                                                      'message_id']);
+                                            });
+                                          });
+                                        } else if (result.type ==
                                                 'user_joined' &&
                                             result.userId != profileUserId &&
                                             result.userId != null) {
@@ -760,127 +773,137 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                           return Padding(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 15, vertical: 5),
-                                            child: Column(
-                                              crossAxisAlignment: isMe
-                                                  ? CrossAxisAlignment.end
-                                                  : CrossAxisAlignment.start,
-                                              children: [
-                                                Align(
-                                                  alignment: isMe
-                                                      ? Alignment.centerRight
-                                                      : Alignment.centerLeft,
-                                                  child: ConstrainedBox(
-                                                    constraints: BoxConstraints(
-                                                      maxWidth: (hasAttachment ||
-                                                              isLongText)
-                                                          ? MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .width *
-                                                              0.85
-                                                          : MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .width *
-                                                              0.47,
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisAlignment: isMe
-                                                          ? MainAxisAlignment
-                                                              .end
-                                                          : MainAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        if (chatInfo?.type ==
-                                                                "group" &&
-                                                            isMe == false)
-                                                          InkWell(
-                                                            splashColor: Colors
-                                                                .transparent,
-                                                            highlightColor:
-                                                                Colors
-                                                                    .transparent,
-                                                            hoverColor: Colors
-                                                                .transparent,
-                                                            focusColor: Colors
-                                                                .transparent,
-                                                            onTap: () {
-                                                              Future.delayed(
-                                                                  Duration(
-                                                                      milliseconds:
-                                                                          250),
-                                                                  () async {
-                                                                Navigator.push(
-                                                                    context,
-                                                                    MaterialPageRoute(
-                                                                        builder:
-                                                                            (context) =>
-                                                                                PublicUserScreen(userId: message.userId)));
-                                                              });
-                                                            },
-                                                            child: chatInfo ==
-                                                                    null
-                                                                ? CircleAvatar(
-                                                                    maxRadius:
-                                                                        26,
-                                                                    backgroundImage:
-                                                                        AssetImage(
-                                                                      'assets/images/image_profile.png',
-                                                                    ))
-                                                                : message.user.photoUrl ==
-                                                                            null ||
-                                                                        message.user.photoUrl ==
-                                                                            ""
-                                                                    ? CircleAvatar(
-                                                                        maxRadius:
-                                                                            26,
-                                                                        backgroundImage:
-                                                                            AssetImage(
-                                                                          'assets/images/image_profile.png',
-                                                                        ))
-                                                                    : CircleAvatar(
-                                                                        maxRadius:
-                                                                            26,
-                                                                        backgroundImage:
-                                                                            CachedNetworkImageProvider(
-                                                                          message
-                                                                              .user
-                                                                              .photoUrl!,
-                                                                        ),
+                                            child: AnimatedSwitcher(
+                                              duration:
+                                                  Duration(milliseconds: 300),
+                                              transitionBuilder:
+                                                  (child, animation) =>
+                                                      FadeTransition(
+                                                opacity: animation,
+                                                child: child,
+                                              ),
+                                              child:
+                                                  messages[messages.length -
+                                                                  1 -
+                                                                  index]
+                                                              .id !=
+                                                          null
+                                                      ? Column(
+                                                          crossAxisAlignment: isMe
+                                                              ? CrossAxisAlignment
+                                                                  .end
+                                                              : CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Align(
+                                                              alignment: isMe
+                                                                  ? Alignment
+                                                                      .centerRight
+                                                                  : Alignment
+                                                                      .centerLeft,
+                                                              child:
+                                                                  ConstrainedBox(
+                                                                constraints:
+                                                                    BoxConstraints(
+                                                                  maxWidth: (hasAttachment ||
+                                                                          isLongText)
+                                                                      ? MediaQuery.of(context)
+                                                                              .size
+                                                                              .width *
+                                                                          0.85
+                                                                      : MediaQuery.of(context)
+                                                                              .size
+                                                                              .width *
+                                                                          0.47,
+                                                                ),
+                                                                child: Row(
+                                                                  mainAxisAlignment: isMe
+                                                                      ? MainAxisAlignment
+                                                                          .end
+                                                                      : MainAxisAlignment
+                                                                          .start,
+                                                                  children: [
+                                                                    if (chatInfo?.type ==
+                                                                            "group" &&
+                                                                        isMe ==
+                                                                            false)
+                                                                      InkWell(
+                                                                        splashColor:
+                                                                            Colors.transparent,
+                                                                        highlightColor:
+                                                                            Colors.transparent,
+                                                                        hoverColor:
+                                                                            Colors.transparent,
+                                                                        focusColor:
+                                                                            Colors.transparent,
+                                                                        onTap:
+                                                                            () {
+                                                                          Future.delayed(
+                                                                              Duration(milliseconds: 250),
+                                                                              () async {
+                                                                            Navigator.push(context,
+                                                                                MaterialPageRoute(builder: (context) => PublicUserScreen(userId: message.userId)));
+                                                                          });
+                                                                        },
+                                                                        child: chatInfo ==
+                                                                                null
+                                                                            ? CircleAvatar(
+                                                                                maxRadius: 26,
+                                                                                backgroundImage: AssetImage(
+                                                                                  'assets/images/image_profile.png',
+                                                                                ))
+                                                                            : message.user.photoUrl == null || message.user.photoUrl == ""
+                                                                                ? CircleAvatar(
+                                                                                    maxRadius: 26,
+                                                                                    backgroundImage: AssetImage(
+                                                                                      'assets/images/image_profile.png',
+                                                                                    ))
+                                                                                : CircleAvatar(
+                                                                                    maxRadius: 26,
+                                                                                    backgroundImage: CachedNetworkImageProvider(
+                                                                                      message.user.photoUrl!,
+                                                                                    ),
+                                                                                  ),
                                                                       ),
-                                                          ),
-                                                        Expanded(
-                                                          child: MessageCard(
-                                                            key: key,
-                                                            isPrivateChats:
-                                                                widget.isPrivateChats ??
-                                                                    isPrivate,
-                                                            orgId: chatInfo
-                                                                    ?.creatorId ??
-                                                                "",
-                                                            message: message,
-                                                            currentUserId:
-                                                                profileUserId!,
-                                                            special: isSpecial,
-                                                            highlightText:
-                                                                isSearching
-                                                                    ? searchText
-                                                                    : null,
-                                                            isHighlighted: isSearching &&
-                                                                filteredMessages
-                                                                    .isNotEmpty &&
-                                                                message.id ==
-                                                                    filteredMessages[
-                                                                            currentSearchIndex]
-                                                                        .id,
-                                                            isReaded: isReaded,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
+                                                                    Expanded(
+                                                                      child: isMe
+                                                                          ? ToggleMessage(
+                                                                              deleteMessage: () {
+                                                                                context.read<ChatBloc>().add(DeleteMessageEvent(messageId: message.id));
+                                                                              },
+                                                                              message: message.content,
+                                                                              scrollController: scrollController,
+                                                                              child: MessageCard(
+                                                                                key: key,
+                                                                                isPrivateChats: widget.isPrivateChats ?? isPrivate,
+                                                                                orgId: chatInfo?.creatorId ?? "",
+                                                                                message: message,
+                                                                                currentUserId: profileUserId!,
+                                                                                special: isSpecial,
+                                                                                highlightText: isSearching ? searchText : null,
+                                                                                isHighlighted: isSearching && filteredMessages.isNotEmpty && message.id == filteredMessages[currentSearchIndex].id,
+                                                                                isReaded: isReaded,
+                                                                              ),
+                                                                            )
+                                                                          : MessageCard(
+                                                                              key: key,
+                                                                              isPrivateChats: widget.isPrivateChats ?? isPrivate,
+                                                                              orgId: chatInfo?.creatorId ?? "",
+                                                                              message: message,
+                                                                              currentUserId: profileUserId!,
+                                                                              special: isSpecial,
+                                                                              highlightText: isSearching ? searchText : null,
+                                                                              isHighlighted: isSearching && filteredMessages.isNotEmpty && message.id == filteredMessages[currentSearchIndex].id,
+                                                                              isReaded: isReaded,
+                                                                            ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        )
+                                                      : SizedBox.shrink(),
                                             ),
                                           );
                                         },

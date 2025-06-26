@@ -191,7 +191,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                               isBlocked:
                                                   isBlockedByPublicUser));
                                       setState(() {
-                                        isLoading = true;
+                                        //isLoading = true;
                                         isBlockedByPublicUser =
                                             !isBlockedByPublicUser;
                                       });
@@ -200,7 +200,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                           ProfileBlockUserEvent(
                                               userId: widget.userId));
                                       setState(() {
-                                        isLoading = true;
+                                        //isLoading = true;
                                         isBlockedByPublicUser =
                                             !isBlockedByPublicUser;
                                       });

@@ -304,7 +304,7 @@ class ProfileApi {
       if (response.statusCode == 200) {
         return Right(profileModel);
       } else if (response.statusCode == 400) {
-        return Left("Поля содержат запрещенные слова");
+        return Left(jsonDecode(response.body)['detail']);
       }
     } else {
       return Left("Ошибка");

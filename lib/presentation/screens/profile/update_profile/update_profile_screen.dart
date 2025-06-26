@@ -50,7 +50,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   List<String> _suggestions = [];
   bool _isLoading = false;
-  bool isError = false;
+  bool isErrorName = false;
+  bool isErrorSurname = false;
+  bool isErrorDescription = false;
 
   final ScrollController _scrollController = ScrollController();
   ListOnbordingModel? listOnbordingModel;
@@ -164,11 +166,23 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             );
           }
           if (state is ProfileUpdatedErrorState) {
-            setState(() {
-              isLoading = false;
-              //bioController.text = "Что-то плохое тут написано, прям фу";
-              isError = true;
-            });
+            final error = state.errorMessage;
+            if (error.toLowerCase().contains("описание")) {
+              setState(() {
+                isLoading = false;
+                isErrorDescription = true;
+              });
+            } else if (error.toLowerCase().contains("имя")) {
+              setState(() {
+                isLoading = false;
+                isErrorName = true;
+              });
+            } else if (error.toLowerCase().contains("фамилия")) {
+              setState(() {
+                isLoading = false;
+                isErrorSurname = true;
+              });
+            }
             toastification.show(
               context: context,
               title: Text(state.errorMessage),
@@ -366,47 +380,176 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     ),
                                   ),
                                   SizedBox(height: 4),
-                                  TextInputNameWidget(
+                                  Container(
+                                    constraints: BoxConstraints(
+                                      maxHeight: 40,
+                                    ),
+                                    child: TextFormField(
+                                      textCapitalization:
+                                          TextCapitalization.sentences,
+                                      style: TextStyle(
+                                        fontSize: 18.82,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black,
+                                      ),
                                       controller: nameController,
-                                      text: 'Введите имя',
                                       validator: (val) {
-                                        if (val!.isEmpty) {
-                                          return 'Заполните имя';
+                                            if (val!.isEmpty) {
+                                              return 'Заполните имя';
+                                            }
+                                            return null;
+                                          } ??
+                                          _validateName,
+                                      onChanged: (value) {
+                                        setState(() => isErrorName = false);
+                                        final formattedValue =
+                                            _formatName(value);
+                                        if (formattedValue != value) {
+                                          nameController.value =
+                                              TextEditingValue(
+                                            text: formattedValue,
+                                            selection: TextSelection.collapsed(
+                                                offset: formattedValue.length),
+                                          );
                                         }
-                                        return null;
-                                      }),
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.only(left: 20),
+                                        labelText: isErrorName
+                                            ? "Обнаружены недопустимые слова"
+                                            : "",
+                                        labelStyle:
+                                            TextStyle(color: Colors.red),
+                                        hintText: 'Введите имя',
+                                        hintStyle: hintTextStyleEdit.copyWith(
+                                          color: isErrorName
+                                              ? Colors.red
+                                              : Colors.black,
+                                        ),
+                                        border: isErrorName
+                                            ? OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide(
+                                                    color: Colors.red),
+                                              )
+                                            : OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                        focusedBorder: isErrorName
+                                            ? OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide(
+                                                    color: Colors.red),
+                                              )
+                                            : OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                        enabledBorder: isErrorName
+                                            ? OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide(
+                                                    color: Colors.red),
+                                              )
+                                            : OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                        filled: true,
+                                        fillColor:
+                                            Color.fromARGB(80, 224, 222, 222),
+                                      ),
+                                    ),
+                                  ),
                                   SizedBox(height: 16),
                                   Text('Фамилия (необязательно)',
                                       style: titleTextStyleEdit),
                                   SizedBox(height: 4),
-                                  TextFormField(
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontFamily: 'Inter',
-                                        fontWeight: FontWeight.w400),
-                                    textCapitalization:
-                                        TextCapitalization.sentences,
-                                    controller: surnameController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Введите фамилию',
-                                      hintStyle: hintTextStyleEdit,
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.grey[100],
+                                  Container(
+                                    constraints: BoxConstraints(
+                                      maxHeight: 40,
                                     ),
-                                    validator: (val) {
-                                      if (val != null && val.isNotEmpty) {
-                                        if (!RegExp(r'^[а-яА-ЯёЁa-zA-Z\s-]+$')
-                                            .hasMatch(val)) {
-                                          return 'Используйте только буквы';
+                                    child: TextFormField(
+                                      onChanged: (value) {
+                                        setState(() => isErrorSurname = false);
+                                      },
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.w400),
+                                      textCapitalization:
+                                          TextCapitalization.sentences,
+                                      controller: surnameController,
+                                      decoration: InputDecoration(
+                                        labelText: isErrorSurname
+                                            ? "Обнаружены недопустимые слова"
+                                            : "",
+                                        labelStyle:
+                                            TextStyle(color: Colors.red),
+                                        hintText: 'Введите фамилию',
+                                        hintStyle: hintTextStyleEdit.copyWith(
+                                          color: isErrorSurname
+                                              ? Colors.red
+                                              : Colors.black,
+                                        ),
+                                        contentPadding: EdgeInsets.only(left: 20),
+                                        enabledBorder: isErrorSurname
+                                            ? OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide(
+                                                    color: Colors.red),
+                                              )
+                                            : OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                        focusedBorder: isErrorSurname
+                                            ? OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide(
+                                                    color: Colors.red),
+                                              )
+                                            : OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                        border: isErrorSurname
+                                            ? OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide(
+                                                    color: Colors.red),
+                                              )
+                                            : OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                        filled: true,
+                                        fillColor: Colors.grey[100],
+                                      ),
+                                      validator: (val) {
+                                        if (val != null && val.isNotEmpty) {
+                                          if (!RegExp(r'^[а-яА-ЯёЁa-zA-Z\s-]+$')
+                                              .hasMatch(val)) {
+                                            return 'Используйте только буквы';
+                                          }
                                         }
-                                      }
-                                      return null;
-                                    },
+                                        return null;
+                                      },
+                                    ),
                                   ),
                                   SizedBox(height: 16),
                                   Row(
@@ -418,6 +561,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         style: TextStyle(
                                           fontFamily: 'Inter',
                                           fontSize: 13,
+                                          fontWeight: FontWeight.w400,
                                           color: mainBlueColor,
                                         ),
                                       ),
@@ -436,32 +580,42 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      TextFormField(
-                                        textCapitalization:
-                                            TextCapitalization.sentences,
-                                        controller: cityController,
-                                        onChanged: _searchLocation,
-                                        style: TextStyle(
-                                            fontSize: 11, fontFamily: 'Inter'),
-                                        decoration: InputDecoration(
-                                          hintText: 'Введите город',
-                                          hintStyle:
-                                              TextStyle(color: Colors.grey),
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                            borderSide: BorderSide.none,
-                                          ),
-                                          filled: true,
-                                          fillColor: Colors.grey[100],
+                                      Container(
+                                        alignment: Alignment.centerLeft,
+                                        constraints: BoxConstraints(
+                                          maxHeight: 34,
                                         ),
-                                        validator: (value) {
-                                          if (value == null ||
-                                              value.trim().isEmpty) {
-                                            return 'Заполните город';
-                                          }
-                                          return null;
-                                        },
+                                        child: TextFormField(
+                                          textAlignVertical:
+                                              TextAlignVertical.center,
+                                          textCapitalization:
+                                              TextCapitalization.sentences,
+                                          controller: cityController,
+                                          onChanged: _searchLocation,
+                                          style: TextStyle(
+                                              fontSize: 11,
+                                              fontFamily: 'Inter'),
+                                          decoration: InputDecoration(
+                                            contentPadding: EdgeInsets.only(left: 20),
+                                            hintText: 'Введите город',
+                                            hintStyle:
+                                                TextStyle(color: Colors.grey),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(5.0),
+                                              borderSide: BorderSide.none,
+                                            ),
+                                            filled: true,
+                                            fillColor: Colors.grey[100],
+                                          ),
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.trim().isEmpty) {
+                                              return 'Заполните город';
+                                            }
+                                            return null;
+                                          },
+                                        ),
                                       ),
                                       const SizedBox(height: 4),
                                       if (_isLoading)
@@ -547,77 +701,88 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     style: titleTextStyleEdit,
                                   ),
                                   SizedBox(height: 4),
-                                  TextFormField(
-                                    style: TextStyle(
-                                        fontSize: 11, fontFamily: 'Inter'),
-                                    maxLines: 3,
-                                    keyboardType: TextInputType.multiline,
-                                    controller: bioController,
-                                    validator: (value) {
-                                      if (value == null ||
-                                          value.trim().isEmpty) {
-                                        return 'Заполните поле "О себе"';
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      setState(() => isError = false);
-                                      if (value.isNotEmpty) {
-                                        final formattedValue =
-                                            value[0].toUpperCase() +
-                                                value.substring(1);
-                                        if (formattedValue != value) {
-                                          bioController.value =
-                                              TextEditingValue(
-                                            text: formattedValue,
-                                            selection: TextSelection.collapsed(
-                                                offset: formattedValue.length),
-                                          );
+                                  Container(
+                                    constraints: BoxConstraints(
+                                      maxHeight: 92,
+                                    ),
+                                    child: TextFormField(
+                                      style: TextStyle(
+                                          fontSize: 11, fontFamily: 'Inter'),
+                                      maxLines: 3,
+                                      keyboardType: TextInputType.multiline,
+                                      controller: bioController,
+                                      validator: (value) {
+                                        if (value == null ||
+                                            value.trim().isEmpty) {
+                                          return 'Заполните поле "О себе"';
                                         }
-                                      }
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: isError
-                                          ? "Обнаружены недопустимые слова"
-                                          : "",
-                                      labelStyle: TextStyle(color: Colors.red),
-                                      hintText: 'Напишите что-нибудь о себе...',
-                                      hintStyle: hintTextStyleEdit.copyWith(
-                                        color:
-                                            isError ? Colors.red : Colors.black,
+                                        return null;
+                                      },
+                                      onChanged: (value) {
+                                        setState(
+                                            () => isErrorDescription = false);
+                                        if (value.isNotEmpty) {
+                                          final formattedValue =
+                                              value[0].toUpperCase() +
+                                                  value.substring(1);
+                                          if (formattedValue != value) {
+                                            bioController.value =
+                                                TextEditingValue(
+                                              text: formattedValue,
+                                              selection:
+                                                  TextSelection.collapsed(
+                                                      offset: formattedValue
+                                                          .length),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      decoration: InputDecoration(
+                                        labelText: isErrorDescription
+                                            ? "Обнаружены недопустимые слова"
+                                            : "",
+                                        labelStyle:
+                                            TextStyle(color: Colors.red),
+                                        hintText:
+                                            'Напишите что-нибудь о себе...',
+                                        hintStyle: hintTextStyleEdit.copyWith(
+                                          color: isErrorDescription
+                                              ? Colors.red
+                                              : Colors.black,
+                                        ),
+                                        enabledBorder: isErrorDescription
+                                            ? OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                borderSide: BorderSide(
+                                                    color: Colors.red))
+                                            : OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                borderSide: BorderSide.none),
+                                        focusedBorder: isErrorDescription
+                                            ? OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                borderSide: BorderSide(
+                                                    color: Colors.red))
+                                            : OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                borderSide: BorderSide.none),
+                                        border: isErrorDescription
+                                            ? OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                borderSide: BorderSide(
+                                                    color: Colors.red))
+                                            : OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                borderSide: BorderSide.none),
+                                        filled: true,
+                                        fillColor: Colors.grey[100],
                                       ),
-                                      enabledBorder: isError
-                                          ? OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              borderSide:
-                                                  BorderSide(color: Colors.red))
-                                          : OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              borderSide: BorderSide.none),
-                                      focusedBorder: isError
-                                          ? OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              borderSide:
-                                                  BorderSide(color: Colors.red))
-                                          : OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              borderSide: BorderSide.none),
-                                      border: isError
-                                          ? OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              borderSide:
-                                                  BorderSide(color: Colors.red))
-                                          : OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              borderSide: BorderSide.none),
-                                      filled: true,
-                                      fillColor: Colors.grey[100],
                                     ),
                                   ),
                                   SizedBox(height: 16),
@@ -881,52 +1046,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       ),
     );
   }
-}
-
-class TextInputWidget extends StatelessWidget {
-  const TextInputWidget({
-    super.key,
-    required this.controller,
-    required this.text,
-    required this.validator,
-  });
-
-  final TextEditingController controller;
-  final String text;
-  final String? Function(String?)? validator;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      textCapitalization: TextCapitalization.sentences,
-      style: TextStyle(fontSize: 11, fontFamily: 'Inter'),
-      controller: controller,
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: text,
-        hintStyle: hintTextStyleEdit,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
-        ),
-        filled: true,
-        fillColor: Colors.grey[100],
-      ),
-    );
-  }
-}
-
-class TextInputNameWidget extends StatelessWidget {
-  const TextInputNameWidget({
-    super.key,
-    required this.controller,
-    required this.text,
-    required this.validator,
-  });
-
-  final TextEditingController controller;
-  final String text;
-  final String? Function(String?)? validator;
 
   String? _validateName(String? value) {
     if (value == null || value.isEmpty) {
@@ -948,6 +1067,19 @@ class TextInputNameWidget extends StatelessWidget {
     }
     return value;
   }
+}
+
+class TextInputWidget extends StatelessWidget {
+  const TextInputWidget({
+    super.key,
+    required this.controller,
+    required this.text,
+    required this.validator,
+  });
+
+  final TextEditingController controller;
+  final String text;
+  final String? Function(String?)? validator;
 
   @override
   Widget build(BuildContext context) {
@@ -957,24 +1089,11 @@ class TextInputNameWidget extends StatelessWidget {
       ),
       child: TextFormField(
         textCapitalization: TextCapitalization.sentences,
-        style: TextStyle(
-          fontSize: 18.82,
-          fontFamily: 'Inter',
-          fontWeight: FontWeight.w400,
-          color: Colors.black,
-        ),
+        style: TextStyle(fontSize: 11, fontFamily: 'Inter'),
         controller: controller,
-        validator: validator ?? _validateName,
-        onChanged: (value) {
-          final formattedValue = _formatName(value);
-          if (formattedValue != value) {
-            controller.value = TextEditingValue(
-              text: formattedValue,
-              selection: TextSelection.collapsed(offset: formattedValue.length),
-            );
-          }
-        },
+        validator: validator,
         decoration: InputDecoration(
+          contentPadding: EdgeInsets.only(left: 20),
           hintText: text,
           hintStyle: hintTextStyleEdit,
           border: OutlineInputBorder(
@@ -982,7 +1101,7 @@ class TextInputNameWidget extends StatelessWidget {
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: Color.fromARGB(80, 224, 222, 222),
+          fillColor: Colors.grey[100],
         ),
       ),
     );
