@@ -453,9 +453,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                       'Фильтры',
                       style: TextStyle(
                         fontFamily: 'Gilroy',
-                        color: authBlueColor,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        // color: authBlueColor,
+                        fontSize: 23,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     Row(
@@ -606,11 +607,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                         // Дата
                         Text('Дата',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
                               fontFamily: 'Gilroy',
                               color: authBlueColor,
                             )),
+                        SizedBox(height: 10),
                         Wrap(
                           spacing: 5.0,
                           runSpacing: 10,
@@ -781,16 +783,17 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                               ),
                             ),
                           ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
 
                         // Время
                         Text('Время',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
                               fontFamily: 'Gilroy',
                               color: authBlueColor,
                             )),
+                        SizedBox(height: 10),
                         Wrap(
                           spacing: 5.0,
                           runSpacing: 10,
@@ -927,16 +930,17 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                               ),
                             ),
                           ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
 
                         // Локация
                         Text('Место',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
                               fontFamily: 'Gilroy',
                               color: authBlueColor,
                             )),
+                        const SizedBox(height: 10),
                         Wrap(
                           spacing: 5.0,
                           runSpacing: 10,
@@ -944,11 +948,21 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             // "Текущее местоположение" segment
                             GestureDetector(
                               onTap: () {
-                                if (_cityController.text.isNotEmpty) {
-                                  _cityController.clear();
-                                  filterProvider.updateCityFilter('');
+                                if (filterProvider.selectedLocationType ==
+                                    'current') {
+                                  // Если уже выбрано — снять выбор
+                                  filterProvider.updateLocationType('');
+                                  if (_cityController.text.isNotEmpty) {
+                                    _cityController.clear();
+                                    filterProvider.updateCityFilter('');
+                                  }
+                                } else {
+                                  if (_cityController.text.isNotEmpty) {
+                                    _cityController.clear();
+                                    filterProvider.updateCityFilter('');
+                                  }
+                                  filterProvider.updateLocationType('current');
                                 }
-                                filterProvider.updateLocationType('current');
                               },
                               child: AnimatedContainer(
                                 duration: Duration(milliseconds: 100),
@@ -979,25 +993,36 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             // "Точка на карте" segment
                             GestureDetector(
                               onTap: () async {
-                                if (_cityController.text.isNotEmpty) {
-                                  _cityController.clear();
-                                  filterProvider.updateCityFilter('');
-                                }
-                                final result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MapPickerScreen(
-                                      position: _currentMapPosition,
-                                      address: '',
-                                      isCreated: false,
+                                if (filterProvider.selectedLocationType ==
+                                    'map') {
+                                  // Если уже выбрано — снять выбор
+                                  filterProvider.updateLocationType('');
+                                  if (_cityController.text.isNotEmpty) {
+                                    _cityController.clear();
+                                    filterProvider.updateCityFilter('');
+                                  }
+                                } else {
+                                  if (_cityController.text.isNotEmpty) {
+                                    _cityController.clear();
+                                    filterProvider.updateCityFilter('');
+                                  }
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MapPickerScreen(
+                                        position: _currentMapPosition,
+                                        address: '',
+                                        isCreated: false,
+                                      ),
                                     ),
-                                  ),
-                                );
-                                if (result != null) {
-                                  filterProvider.updateLocationFilter(
-                                    'map',
-                                    address: result,
                                   );
+                                  if (result != null) {
+                                    filterProvider.updateLocationFilter(
+                                      'map',
+                                      address: result,
+                                    );
+                                    filterProvider.updateLocationType('map');
+                                  }
                                 }
                               },
                               child: AnimatedContainer(
@@ -1211,8 +1236,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                           children: [
                             Text('Онлайн',
                                 style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w500,
                                   fontFamily: 'Gilroy',
                                   color: authBlueColor,
                                 )),
@@ -1227,21 +1252,29 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        // const SizedBox(height: 20),
 
                         // Цена
                         Text('Цена',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
                               fontFamily: 'Gilroy',
                               color: authBlueColor,
                             )),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
                             GestureDetector(
                               onTap: () {
-                                filterProvider.setPriceType(true);
+                                if (filterProvider.isFreeSelected == true) {
+                                  // Если уже выбрано — снять выбор
+                                  filterProvider.setPriceType(null);
+                                  _priceMinController.clear();
+                                  _priceMaxController.clear();
+                                } else {
+                                  filterProvider.setPriceType(true);
+                                }
                               },
                               child: SizedBox(
                                 width: 100,
@@ -1274,7 +1307,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             SizedBox(width: 10),
                             GestureDetector(
                               onTap: () {
-                                filterProvider.setPriceType(false);
+                                if (filterProvider.isFreeSelected == false) {
+                                  // Если уже выбрано — снять выбор
+                                  filterProvider.setPriceType(null);
+                                  _priceMinController.clear();
+                                  _priceMaxController.clear();
+                                } else {
+                                  filterProvider.setPriceType(false);
+                                }
                               },
                               child: SizedBox(
                                 width: 100,
@@ -1373,16 +1413,18 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             ],
                           ),
                         ],
-                        const SizedBox(height: 20),
+                        // const SizedBox(height: 20),
+                        const SizedBox(height: 10),
 
                         // Возрастные ограничения
                         Text('Возрастные ограничения',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
                               fontFamily: 'Gilroy',
                               color: authBlueColor,
                             )),
+                        const SizedBox(height: 10),
                         Wrap(
                           spacing: 5.0,
                           runSpacing: 10,
@@ -1473,58 +1515,65 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
 
                         // Можно с животными
 
-                        Row(
-                          children: [
-                            Text('Можно с животными',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Gilroy',
-                                  color: authBlueColor,
-                                )),
-                            Checkbox(
-                              value: filterProvider.isAnimalsAllowedSelected,
-                              onChanged: (value) {
-                                filterProvider
-                                    .updateAnimalsAllowed(value ?? false);
-                              },
-                              side: BorderSide(color: mainBlueColor, width: 2),
-                              activeColor: mainBlueColor,
-                            ),
-                          ],
+                        SizedBox(
+                          height: 32,
+                          child: Row(
+                            children: [
+                              Text('Можно с животными',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: 'Gilroy',
+                                    color: authBlueColor,
+                                  )),
+                              Checkbox(
+                                value: filterProvider.isAnimalsAllowedSelected,
+                                onChanged: (value) {
+                                  filterProvider
+                                      .updateAnimalsAllowed(value ?? false);
+                                },
+                                side:
+                                    BorderSide(color: mainBlueColor, width: 2),
+                                activeColor: mainBlueColor,
+                              ),
+                            ],
+                          ),
                         ),
-                        // const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Text('От компании',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Gilroy',
-                                  color: authBlueColor,
-                                )),
-                            Checkbox(
-                              value: filterProvider.isCompanySelected,
-                              onChanged: (value) {
-                                filterProvider
-                                    .updateCompanyAllowed(value ?? false);
-                              },
-                              side: BorderSide(color: mainBlueColor, width: 2),
-                              activeColor: mainBlueColor,
-                            ),
-                          ],
+
+                        SizedBox(
+                          height: 32,
+                          child: Row(
+                            children: [
+                              Text('От компании',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: 'Gilroy',
+                                    color: authBlueColor,
+                                  )),
+                              Checkbox(
+                                value: filterProvider.isCompanySelected,
+                                onChanged: (value) {
+                                  filterProvider
+                                      .updateCompanyAllowed(value ?? false);
+                                },
+                                side:
+                                    BorderSide(color: mainBlueColor, width: 2),
+                                activeColor: mainBlueColor,
+                              ),
+                            ],
+                          ),
                         ),
-                        // const SizedBox(height: 20),
 
                         // Количество людей
                         Text('Количество людей',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
                               fontFamily: 'Gilroy',
                               color: authBlueColor,
                             )),
@@ -1716,16 +1765,17 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                               ],
                             ),
                           ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
 
                         // Длительность
                         Text('Длительность',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
                               fontFamily: 'Gilroy',
                               color: authBlueColor,
                             )),
+                        const SizedBox(height: 10),
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.grey[200],
@@ -1837,16 +1887,17 @@ class _FilterBottomSheetState extends State<FilterBottomSheet>
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
 
                         // Категории
-                        Text('Категории',
+                        Text('Тип',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
                               fontFamily: 'Gilroy',
                               color: authBlueColor,
                             )),
+                        const SizedBox(height: 10),
                         if (_isLoadingCategories)
                           Center(
                             child: Padding(

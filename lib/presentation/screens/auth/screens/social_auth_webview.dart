@@ -16,12 +16,14 @@ class SocialAuthWebView extends StatefulWidget {
   final String provider;
   final String initialUrl;
   final String redirectUrl;
+  final String? codeVerifier;
 
   const SocialAuthWebView({
     super.key,
     required this.provider,
     required this.initialUrl,
     required this.redirectUrl,
+    this.codeVerifier,
   });
 
   @override
@@ -34,6 +36,15 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
   bool _hasNavigated = false;
   bool _hasError = false;
   String? _errorMessage;
+
+  // Добавляем переменные для проброса PKCE и других параметров
+  String? _codeVerifier;
+  String? _deviceId;
+  String? _stateParam;
+  String? _phoneParam;
+
+  // Добавь clientId для VK
+  static const String vkClientId = '53703480';
 
   @override
   void initState() {
@@ -85,6 +96,9 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
                   final code = uri.queryParameters['code'];
                   final state = uri.queryParameters['state'];
                   final deviceId = uri.queryParameters['device_id'];
+                  final extPhone = uri.queryParameters['phone'];
+                  // code_verifier пробрасывается через widget (см. SelectInputScreen)
+                  final codeVerifier = widget.codeVerifier;
 
                   developer.log('VK Auth URI: $uri',
                       name: 'SOCIAL_AUTH_WEBVIEW');
@@ -94,23 +108,36 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
                   developer.log('State: $state', name: 'SOCIAL_AUTH_WEBVIEW');
                   developer.log('Device ID: $deviceId',
                       name: 'SOCIAL_AUTH_WEBVIEW');
+                  developer.log('Code Verifier: $codeVerifier',
+                      name: 'SOCIAL_AUTH_WEBVIEW');
+                  developer.log('Phone: $extPhone',
+                      name: 'SOCIAL_AUTH_WEBVIEW');
 
-                  if (code != null && state != null) {
+                  if (code != null &&
+                      state != null &&
+                      codeVerifier != null &&
+                      deviceId != null) {
                     result['code'] = code;
                     result['state'] = state;
-                    if (deviceId != null) {
-                      result['device_id'] = deviceId;
-                    }
+                    result['device_id'] = deviceId;
+                    result['code_verifier'] = codeVerifier;
+                    result['phone'] = extPhone ?? '';
 
+                    _hasNavigated = true;
                     // Получаем данные пользователя через VK API
-                    final userData = await _getVkUserData(code);
+                    final userData = await _getVkUserData(
+                      code: code,
+                      codeVerifier: codeVerifier,
+                      deviceId: deviceId,
+                      state: state,
+                      phone: extPhone,
+                    );
                     developer.log('VK User Data: $userData',
                         name: 'SOCIAL_AUTH_WEBVIEW');
 
                     result['email'] = userData['email'] ?? '';
                     result['phone'] = userData['phone'] ?? '';
 
-                    _hasNavigated = true;
                     Navigator.of(context).pop(result);
                     return NavigationDecision.prevent;
                   }
@@ -169,62 +196,88 @@ class _SocialAuthWebViewState extends State<SocialAuthWebView> {
     return null;
   }
 
-  Future<Map<String, String?>> _getVkUserData(String code) async {
-    try {
-      // Извлекаем чистый код из формата vk2.a.xxx
-      final cleanCode = code.startsWith('vk2.a.') ? code.substring(6) : code;
+  // Future<Map<String, String?>> _getVkUserData({
+  //   required String code,
+  //   required String codeVerifier,
+  //   required String deviceId,
+  //   required String state,
+  //   String? phone,
+  // }) async {
+  //   try {
+  //     // Извлекаем чистый код из формата vk2.a.xxx
+  //     final cleanCode = code;
 
-      developer.log('Sending VK auth code to backend: $cleanCode',
-          name: 'SOCIAL_AUTH_WEBVIEW');
+  //     developer.log('Sending VK auth code to backend: $cleanCode',
+  //         name: 'SOCIAL_AUTH_WEBVIEW');
 
-      // Отправляем код на наш бэкенд
-      final response = await http.post(
-        Uri.parse('$API/api/v1/auth/vk'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'code': cleanCode,
-          'platform': 'mobile',
-        }),
-      );
+  //     // 1. Получаем access_token через свой бэкенд (или напрямую, если можно)
+  //     final tokenResponse = await http.post(
+  //       Uri.parse('https://id.vk.com/oauth2/auth'),
+  //       headers: {
+  //         'Content-Type': 'application/x-www-form-urlencoded',
+  //       },
+  //       body:
+  //           'grant_type=authorization_code&code_verifier=$codeVerifier&redirect_uri=https%3A%2F%2Foauth.vk.com%2Fblank.html&code=$cleanCode&client_id=$vkClientId&device_id=$deviceId&state=$state',
+  //     );
+  //     developer.log('VK token response: ${tokenResponse.body}',
+  //         name: 'SOCIAL_AUTH_WEBVIEW');
+  //     if (tokenResponse.statusCode != 200) {
+  //       developer.log('Ошибка получения access_token: ${tokenResponse.body}',
+  //           name: 'SOCIAL_AUTH_WEBVIEW');
+  //       return {'email': '', 'phone': ''};
+  //     }
+  //     final tokenData = json.decode(tokenResponse.body);
+  //     final accessToken = tokenData['access_token'] as String?;
+  //     final email = tokenData['email'] as String?;
 
-      developer.log('Backend response: ${response.body}',
-          name: 'SOCIAL_AUTH_WEBVIEW');
+  //     // 2. Получаем данные пользователя через user_info
+  //     String? phoneResp;
+  //     if (accessToken != null) {
+  //       final userInfoResponse = await http.post(
+  //         Uri.parse('https://id.vk.com/oauth2/user_info'),
+  //         headers: {
+  //           'Content-Type': 'application/x-www-form-urlencoded',
+  //         },
+  //         body: 'client_id=$vkClientId&access_token=$accessToken',
+  //       );
+  //       developer.log('VK user_info response: ${userInfoResponse.body}',
+  //           name: 'SOCIAL_AUTH_WEBVIEW');
+  //       if (userInfoResponse.statusCode == 200) {
+  //         final userData = json.decode(userInfoResponse.body);
+  //         final user = userData['user'] as Map<String, dynamic>?;
+  //         phoneResp = user != null ? user['phone'] as String? : null;
+  //       }
+  //     }
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+  //     developer.log('Email from backend: $email', name: 'SOCIAL_AUTH_WEBVIEW');
+  //     developer.log('Phone from user_info: $phoneResp',
+  //         name: 'SOCIAL_AUTH_WEBVIEW');
 
-        // Проверяем наличие ошибки в ответе
-        if (data.containsKey('error')) {
-          developer.log('Backend error: ${data['error_description']}',
-              name: 'SOCIAL_AUTH_WEBVIEW');
-          return {'email': '', 'phone': ''};
-        }
+  //     return {
+  //       'email': email ?? '',
+  //       'phone': phoneResp ?? '',
+  //     };
+  //   } catch (e) {
+  //     developer.log('Ошибка при отправке кода на бэкенд: $e',
+  //         name: 'SOCIAL_AUTH_WEBVIEW');
+  //   }
+  //   return {'email': '', 'phone': ''};
+  // }
 
-        final email = data['email'] as String?;
-        final phone = data['phone'] as String?;
-
-        developer.log('Email from backend: $email',
-            name: 'SOCIAL_AUTH_WEBVIEW');
-        developer.log('Phone from backend: $phone',
-            name: 'SOCIAL_AUTH_WEBVIEW');
-
-        return {
-          'email': email ?? '',
-          'phone': phone ?? '',
-        };
-      } else {
-        developer.log(
-            'Backend error: ${response.statusCode} - ${response.body}',
-            name: 'SOCIAL_AUTH_WEBVIEW');
-      }
-    } catch (e) {
-      developer.log('Ошибка при отправке кода на бэкенд: $e',
-          name: 'SOCIAL_AUTH_WEBVIEW');
-    }
-    return {'email': '', 'phone': ''};
+  Future<Map<String, String?>> _getVkUserData({
+    required String code,
+    required String codeVerifier,
+    required String deviceId,
+    required String state,
+    String? phone,
+  }) async {
+    // Теперь не делаем запросы к VK ID напрямую, только возвращаем параметры для бэкенда
+    return {
+      'code': code,
+      'code_verifier': codeVerifier,
+      'device_id': deviceId,
+      'state': state,
+    };
   }
 
   @override

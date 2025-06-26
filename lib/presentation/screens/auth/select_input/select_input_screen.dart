@@ -46,7 +46,7 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
       const vkRedirectUri = 'https://oauth.vk.com/blank.html';
       final codeChallenge = _pkcePair.codeChallenge;
       initialUrl =
-          'https://id.vk.com/authorize?client_id=$clientId&redirect_uri=$vkRedirectUri&response_type=code&scope=email phone&code_challenge=$codeChallenge&code_challenge_method=S256&state=$_state&v=5.131';
+          'https://id.vk.com/authorize?client_id=$clientId&redirect_uri=$vkRedirectUri&response_type=code&scope=email%20phone&code_challenge=$codeChallenge&code_challenge_method=S256&state=$_state&v=5.131';
       redirectUrl = vkRedirectUri;
     } else if (provider == 'yandex') {
       const clientId = 'bf26d338b2ac4b50aa3d1fe972edf401';
@@ -69,6 +69,7 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
           provider: provider,
           initialUrl: initialUrl!,
           redirectUrl: redirectUrl!,
+          codeVerifier: _pkcePair.codeVerifier,
         ),
       ),
     );
