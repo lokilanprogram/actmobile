@@ -47,6 +47,8 @@ void main() async {
   await initializeDateFormatting('ru');
   MapboxOptions.setAccessToken(
       'pk.eyJ1IjoiYWN0aSIsImEiOiJjbWE5d2NnZm0xa2w3MmxzZ3J4NmF6YnlzIn0.ZugUX9QGcByj0HzVtbJVgg');
+  
+  // Сначала инициализируем Firebase
   await Firebase.initializeApp(
       options: FirebaseOptions(
           apiKey: Platform.isAndroid
@@ -54,28 +56,15 @@ void main() async {
               : "AIzaSyCjLnxLzxmKKbSCj7ebabQFabmZEvFdf5k",
           appId: Platform.isAndroid
               ? "1:927589486813:android:2315c019c7bf66d4a40b34"
-              : "1:927589486813:ios:f0ce8032174c9c6ca40b34", //"1:368466897752:ios:d78a2747650774472dd32d",
+              : "1:927589486813:ios:f0ce8032174c9c6ca40b34",
           messagingSenderId: "927589486813",
           projectId: "acti-54f96"));
 
-  // Регистрация обработчика фоновых уведомлений
+  // Затем регистрируем обработчик фоновых уведомлений
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   // Запуск автообновления токена
   await TokenRefreshService().start();
-
-  // Инициализация Firebase Messaging
-  // if (Platform.isIOS) {
-  //   await FirebaseMessaging.instance.requestPermission(
-  //     alert: true,
-  //     announcement: false,
-  //     badge: true,
-  //     carPlay: false,
-  //     criticalAlert: false,
-  //     provisional: false,
-  //     sound: true,
-  //   );
-  // }
 
   // Инициализация сервиса оптимизации карты
   try {
