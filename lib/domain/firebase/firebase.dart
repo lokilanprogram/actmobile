@@ -19,13 +19,30 @@ class FirebaseApi {
   final firebaseMessaging = FirebaseMessaging.instance;
   Future<void> initNotifications() async {
     String? token;
-    NotificationSettings settings = await firebaseMessaging.requestPermission();
+    NotificationSettings settings = await firebaseMessaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
     print('Firebase permission status: ${settings.authorizationStatus}');
 
     if (Platform.isIOS) {
-      token = await firebaseMessaging.getAPNSToken();
-      print('Firebase APNS token: $token');
-      await Future.delayed(Duration(seconds: 2));
+      // Ждем получения APNS токена
+      await Future.delayed(Duration(seconds: 3));
+      
+      // Пытаемся получить FCM токен после установки APNS токена
+      token = await firebaseMessaging.getToken();
+      print('Firebase FCM token for iOS: $token');
+      
+      // Если не получили FCM токен, пробуем получить APNS токен
+      if (token == null) {
+        token = await firebaseMessaging.getAPNSToken();
+        print('Firebase APNS token: $token');
+      }
     } else {
       token = await firebaseMessaging.getToken();
       print('Firebase FCM token: $token');

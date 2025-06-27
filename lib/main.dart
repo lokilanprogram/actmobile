@@ -34,6 +34,14 @@ import 'package:acti_mobile/domain/services/token_refresh_service.dart';
 final baseUrl = API;
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// Обработчик фоновых уведомлений Firebase
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('Handling a background message: ${message.messageId}');
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ru');
@@ -49,6 +57,9 @@ void main() async {
               : "1:927589486813:ios:f0ce8032174c9c6ca40b34", //"1:368466897752:ios:d78a2747650774472dd32d",
           messagingSenderId: "927589486813",
           projectId: "acti-54f96"));
+
+  // Регистрация обработчика фоновых уведомлений
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   // Запуск автообновления токена
   await TokenRefreshService().start();

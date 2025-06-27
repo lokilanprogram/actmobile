@@ -30,9 +30,12 @@ class NotificationService {
         AndroidInitializationSettings('@mipmap/icon_acti');
 
     final initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+      onDidReceiveLocalNotification: (int id, String? title, String? body, String? payload) async {
+        // Обработка уведомлений на старых версиях iOS
+      },
     );
 
     final InitializationSettings initializationSettings =
@@ -152,6 +155,14 @@ class NotificationService {
             enableVibration: true,
             priority: Priority.high,
             icon: '@mipmap/icon_acti'),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          sound: 'default',
+          badgeNumber: 1,
+          threadIdentifier: 'message_notification',
+        ),
       ),
     );
   }
@@ -175,6 +186,14 @@ class NotificationService {
               enableVibration: true,
               priority: Priority.high,
               icon: '@mipmap/icon_acti'),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            sound: 'default',
+            badgeNumber: 1,
+            threadIdentifier: 'listings_notification',
+          ),
         ),
         payload: payload);
   }

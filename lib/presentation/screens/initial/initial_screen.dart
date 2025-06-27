@@ -5,6 +5,7 @@ import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/firebase/firebase.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
+import 'package:acti_mobile/domain/firebase/ios_notification_helper.dart';
 import 'package:acti_mobile/domain/services/map_optimization_service.dart';
 import 'package:acti_mobile/presentation/screens/auth/select_input/select_input_screen.dart';
 import 'package:acti_mobile/presentation/screens/main/main_screen.dart';
@@ -171,6 +172,9 @@ class _InitialScreenState extends State<InitialScreen> {
         await FirebaseApi().initNotifications();
         await NotificationService().initNotification();
         await FirebaseApi().setupInteractedMessage();
+        
+        // Отладка iOS уведомлений
+        await IosNotificationHelper.checkNotificationPermissions();
       } else {
         await storage.deleteAll();
         Navigator.push(
