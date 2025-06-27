@@ -500,101 +500,290 @@ class _EventsScreenState extends State<EventsScreen> {
       },
       child: Consumer2<FilterProvider, VoteProvider>(
         builder: (context, filterProvider, voteProvider, child) {
-          return Scaffold(
-            backgroundColor: Colors.white,
-            resizeToAvoidBottomInset: false,
-            appBar: isLoading
-                ? null
-                : AppBar(
-                    automaticallyImplyLeading: false,
-                    backgroundColor: Colors.white,
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Container(width: 10),
-                        SizedBox(
-                          child: Text(
-                            'События',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.bold,
-                              // fontSize: isSmallScreen ? 16 : 18,
-                              fontSize: 23,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          height: 32,
-                          // width: isSmallScreen ? 110 : 120,
-                          margin: EdgeInsets.symmetric(horizontal: 8.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(30),
-                            gradient: LinearGradient(
-                              colors: [
-                                mainBlueColor,
-                                Color.fromRGBO(98, 207, 102, 1),
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                          ),
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
+          return SafeArea(
+            child: Scaffold(
+              backgroundColor: Colors.white,
+              resizeToAvoidBottomInset: false,
+              appBar: isLoading
+                  ? null
+                  : AppBar(
+                      automaticallyImplyLeading: false,
+                      backgroundColor: Colors.white,
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Container(width: 10),
+                          SizedBox(
+                            child: Text(
+                              'События',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.bold,
+                                // fontSize: isSmallScreen ? 16 : 18,
+                                fontSize: 23,
                               ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 0),
                             ),
-                            onPressed: () {
-                              // Используем MainScreenProvider для перехода на VotesScreen
-                              Provider.of<MainScreenProvider>(context,
-                                      listen: false)
-                                  .setIndex(5);
-                            },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Голосование',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                    // fontSize: isSmallScreen ? 14 : 16,
-                                  ),
+                          ),
+                          Container(
+                            height: 32,
+                            // width: isSmallScreen ? 110 : 120,
+                            margin: EdgeInsets.symmetric(horizontal: 8.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              gradient: LinearGradient(
+                                colors: [
+                                  mainBlueColor,
+                                  Color.fromRGBO(98, 207, 102, 1),
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                            ),
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Container(
-                          height: 32,
-                          width: 115,
-                          margin: EdgeInsets.only(right: 8.0),
-                          decoration: BoxDecoration(
-                            color: mainBlueColor,
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: InkWell(
-                            onTap: () async {
-                              _showFilterBottomSheet();
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12.0, vertical: 8.0),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 0),
+                              ),
+                              onPressed: () {
+                                // Используем MainScreenProvider для перехода на VotesScreen
+                                Provider.of<MainScreenProvider>(context,
+                                        listen: false)
+                                    .setIndex(5);
+                              },
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  SvgPicture.asset('assets/icons/filter.svg'),
-                                  SizedBox(width: 10),
-                                  Text('Фильтры',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 12)),
+                                  Text(
+                                    'Голосование',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                      // fontSize: isSmallScreen ? 14 : 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Container(
+                            height: 32,
+                            width: 115,
+                            margin: EdgeInsets.only(right: 8.0),
+                            decoration: BoxDecoration(
+                              color: mainBlueColor,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: InkWell(
+                              onTap: () async {
+                                _showFilterBottomSheet();
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12.0, vertical: 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SvgPicture.asset('assets/icons/filter.svg'),
+                                    SizedBox(width: 10),
+                                    Text('Фильтры',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      bottom: PreferredSize(
+                        preferredSize: Size.fromHeight(60),
+                        child: Container(
+                          height: 53,
+                          key: _searchFieldKey,
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: TextField(
+                            textCapitalization: TextCapitalization.sentences,
+                            controller: _searchController,
+                            focusNode: _searchFocusNode,
+                            onChanged: (value) {
+                              _fetchSearchSuggestions(value);
+                            },
+                            onTap: () {
+                              if (_searchController.text.isNotEmpty) {
+                                _fetchSearchSuggestions(_searchController.text);
+                              }
+                            },
+                            onEditingComplete: () {
+                              _removeAutocompleteOverlay();
+                              _applyFilters();
+                            },
+                            style: TextStyle(fontSize: 16),
+                            decoration: InputDecoration(
+                              hintText: 'Поиск по событиям',
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: SizedBox(
+                                    height: 20,
+                                    child: SvgPicture.asset(
+                                      'assets/icons/search.svg',
+                                      height: 20,
+                                      width: 20,
+                                      colorFilter: ColorFilter.mode(
+                                          Colors.grey[400]!, BlendMode.srcIn),
+                                    )),
+                              ),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon:
+                                          Icon(Icons.clear, color: Colors.grey),
+                                      onPressed: () {
+                                        if (!mounted) return;
+                                        setState(() {
+                                          _searchController.clear();
+                                          _searchSuggestions = [];
+                                        });
+                                        _removeAutocompleteOverlay();
+                                      },
+                                    )
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                              contentPadding: EdgeInsets.symmetric(vertical: 0),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // actions: [
+                      //   Container(
+                      //     height: 32,
+                      //     width: 115,
+                      //     margin: EdgeInsets.only(right: 16.0),
+                      //     decoration: BoxDecoration(
+                      //       color: mainBlueColor,
+                      //       borderRadius: BorderRadius.circular(30),
+                      //     ),
+                      //     child: InkWell(
+                      //       onTap: () async {
+                      //         _showFilterBottomSheet();
+                      //       },
+                      //       child: Padding(
+                      //         padding: const EdgeInsets.symmetric(
+                      //             horizontal: 12.0, vertical: 8.0),
+                      //         child: Row(
+                      //           mainAxisAlignment: MainAxisAlignment.center,
+                      //           mainAxisSize: MainAxisSize.min,
+                      //           children: [
+                      //             SvgPicture.asset('assets/icons/filter.svg'),
+                      //             SizedBox(width: 10),
+                      //             Text('Фильтры',
+                      //                 style: TextStyle(
+                      //                     color: Colors.white,
+                      //                     fontWeight: FontWeight.w600,
+                      //                     fontSize: 12)),
+                      //           ],
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ],
+                    ),
+              extendBody: true,
+              body: isLoading
+                  ? LoaderWidget()
+                  : Stack(
+                      children: [
+                        Positioned.fill(
+                          child: SafeArea(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 20, right: 20, top: 0, bottom: 0),
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 25),
+                                  Expanded(
+                                    child: eventsModel != null
+                                        ? RefreshIndicator(
+                                            onRefresh: () async {
+                                              if (!mounted) return;
+                                              setState(() {
+                                                _offset = 0;
+                                                _hasMore = true;
+                                              });
+                                              await _applyFilters();
+                                            },
+                                            child: NotificationListener<
+                                                ScrollNotification>(
+                                              onNotification: (scrollInfo) {
+                                                if (scrollInfo.metrics.pixels ==
+                                                        scrollInfo.metrics
+                                                            .maxScrollExtent &&
+                                                    _hasMore &&
+                                                    !isLoading) {
+                                                  _loadMoreEvents();
+                                                }
+                                                return false;
+                                              },
+                                              child: eventsModel!.events.isEmpty
+                                                  ? Center(
+                                                      child: Text(
+                                                        'Ничего не нашлось',
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          color:
+                                                              Colors.grey[600],
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : ListView.builder(
+                                                      itemCount: eventsModel!
+                                                          .events.length,
+                                                      itemBuilder:
+                                                          (context, index) {
+                                                        final event =
+                                                            eventsModel!
+                                                                .events[index];
+                                                        return MyCardEventWidget(
+                                                          organizedEvent: event
+                                                              .toOrganizedEventModel(),
+                                                          isPublicUser: true,
+                                                          isCompletedEvent:
+                                                              false,
+                                                        );
+                                                      },
+                                                    ),
+                                            ),
+                                          )
+                                        : Center(
+                                            child: Text(
+                                              'Загрузка событий...',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.grey[600],
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                  ),
+                                  const SizedBox(height: 150),
                                 ],
                               ),
                             ),
@@ -602,190 +791,7 @@ class _EventsScreenState extends State<EventsScreen> {
                         ),
                       ],
                     ),
-                    bottom: PreferredSize(
-                      preferredSize: Size.fromHeight(60),
-                      child: Container(
-                        height: 53,
-                        key: _searchFieldKey,
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 0),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: TextField(
-                          textCapitalization: TextCapitalization.sentences,
-                          controller: _searchController,
-                          focusNode: _searchFocusNode,
-                          onChanged: (value) {
-                            _fetchSearchSuggestions(value);
-                          },
-                          onTap: () {
-                            if (_searchController.text.isNotEmpty) {
-                              _fetchSearchSuggestions(_searchController.text);
-                            }
-                          },
-                          onEditingComplete: () {
-                            _removeAutocompleteOverlay();
-                            _applyFilters();
-                          },
-                          style: TextStyle(fontSize: 16),
-                          decoration: InputDecoration(
-                            hintText: 'Поиск по событиям',
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: SizedBox(
-                                  height: 20,
-                                  child: SvgPicture.asset(
-                                    'assets/icons/search.svg',
-                                    height: 20,
-                                    width: 20,
-                                    colorFilter: ColorFilter.mode(
-                                        Colors.grey[400]!, BlendMode.srcIn),
-                                  )),
-                            ),
-                            suffixIcon: _searchController.text.isNotEmpty
-                                ? IconButton(
-                                    icon: Icon(Icons.clear, color: Colors.grey),
-                                    onPressed: () {
-                                      if (!mounted) return;
-                                      setState(() {
-                                        _searchController.clear();
-                                        _searchSuggestions = [];
-                                      });
-                                      _removeAutocompleteOverlay();
-                                    },
-                                  )
-                                : null,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey[100],
-                            contentPadding: EdgeInsets.symmetric(vertical: 0),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // actions: [
-                    //   Container(
-                    //     height: 32,
-                    //     width: 115,
-                    //     margin: EdgeInsets.only(right: 16.0),
-                    //     decoration: BoxDecoration(
-                    //       color: mainBlueColor,
-                    //       borderRadius: BorderRadius.circular(30),
-                    //     ),
-                    //     child: InkWell(
-                    //       onTap: () async {
-                    //         _showFilterBottomSheet();
-                    //       },
-                    //       child: Padding(
-                    //         padding: const EdgeInsets.symmetric(
-                    //             horizontal: 12.0, vertical: 8.0),
-                    //         child: Row(
-                    //           mainAxisAlignment: MainAxisAlignment.center,
-                    //           mainAxisSize: MainAxisSize.min,
-                    //           children: [
-                    //             SvgPicture.asset('assets/icons/filter.svg'),
-                    //             SizedBox(width: 10),
-                    //             Text('Фильтры',
-                    //                 style: TextStyle(
-                    //                     color: Colors.white,
-                    //                     fontWeight: FontWeight.w600,
-                    //                     fontSize: 12)),
-                    //           ],
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ],
-                  ),
-            extendBody: true,
-            body: isLoading
-                ? LoaderWidget()
-                : Stack(
-                    children: [
-                      Positioned.fill(
-                        child: SafeArea(
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                left: 20, right: 20, top: 0, bottom: 0),
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 25),
-                                Expanded(
-                                  child: eventsModel != null
-                                      ? RefreshIndicator(
-                                          onRefresh: () async {
-                                            if (!mounted) return;
-                                            setState(() {
-                                              _offset = 0;
-                                              _hasMore = true;
-                                            });
-                                            await _applyFilters();
-                                          },
-                                          child: NotificationListener<
-                                              ScrollNotification>(
-                                            onNotification: (scrollInfo) {
-                                              if (scrollInfo.metrics.pixels ==
-                                                      scrollInfo.metrics
-                                                          .maxScrollExtent &&
-                                                  _hasMore &&
-                                                  !isLoading) {
-                                                _loadMoreEvents();
-                                              }
-                                              return false;
-                                            },
-                                            child: eventsModel!.events.isEmpty
-                                                ? Center(
-                                                    child: Text(
-                                                      'Ничего не нашлось',
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        color: Colors.grey[600],
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  )
-                                                : ListView.builder(
-                                                    itemCount: eventsModel!
-                                                        .events.length,
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      final event = eventsModel!
-                                                          .events[index];
-                                                      return MyCardEventWidget(
-                                                        organizedEvent: event
-                                                            .toOrganizedEventModel(),
-                                                        isPublicUser: true,
-                                                        isCompletedEvent: false,
-                                                      );
-                                                    },
-                                                  ),
-                                          ),
-                                        )
-                                      : Center(
-                                          child: Text(
-                                            'Загрузка событий...',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.grey[600],
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                ),
-                                const SizedBox(height: 150),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+            ),
           );
         },
       ),

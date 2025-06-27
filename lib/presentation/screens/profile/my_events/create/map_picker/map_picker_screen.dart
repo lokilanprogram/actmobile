@@ -278,146 +278,149 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.white,
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                MapWidget(
-                  onTapListener: _onTap,
-                  styleUri: 'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
-                  cameraOptions: CameraOptions(
-                    zoom: currentZoom,
-                    center: Point(
-                      coordinates: widget.position ??
-                          Position(
-                            currentPosition?.longitude ?? 37.6173,
-                            currentPosition?.latitude ?? 55.7558,
-                          ),
+    return SafeArea(
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.white,
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Stack(
+                children: [
+                  MapWidget(
+                    onTapListener: _onTap,
+                    styleUri: 'mapbox://styles/acti/cmbf00t92005701s5d84c1cqp',
+                    cameraOptions: CameraOptions(
+                      zoom: currentZoom,
+                      center: Point(
+                        coordinates: widget.position ??
+                            Position(
+                              currentPosition?.longitude ?? 37.6173,
+                              currentPosition?.latitude ?? 55.7558,
+                            ),
+                      ),
                     ),
+                    key: const ValueKey("MapWidget"),
+                    onMapCreated: _onMapCreated,
                   ),
-                  key: const ValueKey("MapWidget"),
-                  onMapCreated: _onMapCreated,
-                ),
-                Positioned(
-                  top: 50,
-                  left: 20,
-                  right: 20,
-                  child: Column(
-                    children: [
-                      Material(
-                        elevation: 2,
-                        borderRadius: BorderRadius.circular(12),
-                        child: TextField(
-                          textCapitalization: TextCapitalization.sentences,
-                          controller: searchController,
-                          onChanged: _searchLocation,
-                          decoration: InputDecoration(
-                            hintText: 'Поиск по адресу',
-                            prefixIcon: Icon(Icons.search, color: Colors.grey),
-                            suffixIcon: IconButton(
-                              icon: Icon(Icons.clear, color: Colors.grey),
-                              onPressed: () {
-                                searchController.clear();
-                                setState(() {
-                                  _suggestions = [];
-                                });
+                  Positioned(
+                    top: 50,
+                    left: 20,
+                    right: 20,
+                    child: Column(
+                      children: [
+                        Material(
+                          elevation: 2,
+                          borderRadius: BorderRadius.circular(12),
+                          child: TextField(
+                            textCapitalization: TextCapitalization.sentences,
+                            controller: searchController,
+                            onChanged: _searchLocation,
+                            decoration: InputDecoration(
+                              hintText: 'Поиск по адресу',
+                              prefixIcon:
+                                  Icon(Icons.search, color: Colors.grey),
+                              suffixIcon: IconButton(
+                                icon: Icon(Icons.clear, color: Colors.grey),
+                                onPressed: () {
+                                  searchController.clear();
+                                  setState(() {
+                                    _suggestions = [];
+                                  });
+                                },
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                        if (_suggestions.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.only(top: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ListView.separated(
+                              shrinkWrap: true,
+                              itemCount: _suggestions.length,
+                              separatorBuilder: (context, idx) =>
+                                  Divider(height: 1),
+                              itemBuilder: (context, idx) {
+                                final s = _suggestions[idx];
+                                return ListTile(
+                                  title: Text(s.text,
+                                      style: TextStyle(
+                                          fontSize: 16, fontFamily: 'Gilroy')),
+                                  subtitle: Text(s.placeName,
+                                      style: TextStyle(
+                                          fontSize: 13, color: Colors.grey)),
+                                  onTap: () => _onSuggestionTap(s),
+                                );
                               },
                             ),
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
                           ),
-                        ),
-                      ),
-                      if (_suggestions.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 8,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: ListView.separated(
-                            shrinkWrap: true,
-                            itemCount: _suggestions.length,
-                            separatorBuilder: (context, idx) =>
-                                Divider(height: 1),
-                            itemBuilder: (context, idx) {
-                              final s = _suggestions[idx];
-                              return ListTile(
-                                title: Text(s.text,
-                                    style: TextStyle(
-                                        fontSize: 16, fontFamily: 'Gilroy')),
-                                subtitle: Text(s.placeName,
-                                    style: TextStyle(
-                                        fontSize: 13, color: Colors.grey)),
-                                onTap: () => _onSuggestionTap(s),
-                              );
-                            },
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: !isFullSheet
-                        ? null
-                        : MediaQuery.of(context).size.height * 0.85,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(35),
-                          topRight: Radius.circular(35)),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Center(
-                          child: Container(
-                            width: 40,
-                            height: 5,
-                            margin: const EdgeInsets.only(bottom: 10),
-                            decoration: BoxDecoration(
-                              color: Color.fromRGBO(102, 102, 102, 1),
-                              borderRadius: BorderRadius.circular(2.5),
-                            ),
-                          ),
-                        ),
-                        const Text(
-                          'Место',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Gilroy',
-                              fontSize: 24),
-                        ),
-                        const SizedBox(height: 8),
-                        !isFullSheet
-                            ? buildSavedLocation(context)
-                            : buildSuggestedLocation()
                       ],
                     ),
                   ),
-                )
-              ],
-            ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      height: !isFullSheet
+                          ? null
+                          : MediaQuery.of(context).size.height * 0.85,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(35),
+                            topRight: Radius.circular(35)),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 40,
+                              height: 5,
+                              margin: const EdgeInsets.only(bottom: 10),
+                              decoration: BoxDecoration(
+                                color: Color.fromRGBO(102, 102, 102, 1),
+                                borderRadius: BorderRadius.circular(2.5),
+                              ),
+                            ),
+                          ),
+                          const Text(
+                            'Место',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Gilroy',
+                                fontSize: 24),
+                          ),
+                          const SizedBox(height: 8),
+                          !isFullSheet
+                              ? buildSavedLocation(context)
+                              : buildSuggestedLocation()
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              ),
+      ),
     );
   }
 
