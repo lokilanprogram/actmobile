@@ -5,6 +5,8 @@ import 'package:acti_mobile/presentation/screens/chats/chat_detail/models/social
 import 'package:acti_mobile/presentation/screens/auth/input_phone/input_phone.dart';
 import 'package:acti_mobile/presentation/screens/auth/screens/social_auth_webview.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/settings/privacy_policy_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/settings/user_agreement_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/gestures.dart';
@@ -282,8 +284,12 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
                             ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                // TODO: Implement navigation to User Agreement
-                                print('User Agreement tapped');
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const UserAgreementScreen()),
+                                );
                               },
                           ),
                           TextSpan(text: ' и '),
@@ -295,8 +301,12 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
                             ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                // TODO: Implement navigation to Privacy Policy
-                                print('Privacy Policy tapped');
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const PrivacyPolicyScreen()),
+                                );
                               },
                           ),
                           TextSpan(
