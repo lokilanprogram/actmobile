@@ -15,6 +15,7 @@ import 'package:acti_mobile/presentation/screens/profile/update_profile/update_p
 import 'package:acti_mobile/presentation/widgets/activity_bar_widget.dart';
 import 'package:acti_mobile/presentation/widgets/my_events_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:provider/provider.dart';
@@ -278,6 +279,7 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _profileIconUrl = null;
     _loadProfileIcon();
+    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     // Устанавливаем начальный индекс
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MainScreenProvider>(context, listen: false)
@@ -365,87 +367,89 @@ class _MainScreenState extends State<MainScreen> {
 
           return Scaffold(
             backgroundColor: Colors.white,
-            body: Stack(
-              children: [
-                IndexedStack(
-                  index: provider.currentIndex,
-                  children: screens,
-                ),
-                if (provider.currentIndex == 4)
+            body: SafeArea(
+              child: Stack(
+                children: [
+                  IndexedStack(
+                    index: provider.currentIndex,
+                    children: screens,
+                  ),
+                  if (provider.currentIndex == 4)
+                    Positioned(
+                      left: 30,
+                      right: 30,
+                      bottom: 120,
+                      child: ActivityBarWidget(
+                        isVerified: _isVerified,
+                        isProfileCompleted: _isProfileCompleted,
+                      ),
+                    ),
+                  if (provider.currentIndex == 1)
+                    Positioned(
+                      left: 30,
+                      right: 30,
+                      bottom: 120,
+                      child: ActivityBarWidget(
+                        isVerified: _isVerified,
+                        isProfileCompleted: _isProfileCompleted,
+                      ),
+                    ),
+                  if (provider.currentIndex == 3)
+                    Positioned(
+                      left: 30,
+                      right: 30,
+                      bottom: 120,
+                      child: MyEventsWidget(
+                        onTap: () {
+                          provider.setIndex(4);
+                        },
+                      ),
+                    ),
                   Positioned(
                     left: 30,
                     right: 30,
-                    bottom: 120,
-                    child: ActivityBarWidget(
-                      isVerified: _isVerified,
-                      isProfileCompleted: _isProfileCompleted,
-                    ),
-                  ),
-                if (provider.currentIndex == 1)
-                  Positioned(
-                    left: 30,
-                    right: 30,
-                    bottom: 120,
-                    child: ActivityBarWidget(
-                      isVerified: _isVerified,
-                      isProfileCompleted: _isProfileCompleted,
-                    ),
-                  ),
-                if (provider.currentIndex == 3)
-                  Positioned(
-                    left: 30,
-                    right: 30,
-                    bottom: 120,
-                    child: MyEventsWidget(
-                      onTap: () {
-                        provider.setIndex(4);
-                      },
-                    ),
-                  ),
-                Positioned(
-                  left: 30,
-                  right: 30,
-                  bottom: 30,
-                  child: Container(
-                    height: 70,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: mainBlueColor.withAlpha(180),
-                          blurRadius: 100,
-                          offset: const Offset(0, 15),
-                        ),
-                      ],
-                    ),
-                    child: CustomNavBarWidget(
-                      selectedIndex: provider.currentIndex == 5
-                          ? 1
-                          : provider.currentIndex,
-                      onTabSelected: (index) {
-                        if (index == 1) {
-                          provider.setIndex(1);
-                        } else if (index == 5) {
-                          provider.setIndex(5);
-                        } else {
-                          provider.setIndex(index);
-                        }
+                    bottom: 30,
+                    child: Container(
+                      height: 70,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: mainBlueColor.withAlpha(180),
+                            blurRadius: 100,
+                            offset: const Offset(0, 15),
+                          ),
+                        ],
+                      ),
+                      child: CustomNavBarWidget(
+                        selectedIndex: provider.currentIndex == 5
+                            ? 1
+                            : provider.currentIndex,
+                        onTabSelected: (index) {
+                          if (index == 1) {
+                            provider.setIndex(1);
+                          } else if (index == 5) {
+                            provider.setIndex(5);
+                          } else {
+                            provider.setIndex(index);
+                          }
 
-                        // Обновляем позицию при переключении на экран карты
-                        if (index == 0) {
-                          _updateLocationForMapScreen();
-                        }
+                          // Обновляем позицию при переключении на экран карты
+                          if (index == 0) {
+                            _updateLocationForMapScreen();
+                          }
 
-                        // Обновляем состояние при изменении индекса
-                        // context
-                        //     .read<ProfileBloc>()
-                        //     .add(ProfileGetListEventsEvent());
-                      },
-                      profileIconUrl: _profileIconUrl,
+                          // Обновляем состояние при изменении индекса
+                          // context
+                          //     .read<ProfileBloc>()
+                          //     .add(ProfileGetListEventsEvent());
+                        },
+                        profileIconUrl: _profileIconUrl,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
