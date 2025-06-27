@@ -12,7 +12,6 @@ class IosNotificationHelper {
       print('Badge Setting: ${settings.badge}');
       print('Sound Setting: ${settings.sound}');
       print('Critical Alert Setting: ${settings.criticalAlert}');
-      print('Provisional Setting: ${settings.provisional}');
       
       // Проверяем токены
       final fcmToken = await FirebaseMessaging.instance.getToken();
