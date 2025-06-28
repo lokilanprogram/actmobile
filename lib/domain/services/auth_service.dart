@@ -216,9 +216,16 @@ class AuthService {
       if (request is VkLoginRequest) {
         endpoint = '$_baseUrl/api/v1/auth/vk';
         requestData = request.toJson();
+        developer.log('🔵 VK социальная авторизация', name: 'AUTH_SERVICE');
       } else if (request is YandexLoginRequest) {
         endpoint = '$_baseUrl/api/v1/auth/yandex';
         requestData = request.toJson();
+        developer.log('🟡 Yandex социальная авторизация', name: 'AUTH_SERVICE');
+      } else if (request is AppleLoginRequest) {
+        endpoint = '$_baseUrl/api/v1/auth/apple';
+        requestData = request.toJson();
+        developer.log('🍎 Apple социальная авторизация', name: 'AUTH_SERVICE');
+        developer.log('🍎 Apple запрос данные: $requestData', name: 'AUTH_SERVICE');
       } else {
         throw Exception('Неподдерживаемый тип запроса: ${request.runtimeType}');
       }
@@ -243,8 +250,12 @@ class AuthService {
       );
 
       developer.log('Ответ от сервера: ${response.data}', name: 'AUTH_SERVICE');
+      developer.log('Статус код: ${response.statusCode}', name: 'AUTH_SERVICE');
 
       if (response.statusCode == 200) {
+        if (request is AppleLoginRequest) {
+          developer.log('🍎 Apple авторизация успешна!', name: 'AUTH_SERVICE');
+        }
         return response.data;
       } else if (response.statusCode == 401) {
         throw DioException(
@@ -256,6 +267,10 @@ class AuthService {
         throw ApiError.fromJson(response.data);
       }
     } on DioException catch (e) {
+      if (request is AppleLoginRequest) {
+        developer.log('🍎 Ошибка Dio при Apple авторизации: ${e.message}', name: 'AUTH_SERVICE');
+        developer.log('🍎 Ошибка response: ${e.response?.data}', name: 'AUTH_SERVICE');
+      }
       developer.log('Ошибка Dio при социальной авторизации: ${e.message}',
           name: 'AUTH_SERVICE');
       if (e.response?.data != null) {
@@ -263,6 +278,9 @@ class AuthService {
       }
       rethrow;
     } catch (e) {
+      if (request is AppleLoginRequest) {
+        developer.log('🍎 Неизвестная ошибка при Apple авторизации: $e', name: 'AUTH_SERVICE');
+      }
       developer.log('Неизвестная ошибка при социальной авторизации: $e',
           name: 'AUTH_SERVICE');
       rethrow;

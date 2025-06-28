@@ -57,3 +57,29 @@ class YandexLoginRequest extends Equatable {
     return data;
   }
 }
+
+class AppleLoginRequest extends Equatable {
+  final String identityToken;
+  final String? authorizationCode;
+  final String? email;
+  final String? fullName;
+
+  const AppleLoginRequest({
+    required this.identityToken,
+    this.authorizationCode,
+    this.email,
+    this.fullName,
+  });
+
+  @override
+  List<Object?> get props => [identityToken, authorizationCode, email, fullName];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'identity_token': identityToken,
+      'authorization_code': authorizationCode,
+      'email': email,
+      'full_name': fullName,
+    };
+  }
+}

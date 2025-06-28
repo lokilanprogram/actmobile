@@ -10,11 +10,13 @@ import 'package:acti_mobile/presentation/screens/profile/settings/user_agreement
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:developer' as developer;
 
 import 'package:pkce/pkce.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class SelectInputScreen extends StatefulWidget {
   const SelectInputScreen({
@@ -56,6 +58,61 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
       initialUrl =
           'https://oauth.yandex.ru/authorize?response_type=token&client_id=$clientId&redirect_uri=$yandexRedirectUri';
       redirectUrl = yandexRedirectUri;
+    } else if (provider == 'apple') {
+      // Handle Apple Sign In directly
+      try {
+        if (defaultTargetPlatform != TargetPlatform.iOS) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Apple Sign In доступен только на iOS')),
+          );
+          return;
+        }
+
+        developer.log('🍎 Начинаем Apple Sign In...', name: 'APPLE_AUTH');
+
+        final credential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+        );
+
+        developer.log('🍎 Apple credential получен:', name: 'APPLE_AUTH');
+        developer.log('- identityToken: ${credential.identityToken?.substring(0, 50)}...', name: 'APPLE_AUTH');
+        developer.log('- authorizationCode: ${credential.authorizationCode?.substring(0, 50)}...', name: 'APPLE_AUTH');
+        developer.log('- email: ${credential.email}', name: 'APPLE_AUTH');
+        developer.log('- givenName: ${credential.givenName}', name: 'APPLE_AUTH');
+        developer.log('- familyName: ${credential.familyName}', name: 'APPLE_AUTH');
+        developer.log('- userIdentifier: ${credential.userIdentifier}', name: 'APPLE_AUTH');
+
+        final fullName = credential.givenName != null && credential.familyName != null
+            ? '${credential.givenName} ${credential.familyName}'
+            : null;
+
+        final appleRequest = AppleLoginRequest(
+          identityToken: credential.identityToken!,
+          authorizationCode: credential.authorizationCode,
+          email: credential.email,
+          fullName: fullName,
+        );
+
+        developer.log('🍎 AppleLoginRequest создан:', name: 'APPLE_AUTH');
+        developer.log('- JSON: ${appleRequest.toJson()}', name: 'APPLE_AUTH');
+
+        context.read<AuthBloc>().add(
+              SocialLoginRequested(
+                appleRequest,
+                context,
+              ),
+            );
+        return;
+      } catch (e) {
+        developer.log('🍎 Ошибка Apple Sign In: $e', name: 'APPLE_AUTH');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка авторизации Apple: $e')),
+        );
+        return;
+      }
     }
 
     if (initialUrl == null || redirectUrl == null) {
@@ -211,29 +268,26 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
                   ),
                   SizedBox(height: 15),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      InkWell(
-                          onTap: () => _onSocialLogin('yandex'),
-                          // onTap: (){
-                          //   final accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYWZkYWIwOC05ZDhkLTRlZmUtYWVhMy1hNGQwMDBlZTJhMDgiLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg0MDgzMjEzfQ.hp4g-SOZiw3t1Wg2Q-6h1sQMwpY1220v_5LC8fVQ1Dg';
-                          //   final refreshToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYWZkYWIwOC05ZDhkLTRlZmUtYWVhMy1hNGQwMDBlZTJhMDgiLCJ0eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MDY3NTIxM30.Hlec01f57x5xBCU3WLaJiECT2P2ONYnJ81Whk4Bi0Z8';
-                          //   writeAuthTokens(accessToken, refreshToken);
-                          //   Navigator.push(context, MaterialPageRoute(builder: (_)=>InitialScreen()));
-                          // },
-                          child: SvgPicture.asset(
-                              'assets/icons/icon_yandex_id.svg')),
-                      SizedBox(width: 15),
-                      InkWell(
-                          onTap: () => _onSocialLogin('vk'),
-                          // onTap: (){
-                          //   final accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Y2ZlMzAwNi0xMzIwLTRkY2MtOWRlZS03OWI2N2UxODc0YjciLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg0MDkyNDEyfQ.JkNw5KZ-dbkBeyofuF5mdxz-CoV7MKKi01V959aHT7k';
-                          //   final refreshToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Y2ZlMzAwNi0xMzIwLTRkY2MtOWRlZS03OWI2N2UxODc0YjciLCJ0eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MDY4NDQxMn0.tl-VLm2bwUU5wWK0602gvmagngRrzRpM_eIOumRO-J0';
-                          //   writeAuthTokens(accessToken, refreshToken);
-                          //   Navigator.push(context, MaterialPageRoute(builder: (_)=>InitialScreen()));
-                          // },
-                          child:
-                              SvgPicture.asset('assets/icons/icon_vk_id.svg')),
+                      Flexible(
+                        child: InkWell(
+                            onTap: () => _onSocialLogin('yandex'),
+                            child: SvgPicture.asset(
+                                'assets/icons/icon_yandex_id.svg')),
+                      ),
+                      Flexible(
+                        child: InkWell(
+                            onTap: () => _onSocialLogin('vk'),
+                            child:
+                                SvgPicture.asset('assets/icons/icon_vk_id.svg')),
+                      ),
+                      Flexible(
+                        child: InkWell(
+                            onTap: () => _onSocialLogin('apple'),
+                            child:
+                                SvgPicture.asset('assets/icons/icon_apple_id.svg')),
+                      ),
                     ],
                   ),
                   SizedBox(height: 60),
