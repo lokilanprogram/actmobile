@@ -41,6 +41,14 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
   }
 
   void _onSocialLogin(String provider) async {
+    print('==========================================');
+    print('ЗАШЛИ В _onSocialLogin !!!');
+    print('provider = $provider');
+    print('==========================================');
+    
+    print('🚀 _onSocialLogin вызван с provider: $provider');
+    developer.log('🚀 _onSocialLogin вызван с provider: $provider', name: 'AUTH_DEBUG');
+    
     String? initialUrl;
     String? redirectUrl;
     Map<String, dynamic>? authResult;
@@ -61,13 +69,17 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
     } else if (provider == 'apple') {
       // Handle Apple Sign In directly
       try {
+        print('🍎 НАЧИНАЕМ Apple Sign In процесс...');
+        
         if (defaultTargetPlatform != TargetPlatform.iOS) {
+          print('🍎 ОШИБКА: Apple Sign In доступен только на iOS');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Apple Sign In доступен только на iOS')),
           );
           return;
         }
 
+        print('🍎 Платформа iOS подтверждена, запрашиваем credential...');
         developer.log('🍎 Начинаем Apple Sign In...', name: 'APPLE_AUTH');
 
         final credential = await SignInWithApple.getAppleIDCredential(
@@ -76,6 +88,41 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
             AppleIDAuthorizationScopes.fullName,
           ],
         );
+
+        print('🍎 ✅ Apple credential ПОЛУЧЕН!');
+        print('');
+        print('🍎 ========== ПОЛНЫЕ ДАННЫЕ ОТ APPLE ==========');
+        print('🍎 🔑 identityToken (ОБЯЗАТЕЛЬНОЕ):');
+        print('🍎    Значение: ${credential.identityToken}');
+        print('🍎    Null: ${credential.identityToken == null}');
+        print('🍎    Длина: ${credential.identityToken?.length ?? 0}');
+        print('');
+        print('🍎 📝 authorizationCode (ОПЦИОНАЛЬНОЕ):');
+        print('🍎    Значение: ${credential.authorizationCode}');
+        print('🍎    Null: ${credential.authorizationCode == null}');
+        print('🍎    Длина: ${credential.authorizationCode?.length ?? 0}');
+        print('');
+        print('🍎 📧 email (ОПЦИОНАЛЬНОЕ):');
+        print('🍎    Значение: ${credential.email}');
+        print('🍎    Null: ${credential.email == null}');
+        print('');
+        print('🍎 👤 givenName (Имя, ОПЦИОНАЛЬНОЕ):');
+        print('🍎    Значение: ${credential.givenName}');
+        print('🍎    Null: ${credential.givenName == null}');
+        print('');
+        print('🍎 👤 familyName (Фамилия, ОПЦИОНАЛЬНОЕ):');
+        print('🍎    Значение: ${credential.familyName}');
+        print('🍎    Null: ${credential.familyName == null}');
+        print('');
+        print('🍎 🆔 userIdentifier (Уникальный ID):');
+        print('🍎    Значение: ${credential.userIdentifier}');
+        print('🍎    Null: ${credential.userIdentifier == null}');
+        print('');
+        print('🍎 🎯 state:');
+        print('🍎    Значение: ${credential.state}');
+        print('🍎    Null: ${credential.state == null}');
+        print('🍎 ============================================');
+        print('');
 
         developer.log('🍎 Apple credential получен:', name: 'APPLE_AUTH');
         developer.log('- identityToken: ${credential.identityToken?.substring(0, 50)}...', name: 'APPLE_AUTH');
@@ -89,6 +136,11 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
             ? '${credential.givenName} ${credential.familyName}'
             : null;
 
+        print('🍎 🔄 Обработка данных для бэкенда...');
+        print('🍎 fullName объединенное: $fullName');
+        print('');
+
+        print('🍎 Создаем AppleLoginRequest...');
         final appleRequest = AppleLoginRequest(
           identityToken: credential.identityToken!,
           authorizationCode: credential.authorizationCode,
@@ -96,18 +148,50 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
           fullName: fullName,
         );
 
+        print('🍎 📦 ===== ДАННЫЕ ДЛЯ ОТПРАВКИ НА БЭКЕНД =====');
+        print('🍎 AppleLoginRequest создан:');
+        final jsonData = appleRequest.toJson();
+        print('🍎 JSON структура:');
+        jsonData.forEach((key, value) {
+          print('🍎   "$key": ${value == null ? 'null' : '"$value"'}');
+        });
+        print('🍎 Полный JSON: $jsonData');
+        print('🍎 =============================================');
+        print('');
+        
         developer.log('🍎 AppleLoginRequest создан:', name: 'APPLE_AUTH');
         developer.log('- JSON: ${appleRequest.toJson()}', name: 'APPLE_AUTH');
 
+        print('🍎 Отправляем в AuthBloc...');
+        print('');
+        print('🍎 🚀 ===== ОТПРАВКА НА БЭКЕНД =====');
+        print('🍎 Эндпоинт: POST /api/v1/auth/apple');
+        print('🍎 Данные в теле запроса:');
+        print('🍎 {');
+        jsonData.forEach((key, value) {
+          print('🍎   "$key": ${value == null ? 'null' : '"$value"'},');
+        });
+        print('🍎 }');
+        print('🍎 ================================');
+        print('🍎 📡 Отправляем через AuthBloc -> SocialLoginRequested...');
+        print('');
+        
         context.read<AuthBloc>().add(
               SocialLoginRequested(
                 appleRequest,
                 context,
               ),
             );
+        print('🍎 ✅ Запрос отправлен в AuthBloc');
+        print('🍎 ⏳ Ожидаем ответ от сервера...');
+        print('🍎 💡 Проверьте консоль AuthService для ответа сервера');
+        print('');
         return;
-      } catch (e) {
+      } catch (e, stackTrace) {
+        print('🍎 ❌ ОШИБКА Apple Sign In: $e');
+        print('🍎 StackTrace: $stackTrace');
         developer.log('🍎 Ошибка Apple Sign In: $e', name: 'APPLE_AUTH');
+        developer.log('🍎 StackTrace: $stackTrace', name: 'APPLE_AUTH');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Ошибка авторизации Apple: $e')),
         );
@@ -284,7 +368,12 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
                       ),
                       Flexible(
                         child: InkWell(
-                            onTap: () => _onSocialLogin('apple'),
+                            onTap: () {
+                              print('НАЖАЛИ НА APPLE!!!!');
+                              debugPrint('НАЖАЛИ НА APPLE!!!!');
+                              print('Вызываем _onSocialLogin с apple');
+                              _onSocialLogin('apple');
+                            },
                             child:
                                 SvgPicture.asset('assets/icons/icon_apple_id.svg')),
                       ),

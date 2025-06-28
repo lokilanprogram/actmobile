@@ -226,6 +226,23 @@ class AuthService {
         requestData = request.toJson();
         developer.log('🍎 Apple социальная авторизация', name: 'AUTH_SERVICE');
         developer.log('🍎 Apple запрос данные: $requestData', name: 'AUTH_SERVICE');
+        
+        // Детальный анализ Apple данных
+        print('');
+        print('🍎 🔍 ===== АНАЛИЗ APPLE ДАННЫХ В AuthService =====');
+        print('🍎 Эндпоинт: $endpoint');
+        print('🍎 Request тип: ${request.runtimeType}');
+        print('🍎 Поля в запросе:');
+        requestData.forEach((key, value) {
+          print('🍎   - $key: ${value == null ? "❌ NULL" : "✅ ${value.toString().length} символов"}');
+          if (value != null && value.toString().length < 100) {
+            print('🍎     Значение: $value');
+          } else if (value != null) {
+            print('🍎     Значение (первые 50 символов): ${value.toString().substring(0, 50)}...');
+          }
+        });
+        print('🍎 ================================================');
+        print('');
       } else {
         throw Exception('Неподдерживаемый тип запроса: ${request.runtimeType}');
       }
@@ -255,6 +272,22 @@ class AuthService {
       if (response.statusCode == 200) {
         if (request is AppleLoginRequest) {
           developer.log('🍎 Apple авторизация успешна!', name: 'AUTH_SERVICE');
+          print('');
+          print('🍎 🎉 ===== УСПЕШНЫЙ ОТВЕТ ОТ СЕРВЕРА (Apple) =====');
+          print('🍎 HTTP Status: ${response.statusCode}');
+          print('🍎 Response Headers: ${response.headers}');
+          print('🍎 Response Data:');
+          if (response.data is Map) {
+            final responseMap = response.data as Map<String, dynamic>;
+            responseMap.forEach((key, value) {
+              print('🍎   - $key: $value');
+            });
+          } else {
+            print('🍎   Raw response: ${response.data}');
+          }
+          print('🍎 ============================================');
+          print('🍎 💡 ВАЖНО: Сохраните эти данные для настройки бэкенда!');
+          print('');
         }
         return response.data;
       } else if (response.statusCode == 401) {

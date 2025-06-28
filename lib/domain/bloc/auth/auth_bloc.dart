@@ -47,10 +47,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
     on<SocialLoginRequested>((event, emit) async {
+      print('🔥 SocialLoginRequested получен в AuthBloc');
+      print('🔥 Тип запроса: ${event.request.runtimeType}');
+      developer.log('🔥 SocialLoginRequested получен в AuthBloc', name: 'AUTH_BLOC');
+      developer.log('🔥 Тип запроса: ${event.request.runtimeType}', name: 'AUTH_BLOC');
+      
       if (state is AuthLoading) return;
 
       emit(AuthLoading());
       try {
+        print('🔥 Отправляем запрос в authRepository.socialLogin');
+        developer.log('🔥 Отправляем запрос в authRepository.socialLogin', name: 'AUTH_BLOC');
+        
         final response = await authRepository.socialLogin(event.request);
 
         if (response['access_token'] != null) {
