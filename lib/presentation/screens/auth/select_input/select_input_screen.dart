@@ -132,29 +132,28 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
         developer.log('- familyName: ${credential.familyName}', name: 'APPLE_AUTH');
         developer.log('- userIdentifier: ${credential.userIdentifier}', name: 'APPLE_AUTH');
 
-        final fullName = credential.givenName != null && credential.familyName != null
-            ? '${credential.givenName} ${credential.familyName}'
-            : null;
-
         print('🍎 🔄 Обработка данных для бэкенда...');
-        print('🍎 fullName объединенное: $fullName');
+        print('🍎 ⚠️  ВАЖНО: Получены дополнительные данные от Apple:');
+        print('🍎    - authorizationCode: ${credential.authorizationCode != null ? "✅" : "❌"}');
+        print('🍎    - email: ${credential.email != null ? "✅" : "❌"}');
+        print('🍎    - givenName: ${credential.givenName != null ? "✅" : "❌"}');
+        print('🍎    - familyName: ${credential.familyName != null ? "✅" : "❌"}');
+        print('🍎 📤 НО на бэкенд отправляется ТОЛЬКО identity_token согласно новому API!');
         print('');
 
-        print('🍎 Создаем AppleLoginRequest...');
+        // Создаем запрос только с identity_token
         final appleRequest = AppleLoginRequest(
           identityToken: credential.identityToken!,
-          authorizationCode: credential.authorizationCode,
-          email: credential.email,
-          fullName: fullName,
         );
 
-        print('🍎 📦 ===== ДАННЫЕ ДЛЯ ОТПРАВКИ НА БЭКЕНД =====');
-        print('🍎 AppleLoginRequest создан:');
+        print('🍎 📦 ===== ДАННЫЕ ДЛЯ ОТПРАВКИ НА БЭКЕНД (НОВОЕ API) =====');
+        print('🍎 Обновленный AppleLoginRequest создан:');
         final jsonData = appleRequest.toJson();
-        print('🍎 JSON структура:');
+        print('🍎 JSON структура (только identity_token):');
         jsonData.forEach((key, value) {
-          print('🍎   "$key": ${value == null ? 'null' : '"$value"'}');
+          print('🍎   "$key": ${value == null ? 'null' : '"${value.toString().substring(0, value.toString().length > 100 ? 100 : value.toString().length)}${value.toString().length > 100 ? '...' : ''}"'}');
         });
+        print('🍎 Размер JSON: ${jsonData.length} поле(й)');
         print('🍎 Полный JSON: $jsonData');
         print('🍎 =============================================');
         print('');
