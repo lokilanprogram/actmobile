@@ -1,3 +1,13 @@
+buildscript {
+    repositories {
+        google()  // Убедитесь, что репозиторий Google добавлен
+        mavenCentral()
+    }
+    dependencies {  // (или ваша версия)
+        classpath 'com.google.gms:google-services:4.4.3'  // Проверьте актуальную версию [здесь](https://developers.google.com/android/guides/google-services-plugin)
+    }
+}
+
 allprojects {
     repositories {
         google()

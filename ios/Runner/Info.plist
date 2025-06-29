@@ -35,6 +35,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Приложению нужен доступ к камере для съёмки фото и видео.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

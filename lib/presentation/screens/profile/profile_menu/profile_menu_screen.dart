@@ -15,6 +15,7 @@ import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_
 import 'package:acti_mobile/presentation/screens/profile/notifications/notifications_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/notifications/notifications_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/settings/settings_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/similar_users/similar_users_screen.dart';
 import 'package:acti_mobile/presentation/widgets/blurred.dart';
 import 'package:acti_mobile/presentation/widgets/popup_profile_buttons.dart';
 import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
@@ -340,17 +341,49 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                 const SizedBox(height: 25),
                                 Padding(
                                   padding: const EdgeInsets.only(left: 0),
-                                  child: const Text(
-                                    'Похожие пользователи',
-                                    style: TextStyle(
-                                      fontSize: 16.67,
-                                      fontFamily: 'Gilroy',
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black,
-                                    ),
-                                  ),
+                                  child: similiarUsersModel.length > 0
+                                      ? GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        SimilarUsersScreen()));
+                                          },
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                'Похожие пользователи',
+                                                style: TextStyle(
+                                                  fontSize: 16.67,
+                                                  fontFamily: 'Gilroy',
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              SizedBox(width: 5),
+                                              Icon(
+                                                Icons.arrow_forward_ios,
+                                                size: 16,
+                                                color: Colors.black,
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : Text(
+                                          'Похожие пользователи',
+                                          style: TextStyle(
+                                            fontSize: 16.67,
+                                            fontFamily: 'Gilroy',
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black,
+                                          ),
+                                        ),
                                 ),
-                                const SizedBox(height: 15),
+                                const SizedBox(height: 10),
                                 Center(
                                     child: similiarUsersModel.isEmpty
                                         ? buildNoUsers()
@@ -385,7 +418,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
 
   Padding buildSimiliarUsers(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+      padding: const EdgeInsets.only(top: 8, bottom: 8, left: 10, right: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: similiarUsersModel
@@ -406,7 +439,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
 
   Widget buildNoUsers() {
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.8,
+      //width: MediaQuery.of(context).size.width * 0.8,
       child: Card(
         shape: RoundedRectangleBorder(
           side: BorderSide(color: Colors.white70, width: 1),
@@ -440,10 +473,10 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
             backgroundImage: path == null
                 ? AssetImage('assets/images/image_profile.png')
                 : NetworkImage(path),
-            radius: 32,
+            radius: 30,
           ),
           SizedBox(
-            height: 10,
+            height: 8,
           ),
           Text(
             name,

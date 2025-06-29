@@ -34,7 +34,7 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
       AllChatsModel(total: 0, offset: 0, limit: 0, chats: []);
   bool _isLoading = false;
   bool isPrivateChats = true;
-  bool isVerified = true;
+  bool isVerified = false;
   String? lastProcessedEventId;
   String? userId;
   int _count = 0;
@@ -57,22 +57,21 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
     if (!mounted) return;
     setState(() {
       _isLoading = true;
-      isVerified = true;
     });
     final storage = SecureStorageService();
     final id = await storage.getUserId();
-    final verified = await storage.isUserVerified();
+    context.read<ProfileBloc>().add(ProfileGetEvent());
     if (!mounted) return;
     setState(() {
       userId = id;
     });
-    if (verified != true) {
-      if (!mounted) return;
-      setState(() {
-        isVerified = false;
-        _isLoading = false;
-      });
-    }
+    // if (verified != true) {
+    //   if (!mounted) return;
+    //   setState(() {
+    //     isVerified = false;
+    //     _isLoading = false;
+    //   });
+    // }
     //   context.read<ChatBloc>().add(GetAllChatsEvent());
     //   final accessToken = await storage.getAccessToken();
     //   webSocketService = AllChatWebSocketService(token: accessToken!);

@@ -28,6 +28,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../../../../data/models/list_onbording_model.dart';
 
@@ -325,8 +326,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             });
           }
 
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(state.message)));
+          // ScaffoldMessenger.of(context)
+          //     .showSnackBar(SnackBar(content: Text(state.message)));
+          toastification.show(
+            context: context,
+            title: Text(state.message),
+            type: ToastificationType.error,
+            style: ToastificationStyle.fillColored,
+            autoCloseDuration: const Duration(seconds: 3),
+            alignment: Alignment.topRight,
+          );
         }
         if (state is ActiGotOnbordingState) {
           setState(() {
@@ -491,7 +500,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                                 controller: addressController,
                                                 focusNode: addressFocusNode,
                                                 decoration: InputDecoration(
-                                                  contentPadding: EdgeInsets.only(left: 20),
+                                                  contentPadding:
+                                                      EdgeInsets.only(left: 20),
                                                   fillColor: Color.fromARGB(
                                                       80, 224, 222, 222),
                                                   filled: true,
@@ -895,8 +905,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                               hintStyle: TextStyle(
                                   color: isErrorDescription
                                       ? Colors.red
-                                      : Color.fromARGB(
-                                          255, 137, 137, 137),
+                                      : Color.fromARGB(255, 137, 137, 137),
                                   fontFamily: 'Inter',
                                   fontSize: 14.06,
                                   fontWeight: FontWeight.w300),
@@ -1065,9 +1074,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         controller: controller,
         keyboardType: isPrice ? TextInputType.number : null,
         decoration: InputDecoration(
-          labelText: isErrorTitle
-              ? "Обнаружены недопустимые слова"
-              : "",
+          labelText: isErrorTitle ? "Обнаружены недопустимые слова" : "",
           labelStyle: TextStyle(color: Colors.red),
           contentPadding: EdgeInsets.only(left: 20),
           filled: true,

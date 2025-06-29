@@ -71,7 +71,16 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         emit(ProfileGotErrorState());
       }
     });
-
+    on<ProfileGetSimiliarUsersEvent>((event, emit) async {
+      try {
+        final users = await ProfileApi().getSimiliarUsers();
+        if (users != null) {
+          emit(ProfileGotSimiliarUsersState(similiarUsersModel: users));
+        }
+      } catch (e) {
+        emit(ProfileGotSimiliarUsersErrorState());
+      }
+    });
     on<ProfileResendEmailEvent>((event, emit) async {
       try {
         final profile = await ProfileApi().getProfile();
@@ -328,11 +337,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
         if (event.loadMoreMy && currentState is ProfileGotListEventsState) {
           allEvents = List.from(currentState.profileEventsModels!.events);
+          allVisitedEvents =
+              List.from(currentState.profileVisitedEventsModels!.events);
         }
         if (event.loadMoreVisited &&
             currentState is ProfileGotListEventsState) {
           allVisitedEvents =
               List.from(currentState.profileVisitedEventsModels!.events);
+          allEvents = List.from(currentState.profileEventsModels!.events);
         }
         if (!event.loadMoreVisited && !event.loadMoreMy) {
           _eventOffset = 0;

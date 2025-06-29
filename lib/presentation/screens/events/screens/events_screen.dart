@@ -507,6 +507,7 @@ class _EventsScreenState extends State<EventsScreen> {
               appBar: isLoading
                   ? null
                   : AppBar(
+                      scrolledUnderElevation: 0,
                       automaticallyImplyLeading: false,
                       backgroundColor: Colors.white,
                       title: Row(
@@ -753,11 +754,17 @@ class _EventsScreenState extends State<EventsScreen> {
                                                         ),
                                                       ),
                                                     )
-                                                  : ListView.builder(
+                                                  : Expanded(child: ListView.builder(
                                                       itemCount: eventsModel!
-                                                          .events.length,
+                                                          .events.length + 1,
                                                       itemBuilder:
                                                           (context, index) {
+                                                        if (index ==
+                                                            eventsModel!
+                                                                .events.length) {
+                                                          return const SizedBox(
+                                                              height: 150);
+                                                        }
                                                         final event =
                                                             eventsModel!
                                                                 .events[index];
@@ -770,6 +777,7 @@ class _EventsScreenState extends State<EventsScreen> {
                                                         );
                                                       },
                                                     ),
+                                                  ),
                                             ),
                                           )
                                         : Center(
@@ -783,7 +791,7 @@ class _EventsScreenState extends State<EventsScreen> {
                                             ),
                                           ),
                                   ),
-                                  const SizedBox(height: 150),
+                                  //const SizedBox(height: 150),
                                 ],
                               ),
                             ),

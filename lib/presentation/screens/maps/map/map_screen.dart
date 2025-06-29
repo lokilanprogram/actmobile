@@ -3,7 +3,6 @@ import 'package:acti_mobile/configs/geolocator_utils.dart';
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/api/map/map_api.dart';
-import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
 import 'package:acti_mobile/domain/services/map_optimization_service.dart';
 
@@ -119,7 +118,6 @@ class _MapScreenState extends State<MapScreen> {
   bool isLoading = false;
   bool showEvents = false;
   bool showSettings = false;
-  DeepLinkService? _deepLinkService;
   DraggableScrollableController sheetController =
       DraggableScrollableController();
   SearchedEventsModel? searchedEventsModel;
@@ -210,7 +208,6 @@ class _MapScreenState extends State<MapScreen> {
           showEvents = false;
         });
       }
-      _deepLinkService!.dispose();
     });
     _loadMapImages();
   }
@@ -226,7 +223,6 @@ class _MapScreenState extends State<MapScreen> {
   void dispose() {
     // TODO: Implement proper cleanup when Mapbox API is updated
     // _mapboxMap?.style.removeStyleImageMissingListener((event) {});
-    _deepLinkService?.dispose();
     sheetController.dispose();
     _stopLocationStatusTimer(); // Очищаем таймер
     _cameraIdleDebounce?.cancel();

@@ -46,6 +46,7 @@
         android:name="io.flutter.embedding.android.NormalTheme"
         android:resource="@style/NormalTheme"
       />
+      <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
@@ -57,22 +58,20 @@
         <data android:scheme="acti" android:host="auth"
           android:pathPrefix="/yandex_callback" />
       </intent-filter>
-      <!-- Custom scheme for events -->
+      <!-- Universal Links for events -->
       <intent-filter android:autoVerify="true">
-          <action android:name="android.intent.action.VIEW" />
-          <category android:name="android.intent.category.DEFAULT" />
-          <category android:name="android.intent.category.BROWSABLE" />
-          <data android:scheme="https" android:host="www.acti.com" android:pathPrefix="/event" />
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="http" android:host="api.actiadmin.ru" />
+        <data android:scheme="https" />
       </intent-filter>
-      <!-- Deep Link sample -->
+      <!-- Deep Links for events -->
       <intent-filter>
-          <action android:name="android.intent.action.VIEW" />
-          <category android:name="android.intent.category.DEFAULT" />
-          <category android:name="android.intent.category.BROWSABLE" />
-          <!-- Add optional android:host to distinguish your app
-                from others in case of conflicting scheme name -->
-          <data android:scheme="acti" android:host="acti" android:pathPrefix="/event" />
-          <!-- <data android:scheme="sample" /> -->
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="acti" android:host="api.actiadmin.ru" />
       </intent-filter>
     </activity>
     <!-- Don't delete the meta-data below.

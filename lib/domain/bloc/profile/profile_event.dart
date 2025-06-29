@@ -5,6 +5,8 @@ abstract class ProfileEvent {}
 
 class ProfileGetEvent extends ProfileEvent {}
 
+class ProfileGetSimiliarUsersEvent extends ProfileEvent {}
+
 class ProfileResendEmailEvent extends ProfileEvent {}
 
 class SearchEventsOnMapEvent extends ProfileEvent {

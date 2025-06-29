@@ -136,15 +136,6 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
                                     itemBuilder: (context, index) {
                                       final participant = participants[index];
                                       return ListTile(
-                                          onTap: () {
-                                            Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        PublicUserScreen(
-                                                            userId: participant
-                                                                .user.id!)));
-                                          },
                                           trailing: participant.status ==
                                                   'pending'
                                               ? InkWell(
@@ -202,15 +193,28 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
                                                       },
                                                       child: SvgPicture.asset(
                                                           'assets/icons/icon_accept.svg')),
-                                          leading: CircleAvatar(
-                                            radius: 32,
-                                            backgroundImage: participant
-                                                        .user.photoUrl !=
-                                                    null
-                                                ? NetworkImage(
-                                                    participant.user.photoUrl!)
-                                                : AssetImage(
-                                                    'assets/images/image_profile.png'),
+                                          leading: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          PublicUserScreen(
+                                                              userId:
+                                                                  participant
+                                                                      .user
+                                                                      .id!)));
+                                            },
+                                            child: CircleAvatar(
+                                              radius: 32,
+                                              backgroundImage: participant
+                                                          .user.photoUrl !=
+                                                      null
+                                                  ? NetworkImage(participant
+                                                      .user.photoUrl!)
+                                                  : AssetImage(
+                                                      'assets/images/image_profile.png'),
+                                            ),
                                           ),
                                           horizontalTitleGap: 12,
                                           title: Text(
@@ -333,7 +337,7 @@ class _EventRequestScreenState extends State<EventRequestScreen> {
 
   Widget buildNoUsers() {
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.8,
+      //width: MediaQuery.of(context).size.width * 0.8,
       child: Card(
         shape: RoundedRectangleBorder(
           side: BorderSide(color: Colors.white70, width: 1),

@@ -2,7 +2,6 @@ import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/api/auth/auth_api.dart';
 import 'package:acti_mobile/domain/api/profile/profile_api.dart';
-import 'package:acti_mobile/domain/deeplinks/deeplinks.dart';
 import 'package:acti_mobile/domain/firebase/firebase.dart';
 import 'package:acti_mobile/domain/firebase/notification/notification.dart';
 import 'package:acti_mobile/domain/services/map_optimization_service.dart';

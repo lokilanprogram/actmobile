@@ -12,6 +12,13 @@ class ProfileGotState extends ProfileState {
       {required this.profileModel, required this.similiarUsersModel});
 }
 
+class ProfileGotSimiliarUsersState extends ProfileState {
+  final List<SimiliarUsersModel> similiarUsersModel;
+  ProfileGotSimiliarUsersState({required this.similiarUsersModel});
+}
+
+class ProfileGotSimiliarUsersErrorState extends ProfileState {}
+
 class ProfileResendEmailState extends ProfileState {}
 
 class ProfileResendEmailErrorState extends ProfileState {

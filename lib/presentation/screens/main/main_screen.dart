@@ -318,11 +318,11 @@ class _MainScreenState extends State<MainScreen> {
     });
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
-        if (state is ProfileGotListEventsState) {
+        if (state is ProfileGotState) {
           if (mounted) {
             setState(() {
-              _isVerified = state.isVerified;
-              _isProfileCompleted = state.isProfileCompleted;
+              _isVerified = state.profileModel.isEmailVerified;
+              _isProfileCompleted = state.profileModel.isProfileCompleted;
             });
           }
         } else if (state is ProfileBlockedAdminState) {

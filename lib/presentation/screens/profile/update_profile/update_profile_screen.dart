@@ -381,9 +381,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   ),
                                   SizedBox(height: 4),
                                   Container(
-                                    constraints: BoxConstraints(
-                                      maxHeight: 40,
-                                    ),
+                                    // constraints: BoxConstraints(
+                                    //   minHeight: 40,
+                                    // ),
                                     child: TextFormField(
                                       textCapitalization:
                                           TextCapitalization.sentences,
@@ -415,7 +415,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         }
                                       },
                                       decoration: InputDecoration(
-                                        contentPadding: EdgeInsets.only(left: 20),
+                                        contentPadding: EdgeInsets.fromLTRB(20, 4, 0, 4),
                                         labelText: isErrorName
                                             ? "Обнаружены недопустимые слова"
                                             : "",
@@ -583,8 +583,10 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                       Container(
                                         alignment: Alignment.centerLeft,
                                         constraints: BoxConstraints(
-                                          maxHeight: 34,
+                                          minHeight: 34,
+                                          maxHeight: 40,
                                         ),
+                                        
                                         child: TextFormField(
                                           textAlignVertical:
                                               TextAlignVertical.center,

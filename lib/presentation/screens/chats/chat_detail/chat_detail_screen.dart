@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/constants.dart';
+import 'package:acti_mobile/configs/date_utils.dart' as custom_date;
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/chat_info_model.dart';
@@ -59,6 +61,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   String? chatId;
   String? profileUserId;
+
+  String? time;
 
   List<MessageModel> messages = [];
   int total = 0;
@@ -168,6 +172,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget build(BuildContext context) {
     if (!isScroll && messages.isNotEmpty)
       WidgetsBinding.instance.addPostFrameCallback((_) => scrollToEnd());
+
+    if (chatInfo?.event != null) {
+      time = custom_date.DateUtils.formatEventTime(
+          chatInfo?.event?.dateStart ?? DateTime.now(),
+          chatInfo?.event?.timeStart ?? '',
+          chatInfo?.event?.timeEnd ?? '',
+          false);
+      //print(time);
+    }
 
     return MultiBlocListener(
       listeners: [
@@ -347,7 +360,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     backgroundColor: Colors.white,
                     scrolledUnderElevation: 0,
                     shadowColor: Colors.transparent,
-                    titleSpacing: 1.3,
+                    titleSpacing: 1.4,
                     leading: Padding(
                       padding: const EdgeInsets.only(left: 15),
                       child: IconButton(
@@ -575,11 +588,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   SizedBox(
                                     height: status != null ? 5 : 0,
                                   ),
+                                  // if (chatInfo?.event?.isRecurring == true)
+                                  //   Text.rich(
+                                  //     TextSpan(
+                                  //       children: _buildTitleSpans(
+                                  //           'Проходит ${getWeeklyRepeatOnlyWeekText(chatInfo?.event?.dateStart ?? DateTime.now())}'),
+                                  //     ),
+                                  //   ),
                                   chatInfo != null
                                       ? Text(
                                           chatInfo?.type == 'private'
                                               ? status ?? ""
-                                              : "",
+                                              : time ?? "",
                                           style: TextStyle(
                                             fontFamily: 'Gilroy',
                                             fontSize: 16,
@@ -1138,5 +1158,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         curve: Curves.easeInOut,
       );
     }
+  }
+
+  List<InlineSpan> _buildTitleSpans(String title) {
+    final words = title.split(' ');
+    if (words.isEmpty) return [];
+
+    final lastWord = words.removeLast();
+    final baseStyle = const TextStyle(
+      color: Colors.black,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'Inter',
+      fontSize: 15,
+    );
+
+    return [
+      TextSpan(
+        text: words.join(' ') + (words.isNotEmpty ? ' ' : ''),
+        style: baseStyle,
+      ),
+      TextSpan(
+        text: lastWord,
+        style: baseStyle.copyWith(fontWeight: FontWeight.w600),
+      ),
+    ];
   }
 }
