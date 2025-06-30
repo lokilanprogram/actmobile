@@ -370,6 +370,9 @@ class _MapPageState extends State<MapPage> {
   Future<void> _onStyleLoaded(StyleLoadedEventData styleLoadedEventData) async {
     if (!mounted) return;
 
+    // Сброс флага перед добавлением нового источника (важно при смене стиля)
+    _isGeoJsonSourceInitialized = false;
+
     // Add user location icon (puck)
     if (currentUserPosition != null && mapboxMap != null) {
       await addUserIconToStyle(mapboxMap!);
@@ -390,7 +393,6 @@ class _MapPageState extends State<MapPage> {
       );
 
       // 2. Create layers for the clusters.
-      // The color of the cluster circles.
       await mapboxMap!.style.addLayer(
         CircleLayer(
           id: 'clusters-circle',
@@ -402,8 +404,6 @@ class _MapPageState extends State<MapPage> {
           circleStrokeColor: Colors.white.value,
         ),
       );
-
-      // The number inside the cluster circle.
       await mapboxMap!.style.addLayer(
         SymbolLayer(
           id: 'clusters-count',
@@ -417,9 +417,16 @@ class _MapPageState extends State<MapPage> {
         ),
       );
 
-      // Layers for unclustered points will be added dynamically.
       _isGeoJsonSourceInitialized = true;
       print('[DEBUG_GEOJSON] Clustered source and cluster layers created.');
+
+      // ВАЖНО: если есть отложенное состояние, обновляем источник
+      if (_pendingMapState != null) {
+        print(
+            '[DEBUG_GEOJSON] Updating source from pending state после инициализации.');
+        _updateMapSource(_pendingMapState!);
+        _pendingMapState = null;
+      }
     }
 
     // Trigger initial event load
@@ -651,10 +658,7 @@ class _MapPageState extends State<MapPage> {
     for (final group in mapState.groupedEvents) {
       final event = group.first;
       if (event.latitude == null || event.longitude == null) continue;
-
-      // We ALWAYS provide the detailed icon name. The map layers will filter what to show.
       String iconName = _getIconNameForGroup(group);
-
       features.add({
         'type': 'Feature',
         'geometry': {
@@ -663,40 +667,38 @@ class _MapPageState extends State<MapPage> {
         },
         'properties': {
           'eventId': event.id.toString(),
-          'icon': iconName, // This name will be used by the Layer's filter
+          'icon': iconName,
         }
       });
     }
-
-    // 3. Create the FeatureCollection and update the source.
     final featureCollection = {
       'type': 'FeatureCollection',
       'features': features
     };
-
     print(
         '[DEBUG_GEOJSON_UPDATE] Attempting to find source: $EVENTS_SOURCE_ID');
     try {
       final source = await mapboxMap!.style.getSource(EVENTS_SOURCE_ID);
-
-      if (source != null && source is GeoJsonSource) {
+      if (source == null) {
+        print('[DEBUG_GEOJSON_UPDATE] Source not found, ставим в очередь.');
+        _pendingMapState = mapState;
+        return;
+      }
+      if (source is GeoJsonSource) {
         print(
             '[DEBUG_GEOJSON_UPDATE] Source found. Updating source with ${features.length} features.');
         await source.updateGeoJSON(jsonEncode(featureCollection));
         print('[DEBUG_GEOJSON_UPDATE] Source update successful.');
       } else {
-        if (source == null) {
-          print(
-              '[DEBUG_GEOJSON_ERROR] Source "$EVENTS_SOURCE_ID" was not found (is null). A style reload might have occurred.');
-        } else {
-          print(
-              '[DEBUG_GEOJSON_ERROR] Source "$EVENTS_SOURCE_ID" is NOT a GeoJsonSource. It is ${source.runtimeType}');
-        }
+        print(
+            '[DEBUG_GEOJSON_ERROR] Source "$EVENTS_SOURCE_ID" is NOT a GeoJsonSource. It is [31m${source.runtimeType}[0m');
+        _pendingMapState = mapState;
       }
     } catch (e, st) {
       print(
           '[DEBUG_GEOJSON_ERROR] An error occurred while updating the source: $e');
       print(st);
+      _pendingMapState = mapState;
     }
   }
 
