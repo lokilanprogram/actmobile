@@ -38,6 +38,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
     final count = unreadProvider.unreadCount;
 
     return SafeArea(
+      top: false,
       child: Material(
         elevation: 8,
         color: Colors.transparent,

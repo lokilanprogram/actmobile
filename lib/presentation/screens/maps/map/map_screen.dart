@@ -801,176 +801,180 @@ class _MapScreenState extends State<MapScreen> {
                 '[DEBUG] groupedEvents: \u001b[32m${mapState.groupedEvents.length}\u001b[0m');
             print(
                 '[DEBUG] mapboxMap: $mapboxMap, pointAnnotationManager: $pointAnnotationManager');
-            return Scaffold(
-              backgroundColor: Colors.white,
-              resizeToAvoidBottomInset: false,
-              body: WillPopScope(
-                onWillPop: () async {
-                  SystemNavigator.pop();
-                  return false;
-                },
-                child: isLoading
-                    ? const LoaderWidget()
-                    : Stack(
-                        children: [
-                          MapWidget(
-                            onMapIdleListener: (event) async {
-                              if (mapboxMap != null) {
-                                final camera =
-                                    await mapboxMap!.getCameraState();
-                                final zoom = camera.zoom;
-                                // Находим ближайший ключевой уровень
-                                final clusterZoom =
-                                    _clusterZoomLevels.lastWhere(
-                                  (z) => zoom >= z,
-                                  orElse: () => _clusterZoomLevels.first,
-                                );
-                                if (_lastClusterZoomLevel == null ||
-                                    _lastClusterZoomLevel != clusterZoom) {
-                                  _lastClusterZoomLevel = clusterZoom;
-                                  context
-                                      .read<MapBloc>()
-                                      .add(ZoomChanged(zoom));
+            return SafeArea(
+              top: false,
+              child: Scaffold(
+                backgroundColor: Colors.white,
+                resizeToAvoidBottomInset: false,
+                body: WillPopScope(
+                  onWillPop: () async {
+                    SystemNavigator.pop();
+                    return false;
+                  },
+                  child: isLoading
+                      ? const LoaderWidget()
+                      : Stack(
+                          children: [
+                            MapWidget(
+                              onMapIdleListener: (event) async {
+                                if (mapboxMap != null) {
+                                  final camera =
+                                      await mapboxMap!.getCameraState();
+                                  final zoom = camera.zoom;
+                                  // Находим ближайший ключевой уровень
+                                  final clusterZoom =
+                                      _clusterZoomLevels.lastWhere(
+                                    (z) => zoom >= z,
+                                    orElse: () => _clusterZoomLevels.first,
+                                  );
+                                  if (_lastClusterZoomLevel == null ||
+                                      _lastClusterZoomLevel != clusterZoom) {
+                                    _lastClusterZoomLevel = clusterZoom;
+                                    context
+                                        .read<MapBloc>()
+                                        .add(ZoomChanged(zoom));
+                                  }
+
+                                  // Обрабатываем перемещение камеры
+                                  await _onCameraMove(camera);
+                                }
+                              },
+                              onZoomListener: (ctx) {},
+                              onCameraChangeListener: (ctx) {},
+                              onScrollListener: (ctx) async {
+                                // Обрабатываем перемещение камеры при скролле
+                                if (mapboxMap != null) {
+                                  final camera =
+                                      await mapboxMap!.getCameraState();
+                                  await _onCameraMove(camera);
+                                }
+                              },
+                              onStyleLoadedListener:
+                                  (styleLoadedEventData) async {
+                                if (!mounted) return;
+                                if (currentUserPosition != null &&
+                                    mapboxMap != null) {
+                                  await addUserIconToStyle(mapboxMap!);
+                                }
+                                // DEBUG PRINTS
+                                print(
+                                    '[DEBUG] onStyleLoadedListener: searchedEventsModel: $searchedEventsModel');
+                                if (searchedEventsModel != null) {
+                                  print(
+                                      '[DEBUG] searchedEventsModel.events.length: \u001b[34m${searchedEventsModel!.events.length}\u001b[0m');
+                                  context.read<MapBloc>().add(
+                                      LoadEvents(searchedEventsModel!.events));
                                 }
 
-                                // Обрабатываем перемещение камеры
-                                await _onCameraMove(camera);
-                              }
-                            },
-                            onZoomListener: (ctx) {},
-                            onCameraChangeListener: (ctx) {},
-                            onScrollListener: (ctx) async {
-                              // Обрабатываем перемещение камеры при скролле
-                              if (mapboxMap != null) {
-                                final camera =
-                                    await mapboxMap!.getCameraState();
-                                await _onCameraMove(camera);
-                              }
-                            },
-                            onStyleLoadedListener:
-                                (styleLoadedEventData) async {
-                              if (!mounted) return;
-                              if (currentUserPosition != null &&
-                                  mapboxMap != null) {
-                                await addUserIconToStyle(mapboxMap!);
-                              }
-                              // DEBUG PRINTS
-                              print(
-                                  '[DEBUG] onStyleLoadedListener: searchedEventsModel: $searchedEventsModel');
-                              if (searchedEventsModel != null) {
-                                print(
-                                    '[DEBUG] searchedEventsModel.events.length: \u001b[34m${searchedEventsModel!.events.length}\u001b[0m');
-                                context.read<MapBloc>().add(
-                                    LoadEvents(searchedEventsModel!.events));
-                              }
-
-                              // Обрабатываем события из очереди после загрузки стиля
-                              if (_pendingMapState != null) {
-                                print(
-                                    '[DEBUG] Обрабатываем события из очереди после загрузки стиля');
-                                _handleMarkerChanges(_pendingMapState!);
-                                _pendingMapState = null;
-                              }
-                            },
-                            onTapListener: (gestureContext) {
-                              print(
-                                  '[DEBUG] onTapListener: tap at lat=${gestureContext.point.coordinates.lat}, lng=${gestureContext.point.coordinates.lng}');
-                              onMapTap(gestureContext, context, profileId);
-                            },
-                            cameraOptions: CameraOptions(
-                              zoom: 15.0,
-                              center: Point(
-                                coordinates: Position(
-                                  currentSelectedPosition.lng,
-                                  currentSelectedPosition.lat,
-                                ),
-                              ),
-                            ),
-                            key: const ValueKey("MapWidget"),
-                            onMapCreated: _onMapCreated,
-                          ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: buildMapControls(),
-                          ),
-                          if (isMarkersLoading)
-                            // Аккуратный индикатор загрузки маркеров
-                            Center(
-                              child: const Padding(
-                                padding: EdgeInsets.all(12.0),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          // Виджет статуса геолокации
-                          Positioned(
-                            top: 50,
-                            right: 80,
-                            left: 80,
-                            child: AnimatedOpacity(
-                              opacity: _showLocationStatus ? 1.0 : 0.0,
-                              duration: const Duration(milliseconds: 500),
-                              child: GestureDetector(
-                                onLongPress: () {
-                                  // Долгое нажатие для принудительного обновления позиции
-                                  refreshUserLocation();
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.9),
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        currentUserPosition != null
-                                            ? Icons.location_on
-                                            : Icons.location_off,
-                                        size: 16,
-                                        color: currentUserPosition != null
-                                            ? Colors.green
-                                            : Colors.red,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        currentUserPosition != null
-                                            ? 'Геолокация активна'
-                                            : 'Геолокация недоступна',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (showEvents)
-                            DraggableScrollableSheet(
-                              controller: sheetController,
-                              initialChildSize: 0.8,
-                              builder: (context, scrollController) {
-                                return EventsHomeListOnMapWidget(
-                                    scrollController: scrollController);
+                                // Обрабатываем события из очереди после загрузки стиля
+                                if (_pendingMapState != null) {
+                                  print(
+                                      '[DEBUG] Обрабатываем события из очереди после загрузки стиля');
+                                  _handleMarkerChanges(_pendingMapState!);
+                                  _pendingMapState = null;
+                                }
                               },
+                              onTapListener: (gestureContext) {
+                                print(
+                                    '[DEBUG] onTapListener: tap at lat=${gestureContext.point.coordinates.lat}, lng=${gestureContext.point.coordinates.lng}');
+                                onMapTap(gestureContext, context, profileId);
+                              },
+                              cameraOptions: CameraOptions(
+                                zoom: 15.0,
+                                center: Point(
+                                  coordinates: Position(
+                                    currentSelectedPosition.lng,
+                                    currentSelectedPosition.lat,
+                                  ),
+                                ),
+                              ),
+                              key: const ValueKey("MapWidget"),
+                              onMapCreated: _onMapCreated,
                             ),
-                        ],
-                      ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: buildMapControls(),
+                            ),
+                            if (isMarkersLoading)
+                              // Аккуратный индикатор загрузки маркеров
+                              Center(
+                                child: const Padding(
+                                  padding: EdgeInsets.all(12.0),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            // Виджет статуса геолокации
+                            Positioned(
+                              top: 50,
+                              right: 80,
+                              left: 80,
+                              child: AnimatedOpacity(
+                                opacity: _showLocationStatus ? 1.0 : 0.0,
+                                duration: const Duration(milliseconds: 500),
+                                child: GestureDetector(
+                                  onLongPress: () {
+                                    // Долгое нажатие для принудительного обновления позиции
+                                    refreshUserLocation();
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.9),
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          currentUserPosition != null
+                                              ? Icons.location_on
+                                              : Icons.location_off,
+                                          size: 16,
+                                          color: currentUserPosition != null
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          currentUserPosition != null
+                                              ? 'Геолокация активна'
+                                              : 'Геолокация недоступна',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (showEvents)
+                              DraggableScrollableSheet(
+                                controller: sheetController,
+                                initialChildSize: 0.8,
+                                builder: (context, scrollController) {
+                                  return EventsHomeListOnMapWidget(
+                                      scrollController: scrollController);
+                                },
+                              ),
+                          ],
+                        ),
+                ),
               ),
             );
           },

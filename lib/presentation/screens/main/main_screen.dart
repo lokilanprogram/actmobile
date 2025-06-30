@@ -368,6 +368,8 @@ class _MainScreenState extends State<MainScreen> {
           return Scaffold(
             backgroundColor: Colors.white,
             body: SafeArea(
+              top: false,
+              
               child: Stack(
                 children: [
                   IndexedStack(

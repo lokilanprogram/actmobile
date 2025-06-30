@@ -168,10 +168,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               .showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          body: isLoading
+      child: Scaffold(
+        extendBody: true,
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: false,
+        body: SafeArea(
+          top: false,
+          child: isLoading
               ? LoaderWidget()
               : Stack(
                   children: [

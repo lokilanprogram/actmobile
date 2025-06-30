@@ -383,6 +383,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   Container(
                                     // constraints: BoxConstraints(
                                     //   minHeight: 40,
+                                    //   maxHeight: 40,
                                     // ),
                                     child: TextFormField(
                                       textCapitalization:
@@ -415,7 +416,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         }
                                       },
                                       decoration: InputDecoration(
-                                        contentPadding: EdgeInsets.fromLTRB(20, 4, 0, 4),
+                                        isDense: true,
+                                        contentPadding:
+                                            EdgeInsets.fromLTRB(20, 6, 0, 6),
                                         labelText: isErrorName
                                             ? "Обнаружены недопустимые слова"
                                             : "",
@@ -500,7 +503,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                               ? Colors.red
                                               : Colors.black,
                                         ),
-                                        contentPadding: EdgeInsets.only(left: 20),
+                                        contentPadding:
+                                            EdgeInsets.only(left: 20),
                                         enabledBorder: isErrorSurname
                                             ? OutlineInputBorder(
                                                 borderRadius:
@@ -581,13 +585,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Container(
-                                        alignment: Alignment.centerLeft,
-                                        constraints: BoxConstraints(
-                                          minHeight: 34,
-                                          maxHeight: 40,
-                                        ),
-                                        
+                                        //alignment: Alignment.centerLeft,
                                         child: TextFormField(
+                                          
                                           textAlignVertical:
                                               TextAlignVertical.center,
                                           textCapitalization:
@@ -598,7 +598,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                               fontSize: 11,
                                               fontFamily: 'Inter'),
                                           decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.only(left: 20),
+                                            isDense: true,
+                                            contentPadding:
+                                                EdgeInsets.fromLTRB(20, 8, 0, 8),
                                             hintText: 'Введите город',
                                             hintStyle:
                                                 TextStyle(color: Colors.grey),
@@ -1086,16 +1088,14 @@ class TextInputWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: 40,
-      ),
       child: TextFormField(
         textCapitalization: TextCapitalization.sentences,
         style: TextStyle(fontSize: 11, fontFamily: 'Inter'),
         controller: controller,
         validator: validator,
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.only(left: 20),
+          isDense: true,
+          contentPadding: EdgeInsets.fromLTRB(20, 10, 0, 10),
           hintText: text,
           hintStyle: hintTextStyleEdit,
           border: OutlineInputBorder(

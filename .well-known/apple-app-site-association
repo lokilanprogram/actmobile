@@ -6,7 +6,7 @@
         "appID": "G22NVDP992.com.example.acti_mobile",
         "paths": [
           "/event/*",
-          "/api/*"
+          "/api/v1/users/*"
         ]
       }
     ]

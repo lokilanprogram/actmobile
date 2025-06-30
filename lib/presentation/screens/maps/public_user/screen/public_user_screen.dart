@@ -100,11 +100,12 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
               .showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          extendBody: true,
-          body: isLoading
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        extendBody: true,
+        body: SafeArea(
+          top: false,
+          child: isLoading
               ? LoaderWidget()
               : Stack(
                   children: [
