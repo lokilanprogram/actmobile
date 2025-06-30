@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:io' show Platform;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:developer' as developer;
@@ -71,7 +72,7 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
       try {
         print('🍎 НАЧИНАЕМ Apple Sign In процесс...');
         
-        if (defaultTargetPlatform != TargetPlatform.iOS) {
+        if (!Platform.isIOS) {
           print('🍎 ОШИБКА: Apple Sign In доступен только на iOS');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Apple Sign In доступен только на iOS')),
@@ -365,17 +366,18 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
                             child:
                                 SvgPicture.asset('assets/icons/icon_vk_id.svg')),
                       ),
-                      Flexible(
-                        child: InkWell(
-                            onTap: () {
-                              print('НАЖАЛИ НА APPLE!!!!');
-                              debugPrint('НАЖАЛИ НА APPLE!!!!');
-                              print('Вызываем _onSocialLogin с apple');
-                              _onSocialLogin('apple');
-                            },
-                            child:
-                                SvgPicture.asset('assets/icons/icon_apple_id.svg')),
-                      ),
+                      if (Platform.isIOS)
+                        Flexible(
+                          child: InkWell(
+                              onTap: () {
+                                print('НАЖАЛИ НА APPLE!!!!');
+                                debugPrint('НАЖАЛИ НА APPLE!!!!');
+                                print('Вызываем _onSocialLogin с apple');
+                                _onSocialLogin('apple');
+                              },
+                              child:
+                                  SvgPicture.asset('assets/icons/icon_apple_id.svg')),
+                        ),
                     ],
                   ),
                   SizedBox(height: 60),

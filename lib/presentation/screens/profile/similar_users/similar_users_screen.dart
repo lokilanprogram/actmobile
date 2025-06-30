@@ -1,4 +1,5 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/data/models/similiar_users_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
@@ -9,7 +10,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:toastification/toastification.dart';
 
 class SimilarUsersScreen extends StatefulWidget {
-  const SimilarUsersScreen({super.key});
+  final bool isVerified;
+
+  const SimilarUsersScreen({super.key, required this.isVerified});
 
   @override
   State<SimilarUsersScreen> createState() => _SimilarUsersScreenState();
@@ -134,31 +137,41 @@ class _SimilarUsersScreenState extends State<SimilarUsersScreen> {
                             Spacer(),
                             GestureDetector(
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ChatDetailScreen(
-                                      interlocutorChatId:
-                                          similiarUsersModel[index].chat?.id ??
-                                              "",
-                                      isPrivateChats: true,
-                                      trailingText: null,
-                                      interlocutorAvatar:
-                                          similiarUsersModel[index].photoUrl,
-                                      interlocutorName:
-                                          similiarUsersModel[index].name ??
-                                              'Неизвестный',
-                                      interlocutorUserId:
-                                          similiarUsersModel[index].id,
+                                if (widget.isVerified) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatDetailScreen(
+                                        interlocutorChatId:
+                                            similiarUsersModel[index]
+                                                    .chat
+                                                    ?.id ??
+                                                "",
+                                        isPrivateChats: true,
+                                        trailingText: null,
+                                        interlocutorAvatar:
+                                            similiarUsersModel[index].photoUrl,
+                                        interlocutorName:
+                                            similiarUsersModel[index].name ??
+                                                'Неизвестный',
+                                        interlocutorUserId:
+                                            similiarUsersModel[index].id,
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                } else {
+                                  showAlertOKDialog(context, null,
+                                      isTitled: true,
+                                      title: 'Подтвердите почту');
+                                }
                               },
                               child: Container(
                                 width: 82,
                                 height: 28,
                                 decoration: BoxDecoration(
-                                  color: mainBlueColor,
+                                  color: widget.isVerified
+                                      ? mainBlueColor
+                                      : Color.fromARGB(255, 235, 235, 235),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: Center(

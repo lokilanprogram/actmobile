@@ -182,6 +182,10 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                 isLoading = false;
                 isErrorSurname = true;
               });
+            } else {
+              setState(() {
+                isLoading = false;
+              });
             }
             toastification.show(
               context: context,
@@ -416,6 +420,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         }
                                       },
                                       decoration: InputDecoration(
+                                        floatingLabelBehavior: FloatingLabelBehavior.always,
                                         isDense: true,
                                         contentPadding:
                                             EdgeInsets.fromLTRB(20, 6, 0, 6),
@@ -425,10 +430,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         labelStyle:
                                             TextStyle(color: Colors.red),
                                         hintText: 'Введите имя',
+                                        
                                         hintStyle: hintTextStyleEdit.copyWith(
                                           color: isErrorName
                                               ? Colors.red
-                                              : Colors.black,
+                                              : Colors.grey,
                                         ),
                                         border: isErrorName
                                             ? OutlineInputBorder(
@@ -501,8 +507,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         hintStyle: hintTextStyleEdit.copyWith(
                                           color: isErrorSurname
                                               ? Colors.red
-                                              : Colors.black,
+                                              : Colors.grey,
                                         ),
+                                        floatingLabelBehavior: FloatingLabelBehavior.always,
                                         contentPadding:
                                             EdgeInsets.only(left: 20),
                                         enabledBorder: isErrorSurname
@@ -752,8 +759,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         hintStyle: hintTextStyleEdit.copyWith(
                                           color: isErrorDescription
                                               ? Colors.red
-                                              : Colors.black,
+                                              : Colors.grey,
                                         ),
+                                        floatingLabelBehavior: FloatingLabelBehavior.always,
                                         enabledBorder: isErrorDescription
                                             ? OutlineInputBorder(
                                                 borderRadius:

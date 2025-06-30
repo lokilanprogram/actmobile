@@ -6,6 +6,8 @@ import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_de
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 
+import 'package:http/http.dart' as http;
+
 class DeeplinkService {
   static final DeeplinkService _instance = DeeplinkService._internal();
   factory DeeplinkService() => _instance;
@@ -68,7 +70,7 @@ class DeeplinkService {
         }
       } else if (uri.pathSegments.length >= 2 &&
           uri.pathSegments[3] == "verify-email") {
-        _navigateToMain();
+        _navigateToMain(uri);
         return;
       }
     }
@@ -83,7 +85,7 @@ class DeeplinkService {
         }
       } else if (uri.pathSegments.length >= 2 &&
           uri.pathSegments[3] == "verify-email") {
-        _navigateToMain();
+        _navigateToMain(uri);
         return;
       }
     }
@@ -115,8 +117,11 @@ class DeeplinkService {
     }
   }
 
-  void _navigateToMain() {
+  void _navigateToMain(Uri uri) async {
     developer.log('Navigating to main', name: 'DEEPLINK_SERVICE');
+    final response = await http.get(uri, headers: {
+      'Content-Type': 'application/json',
+    });
 
     if (navigatorKey.currentState != null) {
       navigatorKey.currentState!.push(
