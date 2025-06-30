@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "G22NVDP992.com.example.acti_mobile",
+        "appID": "G22NVDP992.com.acti.acti_app",
         "paths": [
           "/event/*",
           "/api/v1/users/*"

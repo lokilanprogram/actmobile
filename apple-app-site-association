@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAM_ID.com.example.acti_mobile",
+        "appID": "TEAM_ID.com.acti.acti_app",
         "paths": [
           "/event/*",
           "/api/event/*"
