@@ -6,6 +6,8 @@ import 'dart:developer' as developer;
 import 'package:acti_mobile/configs/constants.dart'; // Импортируем константу API
 
 WebSocketChannel? onlineChannelSocket;
+AllChatWebSocketService? globalAllChatWebSocketService;
+List<ChatWebSocketService> globalChatWebSocketServices = [];
 
 Future<void> connectToOnlineStatus(String accessToken) async {
   try {
@@ -24,6 +26,39 @@ Future<void> connectToOnlineStatus(String accessToken) async {
     developer.log('Ошибка при подключении к WebSocket: $e',
         name: 'WEBSOCKET', error: e, stackTrace: stackTrace);
     rethrow;
+  }
+}
+
+/// Закрывает все активные WebSocket соединения
+void closeAllWebSocketConnections() {
+  try {
+    // Закрываем соединение статуса онлайн
+    if (onlineChannelSocket != null) {
+      onlineChannelSocket!.sink.close();
+      onlineChannelSocket = null;
+      developer.log('Закрыто соединение статуса онлайн', name: 'WEBSOCKET');
+    }
+    
+    // Закрываем глобальный сервис всех чатов
+    if (globalAllChatWebSocketService != null) {
+      globalAllChatWebSocketService!.dispose();
+      globalAllChatWebSocketService = null;
+      developer.log('Закрыт глобальный сервис всех чатов', name: 'WEBSOCKET');
+    }
+    
+    // Закрываем все индивидуальные чаты
+    for (var chatService in globalChatWebSocketServices) {
+      try {
+        chatService.dispose();
+      } catch (e) {
+        developer.log('Ошибка при закрытии чата: $e', name: 'WEBSOCKET');
+      }
+    }
+    globalChatWebSocketServices.clear();
+    developer.log('Закрыты все индивидуальные чаты', name: 'WEBSOCKET');
+    
+  } catch (e) {
+    developer.log('Ошибка при закрытии WebSocket соединений: $e', name: 'WEBSOCKET');
   }
 }
 
@@ -47,6 +82,9 @@ class ChatWebSocketService {
         developer.log('Ошибка при подключении к WebSocket чата: $e',
             name: 'WEBSOCKET');
       });
+      
+      // Добавляем в глобальный список для отслеживания
+      globalChatWebSocketServices.add(this);
     } catch (e) {
       developer.log('Ошибка при создании WebSocket чата: $e',
           name: 'WEBSOCKET');
@@ -96,6 +134,7 @@ class ChatWebSocketService {
   void dispose() {
     try {
       channel.sink.close();
+      globalChatWebSocketServices.remove(this);
       developer.log('WebSocket один соединение закрыто', name: 'WEBSOCKET');
     } catch (e) {
       developer.log('Ошибка при закрытии один WebSocket соединения: $e',
@@ -113,6 +152,8 @@ class AllChatWebSocketService {
 
   AllChatWebSocketService({required this.token}) {
     _connect();
+    // Сохраняем в глобальную переменную для отслеживания
+    globalAllChatWebSocketService = this;
   }
 
   void _connect() {

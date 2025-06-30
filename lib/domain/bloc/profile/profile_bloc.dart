@@ -16,6 +16,7 @@ import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:acti_mobile/domain/services/token_refresh_service.dart';
+import 'package:acti_mobile/domain/websocket/websocket.dart';
 
 part 'profile_event.dart';
 part 'profile_state.dart';
@@ -395,6 +396,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       try {
         final isLogout = await AuthApi().authLogout();
         if (isLogout) {
+          // Закрываем все WebSocket соединения
+          closeAllWebSocketConnections();
+          
           await storage.deleteAll();
           TokenRefreshService().stop();
           emit(ProfileLogoutState());
@@ -408,6 +412,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       try {
         final isDelete = await AuthApi().authDelete();
         if (isDelete) {
+          // Закрываем все WebSocket соединения
+          closeAllWebSocketConnections();
+          
           await storage.deleteAll();
           TokenRefreshService().stop();
           emit(ProfileDeleteState());
