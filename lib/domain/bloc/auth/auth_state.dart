@@ -47,7 +47,20 @@ class ActiRegisteredState extends AuthState {
   });
 }
 
+class AuthReqIdState extends AuthState {
+  final LoginModel loginModel;
+  final String phone;
+
+  AuthReqIdState({required this.loginModel, required this.phone});
+}
+
+class AuthReqIdErrorState extends AuthState {}
+
 class ActiRegisteredErrorState extends AuthState {}
+
+class ActiRejectedState extends AuthState {}
+
+class ActiSmsSentState extends AuthState {}
 
 class ActiVerifiedState extends AuthState {}
 

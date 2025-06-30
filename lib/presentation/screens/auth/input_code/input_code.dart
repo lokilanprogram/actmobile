@@ -1,5 +1,6 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
+import 'package:acti_mobile/presentation/screens/auth/input_loading/input_loading.dart';
 import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:flutter/gestures.dart';
@@ -11,7 +12,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 class InputCodeScreen extends StatefulWidget {
   final String phone;
-  const InputCodeScreen({super.key, required this.phone});
+  final String? authReqId;
+  const InputCodeScreen({super.key, required this.phone, this.authReqId});
 
   @override
   State<InputCodeScreen> createState() => _InputCodeScreenState();
@@ -140,8 +142,23 @@ class _InputCodeScreenState extends State<InputCodeScreen> {
                             onCompleted: (pin) => print(pin),
                           ),
                           SizedBox(
-                            height: 15,
+                            height: 10,
                           ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context, true);
+                            },
+                            child: Text(
+                              'Отправить код повторно',
+                              style: TextStyle(
+                                fontFamily: 'Gilroy',
+                                color: mainBlueColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 15),
                           RichText(
                             textAlign: TextAlign.center,
                             text: TextSpan(
@@ -177,6 +194,7 @@ class _InputCodeScreenState extends State<InputCodeScreen> {
                               });
                               context.read<AuthBloc>().add(ActiVerifyEvent(
                                   phone: widget.phone,
+                                  authReqId: widget.authReqId,
                                   code: codeController.text.trim()));
                             },
                             child: Container(

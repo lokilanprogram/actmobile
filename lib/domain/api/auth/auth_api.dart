@@ -31,6 +31,19 @@ class AuthApi {
     return null;
   }
 
+  Future<AuthStatusModel?> authStatus(String authReqId) async {
+    final response = await http.get(
+      Uri.parse('$API/api/v1/auth/auth-status/$authReqId'),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    );
+    if (response.statusCode == 200) {
+      return AuthStatusModel.fromJson(jsonDecode(response.body));
+    }
+    return null;
+  }
+
   Future<bool?> sendFcmToken(String token) async {
     final accessToken = await storage.getAccessToken();
     if (accessToken != null) {
@@ -118,13 +131,32 @@ class AuthApi {
     return false;
   }
 
-  Future<TokenModel?> authRegister(String phone) async {
+  Future<LoginModel?> authLogin(String phone) async {
     final response = await http.post(
-      Uri.parse('$API/api/v1/auth/register'),
+      Uri.parse('$API/api/v1/auth/login'),
       headers: {
         "Content-Type": "application/json",
       },
       body: jsonEncode(<String, dynamic>{'phone': phone}),
+    );
+
+    if (response.statusCode == 200) {
+      return LoginModel.fromJson(jsonDecode(response.body));
+    }
+    return null;
+  }
+
+  Future<TokenModel?> authRegister(
+      String authReqId, String registerToken) async {
+    final response = await http.post(
+      Uri.parse('$API/api/v1/auth/confirm-register'),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(<String, dynamic>{
+        'auth_req_id': authReqId,
+        'register_token': registerToken
+      }),
     );
 
     if (response.statusCode == 200) {
@@ -133,14 +165,15 @@ class AuthApi {
     return null;
   }
 
-  Future<TokenModel?> authVerify(String phone, String phoneCode) async {
+  Future<TokenModel?> authVerify(
+      String phone, String phoneCode, String? authReqId) async {
     final response = await http.post(
-      Uri.parse('$API/api/v1/auth/verify'),
+      Uri.parse('$API/api/v1/auth/code-verify'),
       headers: {
         "Content-Type": "application/json",
       },
       body: jsonEncode(
-          <String, dynamic>{"phone": phone, "call_last_digits": phoneCode}),
+          <String, dynamic>{"auth_req_id": authReqId, "code": phoneCode}),
     );
 
     if (response.statusCode == 200) {

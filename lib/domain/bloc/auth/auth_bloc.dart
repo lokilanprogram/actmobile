@@ -4,6 +4,7 @@ import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/data/models/alter_event_model.dart';
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
+import 'package:acti_mobile/data/models/token_model.dart';
 import 'package:acti_mobile/domain/api/auth/auth_api.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
 import 'package:acti_mobile/domain/api/onbording/onbording_api.dart';
@@ -35,30 +36,60 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ActiRegisterEvent>((event, emit) async {
       try {
         final normalizedphone = normalizePhone(event.phone);
-        final tokenModel = await AuthApi().authRegister(normalizedphone);
-        if (tokenModel != null) {
+        final loginModel = await AuthApi().authLogin(normalizedphone);
+
+        final tokenModel = TokenModel(
+            tokenType: "tokenType",
+            accessToken: "accessToken",
+            refreshToken: "refreshToken");
+
+        if (loginModel != null) {
           await storage.writeTokens(
               tokenModel.accessToken, tokenModel.refreshToken);
-          emit(ActiRegisteredState(phone: normalizedphone));
+          emit(AuthReqIdState(loginModel: loginModel, phone: normalizedphone));
         }
       } catch (e) {
         emit(ActiRegisteredErrorState());
       }
     });
 
+    on<ActiAuthStatusEvent>((event, emit) async {
+      try {
+        final status = await AuthApi().authStatus(event.authReqId);
+        if (status != null && status.status == "authenticated") {
+          final tokenModel = await AuthApi()
+              .authRegister(status.authReqId, status.registerToken);
+          if (tokenModel != null) {
+            await storage.writeTokens(
+                tokenModel.accessToken, tokenModel.refreshToken);
+            emit(ActiRegisteredState(phone: status.phone));
+          }
+        } else if (status != null && status.status == "rejected") {
+          emit(ActiRejectedState());
+        } else if (status != null && status.status == "sms_sent") {
+          emit(ActiSmsSentState());
+        }
+      } catch (e) {
+        emit(AuthReqIdErrorState());
+      }
+    });
+
     on<SocialLoginRequested>((event, emit) async {
       print('🔥 SocialLoginRequested получен в AuthBloc');
       print('🔥 Тип запроса: ${event.request.runtimeType}');
-      developer.log('🔥 SocialLoginRequested получен в AuthBloc', name: 'AUTH_BLOC');
-      developer.log('🔥 Тип запроса: ${event.request.runtimeType}', name: 'AUTH_BLOC');
-      
+      developer.log('🔥 SocialLoginRequested получен в AuthBloc',
+          name: 'AUTH_BLOC');
+      developer.log('🔥 Тип запроса: ${event.request.runtimeType}',
+          name: 'AUTH_BLOC');
+
       if (state is AuthLoading) return;
 
       emit(AuthLoading());
       try {
         print('🔥 Отправляем запрос в authRepository.socialLogin');
-        developer.log('🔥 Отправляем запрос в authRepository.socialLogin', name: 'AUTH_BLOC');
-        
+        developer.log('🔥 Отправляем запрос в authRepository.socialLogin',
+            name: 'AUTH_BLOC');
+
         final response = await authRepository.socialLogin(event.request);
 
         if (response['access_token'] != null) {
@@ -155,7 +186,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ActiVerifyEvent>((event, emit) async {
       try {
         final token =
-            await AuthApi().authVerify(normalizePhone(event.phone), event.code);
+            await AuthApi().authVerify(normalizePhone(event.phone), event.code, event.authReqId);
         if (token != null) {
           await storage.writeTokens(
             token.accessToken,
@@ -173,7 +204,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         final isCreated = await EventsApi()
             .alterEvent(alterEvent: event.createEventModel, isCreated: true);
-              isCreated.fold((l) => emit(ActiUpdatedActivityErrorState(message: l)),
+        isCreated.fold((l) => emit(ActiUpdatedActivityErrorState(message: l)),
             (r) => emit(ActiCreatedActivityState()));
       } catch (e) {
         emit(ActiUpdatedActivityErrorState(message: e.toString()));

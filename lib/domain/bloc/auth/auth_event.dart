@@ -8,11 +8,18 @@ class ActiRegisterEvent extends AuthEvent {
   ActiRegisterEvent({required this.phone});
 }
 
+class ActiAuthStatusEvent extends AuthEvent {
+  final String authReqId;
+
+  ActiAuthStatusEvent({required this.authReqId});
+}
+
 class ActiVerifyEvent extends AuthEvent {
   final String phone;
   final String code;
+  final String? authReqId;
 
-  ActiVerifyEvent({required this.phone, required this.code});
+  ActiVerifyEvent({required this.phone, required this.code, this.authReqId});
 }
 
 class ActiGetOnbordingEvent extends AuthEvent {}
