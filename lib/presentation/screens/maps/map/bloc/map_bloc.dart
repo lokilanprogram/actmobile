@@ -16,12 +16,14 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   MapboxMap? mapboxMap;
   int _markerVersion = 0;
 
-  // Кэш для кластеров по зуму
-  final Map<int, List<List<OrganizedEventModel>>> _zoomClusterCache = {};
-  List<OrganizedEventModel> _lastEvents = [];
+  // Храним актуальные события с сервера
+  final List<OrganizedEventModel> _currentEvents = [];
 
-  // Кэшируем ответ сервера
-  List<OrganizedEventModel> _serverEventsCache = [];
+  // Кэш событий для отслеживания уже добавленных маркеров
+  final Map<String, OrganizedEventModel> _eventsCache = {};
+
+  // Флаг для отслеживания инициализации
+  bool _isInitialized = false;
 
   MapBloc({this.mapboxMap}) : super(const MapState()) {
     on<LoadEvents>(_onLoadEvents);
@@ -35,124 +37,171 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     print('[DEBUG] MapBloc: mapboxMap установлен');
   }
 
+  /// Определяет тип маркеров на основе текущего зума
+  String _getMarkerType(double zoom) {
+    if (zoom < 11.0) {
+      return 'simple';
+    } else if (zoom < 13.0) {
+      return 'grouped';
+    } else {
+      return 'detailed';
+    }
+  }
+
   void _onLoadEvents(LoadEvents event, Emitter<MapState> emit) async {
     _markerVersion++;
     final currentVersion = _markerVersion;
     emit(state.copyWith(isLoading: true));
-    _serverEventsCache = List.from(event.events); // Кэшируем ответ сервера
 
-    // Считаем кластеры для всех зумов заранее
-    for (final z in [6, 8, 10, 12, 14, 16, 18]) {
-      _zoomClusterCache[z] =
-          _groupEventsByGrid(_serverEventsCache, z.toDouble());
+    print('[DEBUG] ===== НАЧАЛО _onLoadEvents =====');
+    print('[DEBUG] События с сервера (${event.events.length}):');
+    for (final e in event.events) {
+      print(
+          '  id: \u001b[36m${e.id}\u001b[0m, lat: ${e.latitude}, lng: ${e.longitude}');
     }
 
+    // Убираем дубликаты по координатам и создаем отдельные события
+    final Map<String, OrganizedEventModel> uniqueEvents = {};
+    for (final event in event.events) {
+      if (event.latitude != null && event.longitude != null) {
+        final coordKey = '${event.latitude}_${event.longitude}';
+        if (!uniqueEvents.containsKey(coordKey)) {
+          uniqueEvents[coordKey] = event;
+        }
+      }
+    }
+
+    // Определяем новые события и события для удаления
+    final List<OrganizedEventModel> newEvents = [];
+    final List<String> eventsToRemove = [];
+    final List<OrganizedEventModel> allEvents = [];
+
+    // Если кэш пустой (инициализация), все события считаются новыми
+    if (_eventsCache.isEmpty) {
+      print('[DEBUG] Инициализация - кэш пустой, все события считаются новыми');
+      for (final event in uniqueEvents.values) {
+        final eventId = event.id.toString();
+        _eventsCache[eventId] = event;
+        newEvents.add(event);
+        allEvents.add(event);
+        print(
+            '[DEBUG] Событие для инициализации: \u001b[35m${event.id}\u001b[0m');
+      }
+      _isInitialized = true;
+    } else {
+      // Создаем множество ID новых событий для проверки
+      final Set<String> newEventIds =
+          uniqueEvents.values.map((e) => e.id.toString()).toSet();
+
+      // Находим события, которые нужно удалить (есть в кэше, но нет в новых данных)
+      for (final cachedEventId in _eventsCache.keys) {
+        if (!newEventIds.contains(cachedEventId)) {
+          eventsToRemove.add(cachedEventId);
+          print(
+              '[DEBUG] Событие для удаления: \u001b[31m$cachedEventId\u001b[0m');
+        }
+      }
+
+      for (final event in uniqueEvents.values) {
+        final eventId = event.id.toString();
+        if (!_eventsCache.containsKey(eventId)) {
+          // Новое событие - добавляем в кэш и в список новых
+          _eventsCache[eventId] = event;
+          newEvents.add(event);
+          print('[DEBUG] Новое событие: \u001b[32m${event.id}\u001b[0m');
+        } else {
+          // Событие уже есть в кэше - обновляем его
+          _eventsCache[eventId] = event;
+          print('[DEBUG] Существующее событие: \u001b[34m${event.id}\u001b[0m');
+        }
+        allEvents.add(event);
+      }
+
+      // Удаляем события из кэша
+      for (final eventId in eventsToRemove) {
+        _eventsCache.remove(eventId);
+      }
+    }
+
+    // Каждое уникальное событие - отдельная группа
+    final grouped = allEvents.map((e) => [e]).toList();
+
+    print('[DEBUG] Все события в кэше: ${_eventsCache.length}');
+    print('[DEBUG] Новых событий: ${newEvents.length}');
+    print('[DEBUG] Событий для удаления: ${eventsToRemove.length}');
+    print('[DEBUG] Всего групп для отображения: ${grouped.length}');
+    print('[DEBUG] ===== КОНЕЦ _onLoadEvents =====');
+
     if (currentVersion != _markerVersion) return;
-    // Берём группы для текущего зума
-    final grouped = _zoomClusterCache[state.zoom.round()] ??
-        _groupEventsByGrid(_serverEventsCache, state.zoom);
-    emit(state.copyWith(isLoading: false, groupedEvents: grouped));
+    emit(state.copyWith(
+      isLoading: false,
+      groupedEvents: grouped,
+      newEventIds: newEvents.map((e) => e.id.toString()).toList(),
+      removedEventIds: eventsToRemove,
+      markerType: _getMarkerType(state.zoom),
+    ));
   }
 
   void _onZoomChanged(ZoomChanged event, Emitter<MapState> emit) async {
     _markerVersion++;
     final currentVersion = _markerVersion;
-    emit(state.copyWith(zoom: event.zoom, isLoading: true));
-    final int zoomKey = event.zoom.round();
-    // Берём группы из кэша для округлённого зума, если есть
-    List<List<OrganizedEventModel>> grouped;
-    if (_zoomClusterCache.containsKey(zoomKey)) {
-      grouped = _zoomClusterCache[zoomKey]!;
-      print(
-          '[DEBUG] MapBloc: кластеризация из кэша для зума $zoomKey, групп: ${grouped.length}');
+    final newZoom = event.zoom;
+    final currentMarkerType = state.markerType;
+    final newMarkerType = _getMarkerType(newZoom);
+
+    print('[DEBUG] MapBloc: зум изменен с ${state.zoom} на $newZoom');
+    print(
+        '[DEBUG] MapBloc: тип маркеров изменен с $currentMarkerType на $newMarkerType');
+
+    // Если тип маркеров изменился, пересоздаем их
+    if (currentMarkerType != newMarkerType) {
+      print('[DEBUG] MapBloc: пересоздаем маркеры из-за изменения типа');
+      emit(state.copyWith(
+        zoom: newZoom,
+        markerType: newMarkerType,
+        newEventIds: state.groupedEvents
+            .map((group) => group.first.id.toString())
+            .toList(),
+        isLoading: true,
+      ));
     } else {
-      grouped = _groupEventsByGrid(_serverEventsCache, event.zoom);
-      print(
-          '[DEBUG] MapBloc: кластеризация на лету для зума ${event.zoom}, групп: ${grouped.length}');
-      // Кэшируем для округлённого зума
-      _zoomClusterCache[zoomKey] = grouped;
+      // Просто обновляем зум без пересоздания маркеров
+      emit(state.copyWith(
+        zoom: newZoom,
+        markerType: newMarkerType,
+        isLoading: false,
+      ));
     }
+
     if (currentVersion != _markerVersion) return;
-    emit(state.copyWith(isLoading: false, groupedEvents: grouped));
   }
 
   void _onUpdateMarkers(UpdateMarkers event, Emitter<MapState> emit) async {
     _markerVersion++;
     final currentVersion = _markerVersion;
     emit(state.copyWith(isLoading: true));
-    final grouped = await _groupEventsByScreenPixels(
-        _flatten(state.groupedEvents), state.zoom);
+
+    // Очищаем кэш событий при смене области карты
+    _eventsCache.clear();
+    _isInitialized = false;
+    print('[DEBUG] MapBloc: очищен кэш событий при смене области карты');
+
+    // Просто обновляем состояние, не меняем структуру groupedEvents
+    print('[DEBUG] MapBloc: обновление маркеров');
     if (currentVersion != _markerVersion) {
-      print(
-          '[DEBUG] MapBloc: отменяю устаревшую кластеризацию (UpdateMarkers)');
+      print('[DEBUG] MapBloc: отменяю устаревшее обновление (UpdateMarkers)');
       return;
     }
-    emit(state.copyWith(isLoading: false, groupedEvents: grouped));
+    emit(state.copyWith(isLoading: false));
   }
 
   void _onApplyFilter(ApplyFilter event, Emitter<MapState> emit) async {
+    // Очищаем кэш событий при применении фильтров
+    _eventsCache.clear();
+    _isInitialized = false;
+    print('[DEBUG] MapBloc: очищен кэш событий при применении фильтров');
+
     // Здесь можно реализовать фильтрацию событий по фильтрам
     // emit(state.copyWith(...));
-  }
-
-  // Функция для точной градации расстояния между маркерами по зуму
-  double getCellSizeForZoom(double zoom) {
-    if (zoom < 7) return 0.02;
-    if (zoom < 9) return 0.01;
-    if (zoom < 11) return 0.005;
-    if (zoom < 13) return 0.002;
-    if (zoom < 14) return 0.008;
-    if (zoom < 15) return 0.0008;
-    if (zoom < 17) return 0.0003;
-    return 0.0001;
-  }
-
-  List<List<OrganizedEventModel>> _groupEventsByGridCached(
-      List<OrganizedEventModel> events, double zoom) {
-    final int zoomKey = zoom.round();
-    // Если события не изменились и есть кэш — возвращаем кэш
-    if (_lastEvents.length == events.length &&
-        _lastEvents.every((e) => events.contains(e)) &&
-        _zoomClusterCache.containsKey(zoomKey)) {
-      return _zoomClusterCache[zoomKey]!;
-    }
-    // Если события изменились — сбрасываем кэш
-    if (_lastEvents.length != events.length ||
-        !_lastEvents.every((e) => events.contains(e))) {
-      _zoomClusterCache.clear();
-      _lastEvents = List.from(events);
-    }
-    // Кластеризация и кэширование
-    final grouped = _groupEventsByGrid(events, zoom);
-    _zoomClusterCache[zoomKey] = grouped;
-    return grouped;
-  }
-
-  // Новая быстрая кластеризация по сетке (grid-based)
-  List<List<OrganizedEventModel>> _groupEventsByGrid(
-      List<OrganizedEventModel> events, double zoom) {
-    final double cellSize = getCellSizeForZoom(zoom);
-    final Map<String, List<OrganizedEventModel>> grid = {};
-    for (final event in events) {
-      if (event.latitude == null || event.longitude == null) continue;
-      final latKey = (event.latitude! / cellSize).floor();
-      final lngKey = (event.longitude! / cellSize).floor();
-      final key = '\u001b[32m$latKey:$lngKey\u001b[0m';
-      grid.putIfAbsent(key, () => []).add(event);
-    }
-    final result = grid.values.toList();
-    print(
-        '[DEBUG] MapBloc: сгруппировано кластеров (grid): \u001b[32m[32m${result.length}\u001b[0m');
-    return result;
-  }
-
-  // Заменяем старую функцию на новую с кэшем
-  Future<List<List<OrganizedEventModel>>> _groupEventsByScreenPixels(
-      List<OrganizedEventModel> events, double zoom) async {
-    return _groupEventsByGridCached(events, zoom);
-  }
-
-  List<OrganizedEventModel> _flatten(List<List<OrganizedEventModel>> groups) {
-    return groups.expand((g) => g).toList();
   }
 }

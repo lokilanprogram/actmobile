@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:typed_data';
 
 class CategoryMarker extends StatelessWidget {
   final String iconUrl;
@@ -19,29 +20,56 @@ class CategoryMarker extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedOpacity(
+      child: Opacity(
         opacity: opacity,
-        duration: const Duration(milliseconds: 350),
         child: CustomPaint(
-          painter: SpeechBubblePainter(),
+          painter: const _OptimizedSpeechBubblePainter(),
           child: Container(
-            padding: EdgeInsets.only(bottom: 15, right: 15),
+            padding: const EdgeInsets.only(bottom: 15, right: 15),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.network(
-                  iconUrl,
-                  width: 52,
-                  height: 52,
+                CachedNetworkImage(
+                  imageUrl: iconUrl,
+                  width: 30,
+                  height: 30,
+                  fit: BoxFit.contain,
+                  // placeholder: (context, url) => Container(
+                  //   width: 30,
+                  //   height: 30,
+                  //   decoration: BoxDecoration(
+                  //     color: Colors.grey[200],
+                  //     borderRadius: BorderRadius.circular(4),
+                  //   ),
+                  //   child: const Icon(Icons.category,
+                  //       color: Colors.grey, size: 16),
+                  // ),
+                  errorWidget: (context, url, error) => Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child:
+                        const Icon(Icons.error, color: Colors.grey, size: 16),
+                  ),
+                  memCacheWidth: 60, // 2x для retina
+                  memCacheHeight: 60,
                 ),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16.8,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                    fontFamily: 'Inter',
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue,
+                      fontFamily: 'Inter',
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],
@@ -72,19 +100,20 @@ class GroupedMarker extends StatelessWidget {
     }
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedOpacity(
+      child: Opacity(
         opacity: opacity,
-        duration: const Duration(milliseconds: 350),
         child: CustomPaint(
-          painter: SpeechBubblePainter(),
+          painter: const _OptimizedSpeechBubblePainter(),
           child: Container(
-            padding: EdgeInsets.only(bottom: 25, right: 25, left: 25, top: 10),
+            padding:
+                const EdgeInsets.only(bottom: 25, right: 25, left: 25, top: 10),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.blueAccent),
@@ -92,21 +121,25 @@ class GroupedMarker extends StatelessWidget {
                   child: Text(
                     '$count',
                     style: const TextStyle(
-                      fontSize: 16.8,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                       color: Colors.blue,
                       fontFamily: 'Inter',
                     ),
                   ),
                 ),
-                SizedBox(width: 5),
-                Text(
-                  eventWord,
-                  style: const TextStyle(
-                    fontSize: 16.8,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                    fontFamily: 'Inter',
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    eventWord,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue,
+                      fontFamily: 'Inter',
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],
@@ -242,6 +275,131 @@ class CircleCountMarker extends StatelessWidget {
           color: Colors.white,
           fontWeight: FontWeight.bold,
           fontSize: 18,
+        ),
+      ),
+    );
+  }
+}
+
+// Оптимизированный CustomPainter с кэшированием
+class _OptimizedSpeechBubblePainter extends CustomPainter {
+  const _OptimizedSpeechBubblePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const radius = 30.0;
+    const tailHeight = 15.0;
+    const tailWidth = 14.0;
+
+    final bubbleHeight = size.height - tailHeight;
+
+    // Создаем путь только один раз
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, bubbleHeight),
+          const Radius.circular(radius),
+        ),
+      )
+      ..moveTo(size.width / 2 - tailWidth / 2, bubbleHeight)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width / 2 + tailWidth / 2, bubbleHeight)
+      ..close();
+
+    // Кэшируем краски
+    final shadowPaint = Paint()
+      ..color = const Color.fromARGB(
+          38, 153, 152, 152) // Предвычисленная прозрачность
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+
+    final fillPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    // Рисуем тень и заливку
+    canvas.drawPath(path, shadowPaint);
+    canvas.drawPath(path, fillPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// Оптимизированная версия CategoryMarker с предзагруженным изображением
+class OptimizedCategoryMarker extends StatelessWidget {
+  final Uint8List? preloadedImage;
+  final String title;
+  final double opacity;
+  final VoidCallback? onTap;
+
+  const OptimizedCategoryMarker({
+    super.key,
+    this.preloadedImage,
+    required this.title,
+    this.opacity = 1.0,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Opacity(
+        opacity: opacity,
+        child: CustomPaint(
+          painter: const _OptimizedSpeechBubblePainter(),
+          child: Container(
+            padding: const EdgeInsets.only(bottom: 15, right: 15),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    // borderRadius: BorderRadius.circular(6),
+                    // border: Border.all(color: Colors.grey[300]!, width: 1),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(5),
+                    child: preloadedImage != null
+                        ? Image.memory(
+                            preloadedImage!,
+                            width: 30,
+                            height: 30,
+                            fit: BoxFit.contain,
+                          )
+                        : Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Icon(Icons.category,
+                                color: Colors.grey, size: 16),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue,
+                      fontFamily: 'Inter',
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

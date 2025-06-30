@@ -1,0 +1,2 @@
+/Users/andreysinelnikov/Act-Mobile/android/app/.cxx/Debug/3k167044/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/andreysinelnikov/Act-Mobile/android/app/.cxx/Debug/3k167044/armeabi-v7a/CMakeFiles/rebuild_cache.dir
