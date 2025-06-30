@@ -1,0 +1,2 @@
+/Users/andreysinelnikov/Act-Mobile/android/app/.cxx/RelWithDebInfo/2h262i6i/x86_64/CMakeFiles/edit_cache.dir
+/Users/andreysinelnikov/Act-Mobile/android/app/.cxx/RelWithDebInfo/2h262i6i/x86_64/CMakeFiles/rebuild_cache.dir

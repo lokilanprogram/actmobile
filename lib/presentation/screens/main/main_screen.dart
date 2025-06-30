@@ -28,6 +28,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:acti_mobile/data/models/all_events_model.dart' as all_events;
+import 'package:acti_mobile/domain/services/map_optimization_service.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -118,42 +119,46 @@ class _MainScreenState extends State<MainScreen> {
   /// Обновление текущей позиции пользователя
   Future<void> _updateCurrentLocation() async {
     try {
-      // iOS-специфичные настройки геолокации
-      final locationSettings = Platform.isIOS
-          ? geolocator.LocationSettings(
-              accuracy: geolocator.LocationAccuracy.high,
-              distanceFilter: 10, // 10 метров
-              timeLimit: const Duration(seconds: 5),
-            )
-          : geolocator.LocationSettings(
-              accuracy: geolocator.LocationAccuracy.high,
-              timeLimit: const Duration(seconds: 5),
-            );
-
-      _currentPosition = await geolocator.Geolocator.getCurrentPosition(
-        locationSettings: locationSettings,
+      final mapService = MapOptimizationService();
+      // Сначала пробуем взять кэш, если нет — надёжно получить
+      final cached = await mapService.getLastLocation();
+      Map<String, double> location;
+      if (cached != null) {
+        location = cached;
+        developer.log(
+            'Используем кэшированную позицию: [32m${location['latitude']}, ${location['longitude']}[0m',
+            name: 'MAIN_SCREEN');
+      } else {
+        location = await mapService.getReliableLocation();
+        developer.log(
+            'Получена позиция через getReliableLocation: [32m${location['latitude']}, ${location['longitude']}[0m',
+            name: 'MAIN_SCREEN');
+      }
+      _currentPosition = geolocator.Position(
+        latitude: location['latitude']!,
+        longitude: location['longitude']!,
+        timestamp: DateTime.now(),
+        accuracy: 0,
+        altitude: 0,
+        heading: 0,
+        speed: 0,
+        speedAccuracy: 0,
+        altitudeAccuracy: 0,
+        headingAccuracy: 0,
       );
-
-      developer.log(
-          'Текущая позиция: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
-          name: 'MAIN_SCREEN');
-
-      // Сохраняем позицию в кэш
       await _saveLocationToCache(
           _currentPosition!.latitude, _currentPosition!.longitude);
-
-      // Загружаем события после получения геолокации
       await _loadEvents();
     } catch (e) {
       developer.log('Ошибка при получении позиции: $e', name: 'MAIN_SCREEN');
-
-      // При ошибке используем кэшированную позицию или Москву
+      // Fallback на кэш или Москву
       try {
-        final lastLocation = await _getLastKnownLocation();
-        if (lastLocation != null) {
+        final mapService = MapOptimizationService();
+        final last = await mapService.getLastLocation();
+        if (last != null) {
           _currentPosition = geolocator.Position(
-            latitude: lastLocation['latitude'] as double,
-            longitude: lastLocation['longitude'] as double,
+            latitude: last['latitude']!,
+            longitude: last['longitude']!,
             timestamp: DateTime.now(),
             accuracy: 0,
             altitude: 0,
@@ -164,8 +169,23 @@ class _MainScreenState extends State<MainScreen> {
             headingAccuracy: 0,
           );
           developer.log(
-              'Используем кэшированную позицию: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}',
+              'Используем кэшированную позицию (fallback): [33m${_currentPosition!.latitude}, ${_currentPosition!.longitude}[0m',
               name: 'MAIN_SCREEN');
+          await _loadEvents();
+        } else {
+          _currentPosition = geolocator.Position(
+            latitude: 55.7558,
+            longitude: 37.6173,
+            timestamp: DateTime.now(),
+            accuracy: 0,
+            altitude: 0,
+            heading: 0,
+            speed: 0,
+            speedAccuracy: 0,
+            altitudeAccuracy: 0,
+            headingAccuracy: 0,
+          );
+          developer.log('Используем Москву по умолчанию', name: 'MAIN_SCREEN');
           await _loadEvents();
         }
       } catch (cacheError) {

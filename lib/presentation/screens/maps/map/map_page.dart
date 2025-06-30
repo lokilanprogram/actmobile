@@ -129,7 +129,6 @@ class _MapPageState extends State<MapPage> {
 
   // --- Initialization ---
   void initialize() async {
-    // ... (This function remains mostly the same as in MapScreen)
     if (!mounted) return;
     setState(() {
       isLoading = true;
@@ -152,7 +151,28 @@ class _MapPageState extends State<MapPage> {
             name: 'MAP_PAGE');
       });
     });
-    await _getUserLocation();
+    final mapService = MapOptimizationService();
+    final cached = await mapService.getLastLocation();
+    Map<String, double> location;
+    if (cached != null) {
+      location = cached;
+      developer.log(
+          'MapPage: используем кэшированную позицию: [32m${location['latitude']}, ${location['longitude']}[0m',
+          name: 'MAP_PAGE');
+    } else {
+      location = await mapService.getReliableLocation();
+      developer.log(
+          'MapPage: получена позиция через getReliableLocation: [32m${location['latitude']}, ${location['longitude']}[0m',
+          name: 'MAP_PAGE');
+    }
+    setState(() {
+      currentUserPosition =
+          Position(location['longitude']!, location['latitude']!);
+      currentSelectedPosition =
+          Position(location['longitude']!, location['latitude']!);
+      _lastRequestPosition =
+          Position(location['longitude']!, location['latitude']!);
+    });
     context.read<ProfileBloc>().add(InitializeMapEvent(
         latitude: currentSelectedPosition.lat.toDouble(),
         longitude: currentSelectedPosition.lng.toDouble()));
@@ -392,30 +412,56 @@ class _MapPageState extends State<MapPage> {
         ),
       );
 
-      // 2. Create layers for the clusters.
-      await mapboxMap!.style.addLayer(
-        CircleLayer(
-          id: 'clusters-circle',
-          sourceId: EVENTS_SOURCE_ID,
-          filter: ['has', 'point_count'],
-          circleColor: Colors.blue.value,
-          circleRadius: 20.0, // Using a fixed value due to SDK limitations
-          circleStrokeWidth: 1,
-          circleStrokeColor: Colors.white.value,
-        ),
-      );
-      await mapboxMap!.style.addLayer(
-        SymbolLayer(
-          id: 'clusters-count',
-          sourceId: EVENTS_SOURCE_ID,
-          filter: ['has', 'point_count'],
-          textField: '{point_count_abbreviated}',
-          textSize: 14,
-          textColor: Colors.white.value,
-          textIgnorePlacement: true,
-          textAllowOverlap: true,
-        ),
-      );
+      // 2. Проверяем наличие слоев перед добавлением
+      bool hasClustersCircle = false;
+      bool hasClustersCount = false;
+      try {
+        hasClustersCircle =
+            (await mapboxMap!.style.getLayer('clusters-circle')) != null;
+      } catch (e) {
+        hasClustersCircle = false;
+      }
+      try {
+        hasClustersCount =
+            (await mapboxMap!.style.getLayer('clusters-count')) != null;
+      } catch (e) {
+        hasClustersCount = false;
+      }
+
+      if (!hasClustersCircle) {
+        await mapboxMap!.style.addLayer(
+          CircleLayer(
+            id: 'clusters-circle',
+            sourceId: EVENTS_SOURCE_ID,
+            filter: ['has', 'point_count'],
+            circleColor: Colors.blue.value,
+            circleRadius: 20.0, // Using a fixed value due to SDK limitations
+            circleStrokeWidth: 1,
+            circleStrokeColor: Colors.white.value,
+          ),
+        );
+      } else {
+        print(
+            '[DEBUG_GEOJSON] Layer clusters-circle уже существует, не добавляем повторно.');
+      }
+
+      if (!hasClustersCount) {
+        await mapboxMap!.style.addLayer(
+          SymbolLayer(
+            id: 'clusters-count',
+            sourceId: EVENTS_SOURCE_ID,
+            filter: ['has', 'point_count'],
+            textField: '{point_count_abbreviated}',
+            textSize: 14,
+            textColor: Colors.white.value,
+            textIgnorePlacement: true,
+            textAllowOverlap: true,
+          ),
+        );
+      } else {
+        print(
+            '[DEBUG_GEOJSON] Layer clusters-count уже существует, не добавляем повторно.');
+      }
 
       _isGeoJsonSourceInitialized = true;
       print('[DEBUG_GEOJSON] Clustered source and cluster layers created.');
@@ -918,6 +964,16 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  String get locationStatusText {
+    if (currentUserPosition == null) return 'Геолокация недоступна';
+    if (currentUserPosition!.lat == 37.6173 &&
+        currentUserPosition!.lng == 55.7558) {
+      return 'Используется позиция по умолчанию (Москва)';
+    }
+    // Можно добавить проверку на кэш, если потребуется
+    return 'Геолокация активна';
+  }
+
   // --- Build Method ---
   @override
   Widget build(BuildContext context) {
@@ -1043,9 +1099,7 @@ class _MapPageState extends State<MapPage> {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          currentUserPosition != null
-                                              ? 'Геолокация активна'
-                                              : 'Геолокация недоступна',
+                                          locationStatusText,
                                           style: const TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w500),

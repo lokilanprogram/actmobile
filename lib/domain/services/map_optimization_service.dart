@@ -455,4 +455,47 @@ class MapOptimizationService {
 
   /// Проверка, готов ли сервис к использованию
   bool get isReady => _isInitialized;
+
+  /// Надёжное получение геолокации с fallback на кэш и дефолт (Москва)
+  Future<Map<String, double>> getReliableLocation(
+      {Duration fastTimeout = const Duration(seconds: 5),
+      Duration slowTimeout = const Duration(seconds: 15)}) async {
+    try {
+      // Быстрая попытка
+      print(
+          '[GEO] Быстрая попытка получить позицию (таймаут ${fastTimeout.inSeconds} сек)');
+      final position = await geolocator.Geolocator.getCurrentPosition(
+        timeLimit: fastTimeout,
+      );
+      print(
+          '[GEO] Успешно получена позиция: [32m${position.latitude}, ${position.longitude}[0m');
+      await saveLastLocation(position.latitude, position.longitude);
+      return {'latitude': position.latitude, 'longitude': position.longitude};
+    } catch (e) {
+      print('[GEO] Ошибка быстрой попытки: $e');
+      try {
+        // Медленная попытка
+        print(
+            '[GEO] Медленная попытка получить позицию (таймаут ${slowTimeout.inSeconds} сек)');
+        final position = await geolocator.Geolocator.getCurrentPosition(
+          timeLimit: slowTimeout,
+        );
+        print(
+            '[GEO] Успешно получена позиция (slow): [32m${position.latitude}, ${position.longitude}[0m');
+        await saveLastLocation(position.latitude, position.longitude);
+        return {'latitude': position.latitude, 'longitude': position.longitude};
+      } catch (e2) {
+        print('[GEO] Ошибка медленной попытки: $e2');
+        // Fallback на кэш
+        final last = await getLastLocation();
+        if (last != null) {
+          print(
+              '[GEO] Используем кэшированную позицию: [33m${last['latitude']}, ${last['longitude']} (fallback)\u001b[0m');
+          return last;
+        }
+        print('[GEO] Используем Москву по умолчанию (fallback)');
+        return {'latitude': 55.7558, 'longitude': 37.6173};
+      }
+    }
+  }
 }
