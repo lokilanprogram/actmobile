@@ -61,6 +61,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           } else if (profile.status == 'deleted') {
             emit(ProfileDeleteAdminState(profileModel: profile));
           } else {
+            final storage = SecureStorageService();
+            storage.setUserVerified(profile.isEmailVerified);
             final users = await ProfileApi().getSimiliarUsers();
             if (users != null) {
               emit(ProfileGotState(
