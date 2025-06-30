@@ -20,7 +20,7 @@ class TestHandler(BaseHTTPRequestHandler):
                     "apps": [],
                     "details": [
                         {
-                            "appID": "TEAM_ID.com.example.acti_mobile",
+                            "appID": "TEAM_ID.com.acti.acti_app",
                             "paths": [
                                 "/event/*",
                                 "/api/event/*"
@@ -42,7 +42,7 @@ class TestHandler(BaseHTTPRequestHandler):
                     "relation": ["delegate_permission/common.handle_all_urls"],
                     "target": {
                         "namespace": "android_app",
-                        "package_name": "com.example.acti_mobile",
+                        "package_name": "com.acti.acti_app",
                         "sha256_cert_fingerprints": [
                             "SHA256_FINGERPRINT_HERE"
                         ]

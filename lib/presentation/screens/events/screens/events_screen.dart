@@ -754,14 +754,15 @@ class _EventsScreenState extends State<EventsScreen> {
                                                         ),
                                                       ),
                                                     )
-                                                  : Expanded(child: ListView.builder(
+                                                  : ListView.builder(
                                                       itemCount: eventsModel!
-                                                          .events.length + 1,
+                                                              .events.length +
+                                                          1,
                                                       itemBuilder:
                                                           (context, index) {
                                                         if (index ==
-                                                            eventsModel!
-                                                                .events.length) {
+                                                            eventsModel!.events
+                                                                .length) {
                                                           return const SizedBox(
                                                               height: 150);
                                                         }
@@ -777,7 +778,6 @@ class _EventsScreenState extends State<EventsScreen> {
                                                         );
                                                       },
                                                     ),
-                                                  ),
                                             ),
                                           )
                                         : Center(

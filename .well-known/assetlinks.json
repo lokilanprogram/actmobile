@@ -3,9 +3,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.example.acti_mobile",
+      "package_name": "com.acti.acti_app",
       "sha256_cert_fingerprints": [
-        "SHA256_FINGERPRINT_HERE"
+        "4F:B0:C4:4E:37:A4:9A:83:A7:04:08:57:6C:80:75:0A:4E:AC:ED:76:ED:0B:72:65:A0:A8:9F:5B:88:2E:8F:53"
       ]
     }
   }
