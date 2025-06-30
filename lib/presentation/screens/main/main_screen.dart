@@ -5,7 +5,7 @@ import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_main/chat_main_screen.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/events_screen.dart';
 import 'package:acti_mobile/presentation/screens/events/screens/votes_screen.dart';
-import 'package:acti_mobile/presentation/screens/maps/map/map_screen.dart';
+import 'package:acti_mobile/presentation/screens/maps/map/map_page.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/custom_nav_bar.dart';
 import 'package:acti_mobile/presentation/screens/profile/block_and_delete/block_and_delete_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
@@ -52,15 +52,6 @@ class _MainScreenState extends State<MainScreen> {
   String? _profileIconUrl;
   late ProfileModel profileModel;
   bool _didShowUpdateProfile = false;
-
-  final List<Widget> _screens = [
-    MapScreen(),
-    const EventsScreen(),
-    const ChatMainScreen(),
-    ProfileMenuScreen(onSettingsChanged: null),
-    const MyEventsScreen(),
-    const VotesScreen(),
-  ];
 
   Future<void> _checkLocationPermission() async {
     developer.log('Проверка разрешений геолокации', name: 'MAIN_SCREEN');
@@ -345,7 +336,7 @@ class _MainScreenState extends State<MainScreen> {
         builder: (context, provider, child) {
           // Обновляем список экранов с учетом полученных данных
           final screens = [
-            MapScreen(),
+            const MapPage(),
             EventsScreen(initialEvents: _eventsModel),
             const ChatMainScreen(),
             ProfileMenuScreen(
@@ -369,7 +360,6 @@ class _MainScreenState extends State<MainScreen> {
             backgroundColor: Colors.white,
             body: SafeArea(
               top: false,
-              
               child: Stack(
                 children: [
                   IndexedStack(

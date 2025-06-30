@@ -39,10 +39,8 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
   /// Определяет тип маркеров на основе текущего зума
   String _getMarkerType(double zoom) {
-    if (zoom < 11.0) {
+    if (zoom <= 12.0) {
       return 'simple';
-    } else if (zoom < 13.0) {
-      return 'grouped';
     } else {
       return 'detailed';
     }
@@ -60,16 +58,19 @@ class MapBloc extends Bloc<MapEvent, MapState> {
           '  id: \u001b[36m${e.id}\u001b[0m, lat: ${e.latitude}, lng: ${e.longitude}');
     }
 
-    // Убираем дубликаты по координатам и создаем отдельные события
-    final Map<String, OrganizedEventModel> uniqueEvents = {};
-    for (final event in event.events) {
-      if (event.latitude != null && event.longitude != null) {
-        final coordKey = '${event.latitude}_${event.longitude}';
-        if (!uniqueEvents.containsKey(coordKey)) {
-          uniqueEvents[coordKey] = event;
-        }
+    // 1. Group events by coordinate to handle multiple events at the same location.
+    final Map<String, List<OrganizedEventModel>> groupedByLocation = {};
+    for (final currentEvent in event.events) {
+      if (currentEvent.latitude != null && currentEvent.longitude != null) {
+        final coordKey = '${currentEvent.latitude}_${currentEvent.longitude}';
+        groupedByLocation.putIfAbsent(coordKey, () => []).add(currentEvent);
       }
     }
+
+    // 2. The "representative" event for each group is the first one.
+    // The rest of the logic will use these representative events to calculate diffs.
+    final List<OrganizedEventModel> representativeEvents =
+        groupedByLocation.values.map((group) => group.first).toList();
 
     // Определяем новые события и события для удаления
     final List<OrganizedEventModel> newEvents = [];
@@ -79,7 +80,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     // Если кэш пустой (инициализация), все события считаются новыми
     if (_eventsCache.isEmpty) {
       print('[DEBUG] Инициализация - кэш пустой, все события считаются новыми');
-      for (final event in uniqueEvents.values) {
+      for (final event in representativeEvents) {
         final eventId = event.id.toString();
         _eventsCache[eventId] = event;
         newEvents.add(event);
@@ -91,7 +92,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     } else {
       // Создаем множество ID новых событий для проверки
       final Set<String> newEventIds =
-          uniqueEvents.values.map((e) => e.id.toString()).toSet();
+          representativeEvents.map((e) => e.id.toString()).toSet();
 
       // Находим события, которые нужно удалить (есть в кэше, но нет в новых данных)
       for (final cachedEventId in _eventsCache.keys) {
@@ -102,7 +103,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
         }
       }
 
-      for (final event in uniqueEvents.values) {
+      for (final event in representativeEvents) {
         final eventId = event.id.toString();
         if (!_eventsCache.containsKey(eventId)) {
           // Новое событие - добавляем в кэш и в список новых
@@ -124,7 +125,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     }
 
     // Каждое уникальное событие - отдельная группа
-    final grouped = allEvents.map((e) => [e]).toList();
+    final grouped = groupedByLocation.values.toList();
 
     print('[DEBUG] Все события в кэше: ${_eventsCache.length}');
     print('[DEBUG] Новых событий: ${newEvents.length}');
@@ -149,28 +150,20 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     final currentMarkerType = state.markerType;
     final newMarkerType = _getMarkerType(newZoom);
 
-    print('[DEBUG] MapBloc: зум изменен с ${state.zoom} на $newZoom');
     print(
-        '[DEBUG] MapBloc: тип маркеров изменен с $currentMarkerType на $newMarkerType');
+        '[DEBUG_GEOJSON_BLOC] Zoom changed to $newZoom. Old type: ${state.markerType}, New type: $newMarkerType');
 
-    // Если тип маркеров изменился, пересоздаем их
     if (currentMarkerType != newMarkerType) {
-      print('[DEBUG] MapBloc: пересоздаем маркеры из-за изменения типа');
+      print('[DEBUG_GEOJSON_BLOC] Marker type changed! Emitting new state.');
+      // When marker type changes, we need to rebuild the GeoJSON source.
+      // We don't need to send all events again, just trigger the listener.
       emit(state.copyWith(
         zoom: newZoom,
         markerType: newMarkerType,
-        newEventIds: state.groupedEvents
-            .map((group) => group.first.id.toString())
-            .toList(),
-        isLoading: true,
       ));
     } else {
-      // Просто обновляем зум без пересоздания маркеров
-      emit(state.copyWith(
-        zoom: newZoom,
-        markerType: newMarkerType,
-        isLoading: false,
-      ));
+      // Just update the zoom, no visual change needed yet.
+      emit(state.copyWith(zoom: newZoom));
     }
 
     if (currentVersion != _markerVersion) return;

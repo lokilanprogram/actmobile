@@ -32,8 +32,8 @@ class CategoryMarker extends StatelessWidget {
               children: [
                 CachedNetworkImage(
                   imageUrl: iconUrl,
-                  width: 30,
-                  height: 30,
+                  width: 20,
+                  height: 20,
                   fit: BoxFit.contain,
                   // placeholder: (context, url) => Container(
                   //   width: 30,
@@ -45,16 +45,16 @@ class CategoryMarker extends StatelessWidget {
                   //   child: const Icon(Icons.category,
                   //       color: Colors.grey, size: 16),
                   // ),
-                  errorWidget: (context, url, error) => Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child:
-                        const Icon(Icons.error, color: Colors.grey, size: 16),
-                  ),
+                  // errorWidget: (context, url, error) => Container(
+                  //   width: 30,
+                  //   height: 30,
+                  //   decoration: BoxDecoration(
+                  //     color: Colors.grey[200],
+                  //     borderRadius: BorderRadius.circular(4),
+                  //   ),
+                  //   child:
+                  //       const Icon(Icons.error, color: Colors.grey, size: 16),
+                  // ),
                   memCacheWidth: 60, // 2x для retina
                   memCacheHeight: 60,
                 ),
@@ -355,35 +355,32 @@ class OptimizedCategoryMarker extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
+                  margin: EdgeInsets.all(10),
+                  width: 20,
+                  height: 20,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    // borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(30),
                     // border: Border.all(color: Colors.grey[300]!, width: 1),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(5),
-                    child: preloadedImage != null
-                        ? Image.memory(
-                            preloadedImage!,
-                            width: 30,
-                            height: 30,
-                            fit: BoxFit.contain,
-                          )
-                        : Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Icon(Icons.category,
-                                color: Colors.grey, size: 16),
+                  child: preloadedImage != null
+                      ? Image.memory(
+                          preloadedImage!,
+                          width: 20,
+                          height: 20,
+                          fit: BoxFit.contain,
+                        )
+                      : Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                  ),
+                          child: const Icon(Icons.category,
+                              color: Colors.grey, size: 16),
+                        ),
                 ),
-                const SizedBox(width: 8),
                 Flexible(
                   child: Text(
                     title,
