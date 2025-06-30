@@ -100,6 +100,8 @@ class _MapPageState extends State<MapPage> {
   final List<double> _clusterZoomLevels = [10, 12, 14, 16, 18];
   double? _lastClusterZoomLevel;
 
+  bool _shouldMoveCameraToUser = false;
+
   @override
   void initState() {
     super.initState();
@@ -222,16 +224,13 @@ class _MapPageState extends State<MapPage> {
           });
         }
         _startLocationStatusTimer();
-        Future.microtask(() {
-          delayedLocationUpdate(position.latitude, position.longitude)
-              .catchError((e) {
-            developer.log('Ошибка при обновлении локации: $e',
-                name: 'MAP_PAGE');
-          });
-        });
         if (mapboxMap != null && mounted) {
+          print(
+              '[DEBUG] Перемещаю камеру к реальному местоположению: ${position.latitude}, ${position.longitude}');
           await _updateCameraToUserLocation(
               position.latitude, position.longitude);
+        } else {
+          _shouldMoveCameraToUser = true;
         }
       } else {
         final lastLocation = await _mapOptimizationService.getLastLocation();
@@ -385,6 +384,17 @@ class _MapPageState extends State<MapPage> {
 
     // ONLY load style here. Source/layer will be added in onStyleLoaded.
     await _loadLocalStyle();
+
+    // Добавлено: перемещаем камеру к позиции пользователя, если она известна
+    if (currentUserPosition != null && _shouldMoveCameraToUser) {
+      print(
+          '[DEBUG] (onMapCreated) Перемещаю камеру к user: ${currentUserPosition!.lat}, ${currentUserPosition!.lng}');
+      await _updateCameraToUserLocation(
+        currentUserPosition!.lat.toDouble(),
+        currentUserPosition!.lng.toDouble(),
+      );
+      _shouldMoveCameraToUser = false;
+    }
   }
 
   Future<void> _onStyleLoaded(StyleLoadedEventData styleLoadedEventData) async {
@@ -396,6 +406,11 @@ class _MapPageState extends State<MapPage> {
     // Add user location icon (puck)
     if (currentUserPosition != null && mapboxMap != null) {
       await addUserIconToStyle(mapboxMap!);
+      // Добавлено: перемещаем камеру к позиции пользователя
+      await _updateCameraToUserLocation(
+        currentUserPosition!.lat.toDouble(),
+        currentUserPosition!.lng.toDouble(),
+      );
     }
 
     if (!_isGeoJsonSourceInitialized) {
