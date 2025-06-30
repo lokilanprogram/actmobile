@@ -348,7 +348,8 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                                 context,
                                                 MaterialPageRoute(
                                                     builder: (context) =>
-                                                        SimilarUsersScreen()));
+                                                        SimilarUsersScreen(
+                                                            isVerified: profileModel.isEmailVerified)));
                                           },
                                           child: Row(
                                             mainAxisAlignment:
