@@ -161,6 +161,8 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                                 event.iconPath,
                                 width: width * 0.045,
                                 height: width * 0.045,
+                                // width: _getFontSize(context, 11, 13, 18),
+                                // height: _getFontSize(context, 11, 13, 18),
                                 color: isSelected ? Colors.white : null,
                               ),
                               SizedBox(width: width * 0.012),
