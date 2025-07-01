@@ -1,4 +1,5 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/data/models/all_events_model.dart' as all_events;
 import 'package:acti_mobile/data/models/event_adapter.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
@@ -501,6 +502,7 @@ class _EventsScreenState extends State<EventsScreen> {
       child: Consumer2<FilterProvider, VoteProvider>(
         builder: (context, filterProvider, voteProvider, child) {
           return SafeArea(
+            bottom: isGestureNavigation(context),
             child: Scaffold(
               backgroundColor: Colors.white,
               resizeToAvoidBottomInset: false,
@@ -711,89 +713,84 @@ class _EventsScreenState extends State<EventsScreen> {
                   : Stack(
                       children: [
                         Positioned.fill(
-                          child: SafeArea(
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 20, right: 20, top: 0, bottom: 0),
-                              child: Column(
-                                children: [
-                                  const SizedBox(height: 25),
-                                  Expanded(
-                                    child: eventsModel != null
-                                        ? RefreshIndicator(
-                                            onRefresh: () async {
-                                              if (!mounted) return;
-                                              setState(() {
-                                                _offset = 0;
-                                                _hasMore = true;
-                                              });
-                                              await _applyFilters();
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 20, right: 20, top: 0, bottom: 0),
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 25),
+                                Expanded(
+                                  child: eventsModel != null
+                                      ? RefreshIndicator(
+                                          onRefresh: () async {
+                                            if (!mounted) return;
+                                            setState(() {
+                                              _offset = 0;
+                                              _hasMore = true;
+                                            });
+                                            await _applyFilters();
+                                          },
+                                          child: NotificationListener<
+                                              ScrollNotification>(
+                                            onNotification: (scrollInfo) {
+                                              if (scrollInfo.metrics.pixels ==
+                                                      scrollInfo.metrics
+                                                          .maxScrollExtent &&
+                                                  _hasMore &&
+                                                  !isLoading) {
+                                                _loadMoreEvents();
+                                              }
+                                              return false;
                                             },
-                                            child: NotificationListener<
-                                                ScrollNotification>(
-                                              onNotification: (scrollInfo) {
-                                                if (scrollInfo.metrics.pixels ==
-                                                        scrollInfo.metrics
-                                                            .maxScrollExtent &&
-                                                    _hasMore &&
-                                                    !isLoading) {
-                                                  _loadMoreEvents();
-                                                }
-                                                return false;
-                                              },
-                                              child: eventsModel!.events.isEmpty
-                                                  ? Center(
-                                                      child: Text(
-                                                        'Ничего не нашлось',
-                                                        style: TextStyle(
-                                                          fontSize: 16,
-                                                          color:
-                                                              Colors.grey[600],
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                        ),
+                                            child: eventsModel!.events.isEmpty
+                                                ? Center(
+                                                    child: Text(
+                                                      'Ничего не нашлось',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        color: Colors.grey[600],
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
-                                                    )
-                                                  : ListView.builder(
-                                                      itemCount: eventsModel!
-                                                              .events.length +
-                                                          1,
-                                                      itemBuilder:
-                                                          (context, index) {
-                                                        if (index ==
-                                                            eventsModel!.events
-                                                                .length) {
-                                                          return const SizedBox(
-                                                              height: 150);
-                                                        }
-                                                        final event =
-                                                            eventsModel!
-                                                                .events[index];
-                                                        return MyCardEventWidget(
-                                                          organizedEvent: event
-                                                              .toOrganizedEventModel(),
-                                                          isPublicUser: true,
-                                                          isCompletedEvent:
-                                                              false,
-                                                        );
-                                                      },
                                                     ),
-                                            ),
-                                          )
-                                        : Center(
-                                            child: Text(
-                                              'Загрузка событий...',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.grey[600],
-                                                fontWeight: FontWeight.w500,
-                                              ),
+                                                  )
+                                                : ListView.builder(
+                                                    itemCount: eventsModel!
+                                                            .events.length +
+                                                        1,
+                                                    itemBuilder:
+                                                        (context, index) {
+                                                      if (index ==
+                                                          eventsModel!
+                                                              .events.length) {
+                                                        return const SizedBox(
+                                                            height: 150);
+                                                      }
+                                                      final event = eventsModel!
+                                                          .events[index];
+                                                      return MyCardEventWidget(
+                                                        organizedEvent: event
+                                                            .toOrganizedEventModel(),
+                                                        isPublicUser: true,
+                                                        isCompletedEvent: false,
+                                                      );
+                                                    },
+                                                  ),
+                                          ),
+                                        )
+                                      : Center(
+                                          child: Text(
+                                            'Загрузка событий...',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
-                                  ),
-                                  //const SizedBox(height: 150),
-                                ],
-                              ),
+                                        ),
+                                ),
+                                //const SizedBox(height: 150),
+                              ],
                             ),
                           ),
                         ),

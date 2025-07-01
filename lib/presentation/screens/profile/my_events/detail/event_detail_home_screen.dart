@@ -2,6 +2,7 @@ import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/configs/date_utils.dart' as custom_date;
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/reviews_model.dart';
@@ -101,6 +102,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
         backgroundColor: Colors.white,
         body: SafeArea(
           top: false,
+          bottom: isGestureNavigation(context),
           child: isError
               ? ErrorWidgetWithRetry(
                   onRetry: () async {

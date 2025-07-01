@@ -3,6 +3,7 @@ import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/configs/date_utils.dart' as custom_date;
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/data/models/event_model.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
@@ -174,6 +175,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         resizeToAvoidBottomInset: false,
         body: SafeArea(
           top: false,
+          bottom: isGestureNavigation(context),
           child: isLoading
               ? LoaderWidget()
               : Stack(
@@ -1403,7 +1405,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           children: [
                             TextSpan(
                               text:
-                                  'Ближайшее: ${custom_date.DateUtils.formatEventDate(organizedEvent.dateStart, organizedEvent.timeStart, organizedEvent.type == 'online')}',
+                                  'Ближайшее: ${custom_date.DateUtils.formatEventTime(organizedEvent.dateStart, organizedEvent.timeStart, organizedEvent.timeEnd, organizedEvent.type == 'online')}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.normal,
                                   color: Color.fromRGBO(7, 7, 7, 1),

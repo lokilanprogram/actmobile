@@ -5,6 +5,7 @@ import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/date_utils.dart' as custom_date;
 import 'package:acti_mobile/configs/function.dart';
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/data/models/chat_info_model.dart';
 import 'package:acti_mobile/data/models/message_model.dart';
 import 'package:acti_mobile/domain/bloc/chat/chat_bloc.dart';
@@ -625,6 +626,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             body: isLoading || isOk == false
                 ? LoaderWidget()
                 : SafeArea(
+                    bottom: isGestureNavigation(context),
                     child: Column(
                       children: [
                         if (chatInfo?.type == "private" &&

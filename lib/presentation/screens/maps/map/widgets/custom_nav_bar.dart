@@ -1,4 +1,5 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/configs/unread_message_provider.dart';
 import 'package:acti_mobile/domain/api/profile/profile_api.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
@@ -39,6 +40,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
 
     return SafeArea(
       top: false,
+      bottom: isGestureNavigation(context),
       child: Material(
         elevation: 8,
         color: Colors.transparent,

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:acti_mobile/configs/geolocator_utils.dart';
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/domain/api/map/map_api.dart';
 import 'package:acti_mobile/domain/websocket/websocket.dart';
@@ -1155,6 +1156,7 @@ class _MapPageState extends State<MapPage> {
           builder: (context, mapState) {
             return SafeArea(
               top: false,
+              bottom: isGestureNavigation(context),
               child: Scaffold(
                 backgroundColor: Colors.white,
                 resizeToAvoidBottomInset: false,
