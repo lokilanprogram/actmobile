@@ -5,7 +5,8 @@
       "namespace": "android_app",
       "package_name": "com.acti.acti_app",
       "sha256_cert_fingerprints": [
-        "4F:B0:C4:4E:37:A4:9A:83:A7:04:08:57:6C:80:75:0A:4E:AC:ED:76:ED:0B:72:65:A0:A8:9F:5B:88:2E:8F:53"
+        "4F:B0:C4:4E:37:A4:9A:83:A7:04:08:57:6C:80:75:0A:4E:AC:ED:76:ED:0B:72:65:A0:A8:9F:5B:88:2E:8F:53",
+        "62:F0:01:84:73:87:ED:47:81:D6:FD:17:BD:0E:92:1F:E7:5C:DA:F3:80:F5:B3:92:3A:8A:D6:16:2B:52:89:39"
       ]
     }
   }
