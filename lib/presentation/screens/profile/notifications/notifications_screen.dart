@@ -1,4 +1,7 @@
+import 'package:acti_mobile/configs/storage.dart';
 import 'package:acti_mobile/domain/bloc/notifications/notifications_bloc.dart';
+import 'package:acti_mobile/domain/services/token_refresh_service.dart';
+import 'package:acti_mobile/presentation/screens/initial/initial_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/notifications/widgets/notification_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,14 +15,30 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   late final ScrollController _scrollController;
+  late final SecureStorageService service;
+  String userId = '';
 
   @override
   void initState() {
     super.initState();
+    service = SecureStorageService();
+    initService();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationBloc>().add(FetchNotifications());
     });
     _scrollController = ScrollController()..addListener(_onScroll);
+  }
+
+  void initService() async {
+    userId = await service.getUserId() ?? '';
+    if (userId.isEmpty) {
+      await service.deleteAll();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const InitialScreen()),
+        (route) => false,
+      );
+    }
   }
 
   void _onScroll() {
@@ -87,7 +106,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ));
                     }
                     final notification = state.notifications[index];
-                    return NotificationTile(notification: notification);
+                    return NotificationTile(
+                        notification: notification, userId: userId);
                   },
                   separatorBuilder: (BuildContext context, int index) {
                     return Padding(

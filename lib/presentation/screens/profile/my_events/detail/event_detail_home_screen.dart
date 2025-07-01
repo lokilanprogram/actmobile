@@ -45,6 +45,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
   final PageController _pageController = PageController();
   late ReviewsModel rewiewsModel;
   int _currentPage = 0;
+  int _currentPage2 = 0;
   @override
   void initState() {
     initialize();
@@ -577,7 +578,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                 GestureDetector(
                                                   onTap: () {
                                                     setState(() {
-                                                      _currentPage = 0;
+                                                      _currentPage2 = 0;
                                                     });
                                                   },
                                                   child: Container(
@@ -588,12 +589,12 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                     child: Text(
                                                       'Обзор',
                                                       style: TextStyle(
-                                                        color: _currentPage == 0
+                                                        color: _currentPage2 == 0
                                                             ? mainBlueColor
                                                             : Colors.black,
                                                         fontSize: 22,
                                                         fontWeight:
-                                                            _currentPage == 0
+                                                            _currentPage2 == 0
                                                                 ? FontWeight
                                                                     .w600
                                                                 : FontWeight
@@ -607,7 +608,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                 GestureDetector(
                                                   onTap: () {
                                                     setState(() {
-                                                      _currentPage = 1;
+                                                      _currentPage2 = 1;
                                                     });
                                                   },
                                                   child: Container(
@@ -620,13 +621,13 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                                         Text(
                                                           'Отзывы',
                                                           style: TextStyle(
-                                                            color: _currentPage ==
+                                                            color: _currentPage2 ==
                                                                     1
                                                                 ? mainBlueColor
                                                                 : Colors.black,
                                                             fontSize: 22,
                                                             fontWeight:
-                                                                _currentPage ==
+                                                                _currentPage2 ==
                                                                         1
                                                                     ? FontWeight
                                                                         .w600
@@ -692,7 +693,7 @@ class _EventDetailHomeScreenState extends State<EventDetailHomeScreen> {
                                               ],
                                             ),
                                             IndexedStack(
-                                              index: _currentPage,
+                                              index: _currentPage2,
                                               children: [
                                                 Column(
                                                   crossAxisAlignment:
