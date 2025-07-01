@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/data/models/public_user_model.dart';
 import 'package:acti_mobile/domain/bloc/profile/profile_bloc.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
@@ -105,6 +106,7 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
         extendBody: true,
         body: SafeArea(
           top: false,
+          bottom: isGestureNavigation(context),
           child: isLoading
               ? LoaderWidget()
               : Stack(

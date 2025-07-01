@@ -1,4 +1,5 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/api/events/events_api.dart';
 import 'package:acti_mobile/domain/api/profile/profile_api.dart';
@@ -380,6 +381,7 @@ class _MainScreenState extends State<MainScreen> {
             backgroundColor: Colors.white,
             body: SafeArea(
               top: false,
+              bottom: isGestureNavigation(context),
               child: Stack(
                 children: [
                   IndexedStack(

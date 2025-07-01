@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/data/models/mapbox_model.dart';
 import 'package:acti_mobile/data/models/mapbox_reverse_model.dart';
 import 'package:acti_mobile/presentation/widgets/build_interest_chip.dart';
@@ -361,6 +362,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         },
         child: SafeArea(
           top: false,
+          bottom: isGestureNavigation(context),
           child: Scaffold(
             backgroundColor: Colors.white,
             appBar: isLoading

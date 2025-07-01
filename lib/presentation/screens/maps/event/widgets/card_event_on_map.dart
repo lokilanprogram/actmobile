@@ -1,4 +1,5 @@
 import 'package:acti_mobile/configs/colors.dart';
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/data/models/profile_event_model.dart';
 import 'package:acti_mobile/presentation/screens/maps/map/widgets/widgets.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
@@ -15,6 +16,7 @@ class CardEventOnMap extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
+      bottom: isGestureNavigation(context),
       child: Container(
         padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 0),
         constraints: BoxConstraints(
