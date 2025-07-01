@@ -30,6 +30,7 @@ extension EventAdapter on all_events.Event {
       category: category.toProfileCategory(),
       isReported: false,
       creatorId: creatorId,
+      rejectionReason: '',
     );
   }
 }

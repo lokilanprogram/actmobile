@@ -67,6 +67,7 @@ class OrganizedEventModel {
   Category? category;
   bool? isReported;
   String? creatorId;
+  String? rejectionReason;
 
   OrganizedEventModel({
     required this.category,
@@ -94,6 +95,7 @@ class OrganizedEventModel {
     required this.isRecurring,
     required this.creator,
     required this.participants,
+    required this.rejectionReason,
   });
 
   factory OrganizedEventModel.fromJson(Map<String, dynamic> json) =>
@@ -130,6 +132,7 @@ class OrganizedEventModel {
         creator: Creator.fromJson(json["creator"]),
         participants: List<Participant>.from(
             json["participants"].map((x) => Participant.fromJson(x))),
+        rejectionReason: json['rejection_reason'] ?? '',
       );
 
   Map<String, dynamic> toJson() => {
@@ -155,6 +158,7 @@ class OrganizedEventModel {
         "is_recurring": isRecurring,
         "creator": creator.toJson(),
         "participants": List<dynamic>.from(participants.map((x) => x)),
+        "rejection_reason": rejectionReason,
       };
 }
 
