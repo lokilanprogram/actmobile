@@ -137,7 +137,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     .any((review) => review.user.id == userId) &&
                 state.eventModel.creatorId != userId &&
                 state.eventModel.participants
-                    .any((user) => user.id == userId)) {
+                    .any((user) => user.user.id == userId)) {
               showAddReviewsBottomSheet(context, userId, state.eventModel);
             }
           }

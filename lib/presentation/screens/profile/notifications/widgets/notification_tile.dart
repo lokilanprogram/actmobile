@@ -1,9 +1,11 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/date_utils.dart';
 import 'package:acti_mobile/data/models/notifications_model.dart';
+import 'package:acti_mobile/data/models/status_model.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/chat_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/event/event_detail_screen.dart';
 import 'package:acti_mobile/presentation/screens/maps/public_user/screen/public_user_screen.dart';
+import 'package:acti_mobile/presentation/screens/profile/my_events/create/create_event_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/detail/event_detail_home_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/get/my_events_screen.dart';
 import 'package:acti_mobile/presentation/screens/profile/my_events/requests/event_request_screen.dart';
@@ -12,10 +14,12 @@ import 'package:flutter/material.dart';
 
 class NotificationTile extends StatelessWidget {
   final NotificationModel notification;
+  final String userId;
 
   const NotificationTile({
     super.key,
     required this.notification,
+    required this.userId,
   });
 
   @override
@@ -47,6 +51,7 @@ class NotificationTile extends StatelessWidget {
                 letterSpacing: 0,
                 color: Colors.black),
           ),
+          Text(notification.type),
           Text(
             formattedTimestamp(notification.sentAt.toLocal()),
             style: TextStyle(
@@ -162,23 +167,27 @@ class NotificationTile extends StatelessWidget {
               await Navigator.push(
                   context,
                   MaterialPageRoute(
+                      builder: (_) => EventRequestScreen(
+                          eventId: n.eventId ?? "",
+                          participants: [],
+                          completedStatus: completedStatus
+                              .contains(n.event?.status ?? ""))));
+            });
+      case 'event_reminder':
+        return NotificationButton(
+            text: "К заявкам",
+            onTap: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
                       builder: (_) =>
                           EventDetailHomeScreen(eventId: n.eventId ?? "")));
             });
-      case 'event_reminder':
       case 'event_update':
       case 'new_comment':
       case 'recommendation':
       case 'time_changed':
       case 'price_changed':
-      case 'event_cancelled':
-      case 'event_pending':
-      case 'event_approved':
-      case 'event_editing':
-      case 'event_rejected':
-      case 'event_finished':
-      case 'event_edited_by_admin':
-      case 'event_deleted_by_admin':
         return NotificationButton(
             text: "Событие",
             onTap: () async {
@@ -187,6 +196,47 @@ class NotificationTile extends StatelessWidget {
                   MaterialPageRoute(
                       builder: (_) =>
                           EventDetailScreen(eventId: n.eventId ?? "")));
+            });
+      case 'event_cancelled':
+      case 'event_pending':
+      case 'event_approved':
+      case 'event_editing':
+      case 'event_rejected':
+        return NotificationButton(
+            text: "Событие",
+            onTap: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          EventDetailHomeScreen(eventId: n.eventId ?? "")));
+            });
+      case 'event_finished':
+        return NotificationButton(
+            text: "Событие",
+            onTap: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          EventDetailHomeScreen(eventId: n.eventId ?? "")));
+            });
+      case 'event_edited_by_admin':
+        return NotificationButton(
+            text: "Событие",
+            onTap: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          EventDetailHomeScreen(eventId: n.eventId ?? "")));
+            });
+      case 'event_deleted_by_admin':
+        return NotificationButton(
+            text: "Событие",
+            onTap: () async {
+              await Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => MyEventsScreen()));
             });
       case 'report_resolved':
       case 'user_blocked':

@@ -132,260 +132,262 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
               body: Stack(
                 children: [
                   Positioned.fill(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          Stack(
-                            children: [
-                              profileModel.photoUrl != null
-                                  ? Image.network(profileModel.photoUrl!,
-                                      width: double.infinity,
+                    child: Column(
+                      children: [
+                        Stack(
+                          children: [
+                            profileModel.photoUrl != null
+                                ? Image.network(profileModel.photoUrl!,
+                                    width: double.infinity,
+                                    height: 350,
+                                    fit: BoxFit.cover, loadingBuilder:
+                                        (BuildContext context, Widget child,
+                                            ImageChunkEvent? loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return SizedBox(
                                       height: 350,
-                                      fit: BoxFit.cover,
-                                      loadingBuilder: (BuildContext context,
-                                          Widget child,
-                                          ImageChunkEvent? loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return SizedBox(
-                                        height: 350,
-                                        child: Center(
-                                          child: CircularProgressIndicator(
-                                            color: mainBlueColor,
-                                            value: loadingProgress
-                                                        .expectedTotalBytes !=
-                                                    null
-                                                ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    loadingProgress
-                                                        .expectedTotalBytes!
-                                                : null,
-                                          ),
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          color: mainBlueColor,
+                                          value: loadingProgress
+                                                      .expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
                                         ),
-                                      );
-                                    })
-                                  : Image.asset(
-                                      'assets/images/image_profile.png',
-                                      width: double.infinity,
-                                      height: 350,
-                                      fit: BoxFit.cover,
-                                    ),
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.center,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Colors.transparent,
-                                        Colors.black.withOpacity(0.6),
-                                      ],
-                                    ),
+                                      ),
+                                    );
+                                  })
+                                : Image.asset(
+                                    'assets/images/image_profile.png',
+                                    width: double.infinity,
+                                    height: 350,
+                                    fit: BoxFit.cover,
+                                  ),
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.center,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withOpacity(0.6),
+                                    ],
                                   ),
                                 ),
                               ),
-                              Positioned(
-                                  top: 48,
-                                  right: 10,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
+                            ),
+                            Positioned(
+                                top: 48,
+                                right: 10,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: 40,
+                                      height: 40,
+                                      child: InkWell(
+                                        onTap: () async {
+                                          if (profileModel.isEmailVerified) {
+                                            await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        NotificationsScreen()));
+                                          } else {
+                                            showAlertOKDialog(context, null,
+                                                isTitled: true,
+                                                title: 'Подтвердите почту');
+                                          }
+                                        },
+                                        child: Icon(
+                                            Icons.notifications_none_outlined,
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                    PopUpProfileButtons(
+                                      deleteFunction: () {
+                                        if (!mounted) return;
+                                        setState(() {
+                                          isLoading = true;
+                                        });
+                                        context
+                                            .read<ProfileBloc>()
+                                            .add(ProfileLogoutEvent());
+                                      },
+                                      editFunction: () async {
+                                        await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    UpdateProfileScreen(
+                                                      profileModel:
+                                                          profileModel,
+                                                    )));
+                                      },
+                                      settingsFunction: _openSettingsPage,
+                                    ),
+                                  ],
+                                )),
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              child: ClipRRect(
+                                child: Container(
+                                  height: 120,
+                                  padding: const EdgeInsets.only(
+                                      left: 20, right: 20, top: 10),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      SizedBox(
-                                        width: 40,
-                                        height: 40,
-                                        child: InkWell(
-                                          onTap: () async {
-                                            if (profileModel.isEmailVerified) {
-                                              await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (_) =>
-                                                          NotificationsScreen()));
-                                            } else {
-                                              showAlertOKDialog(context, null,
-                                                  isTitled: true,
-                                                  title: 'Подтвердите почту');
-                                            }
-                                          },
-                                          child: Icon(
-                                              Icons.notifications_none_outlined,
-                                              color: Colors.white),
+                                      Text(
+                                        profileModel.surname != null &&
+                                                profileModel.surname != ""
+                                            ? '${capitalize(profileModel.surname!)} ${capitalize(profileModel.name!)}'
+                                            : capitalize(profileModel.name ??
+                                                'Неизвестное имя'),
+                                        style: TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
                                         ),
                                       ),
-                                      PopUpProfileButtons(
-                                        deleteFunction: () {
-                                          if (!mounted) return;
-                                          setState(() {
-                                            isLoading = true;
-                                          });
-                                          context
-                                              .read<ProfileBloc>()
-                                              .add(ProfileLogoutEvent());
-                                        },
-                                        editFunction: () async {
-                                          await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (_) =>
-                                                      UpdateProfileScreen(
-                                                        profileModel:
-                                                            profileModel,
-                                                      )));
-                                        },
-                                        settingsFunction: _openSettingsPage,
+                                      SizedBox(height: 4),
+                                      Text(
+                                        capitalize(profileModel.status),
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white.withOpacity(0.5),
+                                        ),
                                       ),
                                     ],
-                                  )),
-                              Positioned(
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
                                 bottom: 0,
                                 left: 0,
                                 right: 0,
-                                child: ClipRRect(
-                                  child: Container(
-                                    height: 120,
-                                    padding: const EdgeInsets.only(
-                                        left: 20, right: 20, top: 10),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          profileModel.surname != null &&
-                                                  profileModel.surname != ""
-                                              ? '${capitalize(profileModel.surname!)} ${capitalize(profileModel.name!)}'
-                                              : capitalize(profileModel.name ??
-                                                  'Неизвестное имя'),
-                                          style: TextStyle(
-                                            fontFamily: 'Inter',
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          capitalize(profileModel.status),
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontFamily: 'Inter',
-                                            fontWeight: FontWeight.w700,
-                                            color:
-                                                Colors.white.withOpacity(0.5),
-                                          ),
-                                        ),
-                                      ],
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(20),
+                                          topRight: Radius.circular(20)),
+                                      color: Colors.white),
+                                )),
+                          ],
+                        ),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            physics: AlwaysScrollableScrollPhysics(),
+                            child: Container(
+                              width: MediaQuery.of(context).size.width,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 25, vertical: 5),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Профиль',
+                                    style: TextStyle(
+                                      fontSize: 25,
+                                      fontFamily: 'Gilroy',
+                                      fontWeight: FontWeight.bold,
+                                      color: mainBlueColor,
                                     ),
                                   ),
-                                ),
-                              ),
-                              Positioned(
-                                  bottom: 0,
-                                  left: 0,
-                                  right: 0,
-                                  child: Container(
-                                    width: MediaQuery.of(context).size.width,
-                                    height: 20,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(20),
-                                            topRight: Radius.circular(20)),
-                                        color: Colors.white),
-                                  )),
-                            ],
-                          ),
-                          Container(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 25, vertical: 5),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Профиль',
-                                  style: TextStyle(
-                                    fontSize: 25,
-                                    fontFamily: 'Gilroy',
-                                    fontWeight: FontWeight.bold,
-                                    color: mainBlueColor,
+                                  SizedBox(
+                                    height: 23,
                                   ),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                const Text(
-                                  'О себе',
-                                  style: TextStyle(
-                                    fontSize: 16.67,
-                                    fontFamily: 'Gilroy',
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black,
+                                  const Text(
+                                    'О себе',
+                                    style: TextStyle(
+                                      fontSize: 16.67,
+                                      fontFamily: 'Gilroy',
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  profileModel.bio == '' ||
-                                          profileModel.bio == null
-                                      ? '...'
-                                      : profileModel.bio!,
-                                  style: TextStyle(
-                                      fontFamily: 'Inter', fontSize: 12),
-                                ),
-                                const SizedBox(height: 15),
-                                buildInterestsGrid(
-                                  profileModel.categories
-                                      .map((e) => e.name)
-                                      .toList(),
-                                ),
-                                const SizedBox(height: 25),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 0),
-                                  child: similiarUsersModel.length > 0
-                                      ? GestureDetector(
-                                          onTap: () {
-                                            Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        SimilarUsersScreen(
-                                                            isVerified: profileModel.isEmailVerified)));
-                                          },
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                'Похожие пользователи',
-                                                style: TextStyle(
-                                                  fontSize: 16.67,
-                                                  fontFamily: 'Gilroy',
-                                                  fontWeight: FontWeight.w600,
+                                  SizedBox(height: 7),
+                                  Text(
+                                    profileModel.bio == '' ||
+                                            profileModel.bio == null
+                                        ? '...'
+                                        : profileModel.bio!,
+                                    style: TextStyle(
+                                        fontFamily: 'Inter', fontSize: 12),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  buildInterestsGrid(
+                                    profileModel.categories
+                                        .map((e) => e.name)
+                                        .toList(),
+                                  ),
+                                  const SizedBox(height: 32),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 0),
+                                    child: similiarUsersModel.length > 0
+                                        ? GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          SimilarUsersScreen(
+                                                              isVerified:
+                                                                  profileModel
+                                                                      .isEmailVerified)));
+                                            },
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  'Похожие пользователи',
+                                                  style: TextStyle(
+                                                    fontSize: 16.67,
+                                                    fontFamily: 'Gilroy',
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 5),
+                                                Icon(
+                                                  Icons.arrow_forward_ios,
+                                                  size: 16,
                                                   color: Colors.black,
                                                 ),
-                                              ),
-                                              SizedBox(width: 5),
-                                              Icon(
-                                                Icons.arrow_forward_ios,
-                                                size: 16,
-                                                color: Colors.black,
-                                              ),
-                                            ],
+                                              ],
+                                            ),
+                                          )
+                                        : Text(
+                                            'Похожие пользователи',
+                                            style: TextStyle(
+                                              fontSize: 16.67,
+                                              fontFamily: 'Gilroy',
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black,
+                                            ),
                                           ),
-                                        )
-                                      : Text(
-                                          'Похожие пользователи',
-                                          style: TextStyle(
-                                            fontSize: 16.67,
-                                            fontFamily: 'Gilroy',
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                ),
-                                const SizedBox(height: 10),
-                                Center(
+                                  ),
+                                  const SizedBox(height: 11),
+                                  Center(
                                     child: similiarUsersModel.isEmpty
                                         ? buildNoUsers()
                                         : SizedBox(
@@ -403,12 +405,15 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                               child:
                                                   buildSimiliarUsers(context),
                                             ),
-                                          )),
-                              ],
+                                          ),
+                                  ),
+                                  SizedBox(height: 175),
+                                ],
+                              ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
