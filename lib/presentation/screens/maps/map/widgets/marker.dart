@@ -355,32 +355,17 @@ class OptimizedCategoryMarker extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  margin: EdgeInsets.all(10),
+                  margin: const EdgeInsets.all(10),
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(30),
-                    // border: Border.all(color: Colors.grey[300]!, width: 1),
+                    border: Border.all(color: Colors.grey[300]!, width: 1),
                   ),
-                  child: preloadedImage != null
-                      ? Image.memory(
-                          preloadedImage!,
-                          width: 20,
-                          height: 20,
-                          fit: BoxFit.contain,
-                        )
-                      : Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Icon(Icons.category,
-                              color: Colors.grey, size: 16),
-                        ),
+                  child: _buildImageWidget(),
                 ),
+                const SizedBox(width: 8),
                 Flexible(
                   child: Text(
                     title,
@@ -398,6 +383,46 @@ class OptimizedCategoryMarker extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildImageWidget() {
+    if (preloadedImage != null) {
+      print('[DEBUG_MARKER] Building image widget with preloaded image (${preloadedImage!.length} bytes)');
+      try {
+        return Image.memory(
+          preloadedImage!,
+          width: 20,
+          height: 20,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            print('[ERROR_MARKER] Failed to load preloaded image: $error');
+            return _buildFallbackIcon();
+          },
+        );
+      } catch (e) {
+        print('[ERROR_MARKER] Exception while loading preloaded image: $e');
+        return _buildFallbackIcon();
+      }
+    } else {
+      print('[DEBUG_MARKER] Building fallback icon (no preloaded image)');
+      return _buildFallbackIcon();
+    }
+  }
+
+  Widget _buildFallbackIcon() {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: const Icon(
+        Icons.category,
+        color: Colors.grey,
+        size: 16,
       ),
     );
   }
