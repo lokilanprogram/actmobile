@@ -186,7 +186,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                           const SizedBox(height: 10),
                           TabBarWidget(
                             firshTabText: 'Мои',
-                            secondTabText: 'Учавствую',
+                            secondTabText: 'Участвую',
                             selectedTab: selectedTab,
                             onTapMine: () {
                               if (!mounted) return;

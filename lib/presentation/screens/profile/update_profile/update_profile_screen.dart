@@ -882,7 +882,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                     BorderRadius.circular(25)),
                                             child: Center(
                                               child: Text(
-                                                'Учавствую',
+                                                'Участвую',
                                                 style: TextStyle(
                                                     color:
                                                         _selectedHideAttendedEvents ==
