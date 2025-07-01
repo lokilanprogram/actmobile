@@ -82,9 +82,10 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
     final width = size.width;
     final height = size.height;
     return Scaffold(
-      backgroundColor: Colors.white,
       body: Container(
-        decoration: BoxDecoration(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -94,86 +95,90 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
             ],
           ),
         ),
-        child: Padding(
-          padding: EdgeInsets.only(
-            right: width * 0.09,
-            left: width * 0.09,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: height * 0.02),
-              GridView.count(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                mainAxisSpacing: height * 0.01,
-                crossAxisSpacing: width * 0.03,
-                childAspectRatio: 4,
-                children: List.generate(widget.categories.length, (index) {
-                  final event = widget.categories[index];
-                  final isSelected = selected[index];
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: width * 0.09,
+              vertical: 16,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // SizedBox(
+                //   height: height * 0.5,
+                GridView.count(
+                  shrinkWrap: true,
+                  // physics: NeverScrollableScrollPhysics(),
+                  physics: ScrollPhysics(parent: ScrollPhysics()),
+                  crossAxisCount: 2,
+                  mainAxisSpacing: height * 0.003,
+                  crossAxisSpacing: width * 0.04,
+                  childAspectRatio: 4,
+                  children: List.generate(widget.categories.length, (index) {
+                    final event = widget.categories[index];
+                    final isSelected = selected[index];
 
-                  return InkWell(
-                    onTap: () {
-                      setState(() {
-                        selected[index] = !selected[index];
-                        if (selected[index]) {
-                          listOnboarding.add(event);
-                        } else {
-                          listOnboarding.remove(event);
-                        }
-                        widget.onCategoriesSelected?.call(listOnboarding);
-                      });
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        color: isSelected ? Colors.blue : Colors.white,
-                      ),
-                      child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: width * 0.025),
-                        child: Row(
-                          children: [
-                            Image.network(
-                              event.iconPath,
-                              width: width * 0.045,
-                              height: width * 0.045,
-                              color: isSelected ? Colors.white : null,
-                            ),
-                            SizedBox(width: width * 0.012),
-                            Expanded(
-                              child: Text(
-                                event.name,
-                                overflow: TextOverflow.fade,
-                                maxLines: 1,
-                                style: TextStyle(
-                                  fontFamily: 'Gilroy',
-                                  fontSize: width * 0.038,
-                                  fontWeight: FontWeight.w400,
-                                  color:
-                                      isSelected ? Colors.white : Colors.black,
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          selected[index] = !selected[index];
+                          if (selected[index]) {
+                            listOnboarding.add(event);
+                          } else {
+                            listOnboarding.remove(event);
+                          }
+                          widget.onCategoriesSelected?.call(listOnboarding);
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: isSelected ? Colors.blue : Colors.white,
+                        ),
+                        child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: width * 0.025),
+                          child: Row(
+                            children: [
+                              Image.network(
+                                event.iconPath,
+                                width: width * 0.045,
+                                height: width * 0.045,
+                                color: isSelected ? Colors.white : null,
+                              ),
+                              SizedBox(width: width * 0.012),
+                              Expanded(
+                                child: Text(
+                                  event.name,
+                                  overflow: TextOverflow.fade,
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    fontFamily: 'Gilroy',
+                                    fontSize: width * 0.038,
+                                    fontWeight: FontWeight.w400,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: height * 0.05, left: width * 0),
-                child: SvgPicture.asset(
-                  'assets/texts/text_select_event.svg',
-                  fit: BoxFit.fill,
-                  width: width * 0.7,
+                    );
+                  }),
                 ),
-              ),
-              // SizedBox(height: height * 0.02),
-            ],
+                Padding(
+                  padding: EdgeInsets.only(top: height * 0.02, left: width * 0),
+                  child: SvgPicture.asset(
+                    'assets/texts/text_select_event.svg',
+                    fit: BoxFit.fill,
+                    width: width * 0.7,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
