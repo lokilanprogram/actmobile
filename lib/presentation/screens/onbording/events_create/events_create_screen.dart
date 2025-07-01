@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 class EventsCreateScreen extends StatelessWidget {
   const EventsCreateScreen({super.key});
+
+  double _getFontSize(
+      BuildContext context, double small, double medium, double large) {
+    final size = MediaQuery.of(context).size;
+    final diagonal =
+        sqrt((size.width * size.width + size.height * size.height));
+    final screenInches =
+        diagonal / 100; // Простой коэффициент для перевода в дюймы
+
+    print('DEBUG: width=${size.width}, height=${size.height}');
+    print('DEBUG: diagonal=$diagonal, screenInches=$screenInches');
+
+    if (screenInches <= 5.3) {
+      print('DEBUG: Using small font size');
+      return small;
+    }
+    if (screenInches <= 6.0) {
+      print('DEBUG: Using medium font size');
+      return medium;
+    }
+    if (screenInches <= 6.7) {
+      print('DEBUG: Using large font size');
+      return large;
+    }
+    print('DEBUG: Using large font size (default)');
+    return large;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +77,7 @@ class EventsCreateScreen extends StatelessWidget {
                         style: TextStyle(
                           letterSpacing: 0.01,
                           color: Colors.white,
-                          fontSize: width * 0.09,
+                          fontSize: _getFontSize(context, 18, 22, 35),
                           fontFamily: "Gilroy",
                           fontWeight: FontWeight.w700,
                           height: 0.7,
@@ -61,7 +89,7 @@ class EventsCreateScreen extends StatelessWidget {
                         style: TextStyle(
                           letterSpacing: 0.1,
                           color: Colors.white,
-                          fontSize: width * 0.045,
+                          fontSize: _getFontSize(context, 11, 13, 18),
                           fontFamily: "Gilroy",
                           fontWeight: FontWeight.w400,
                           height: 0.9,
