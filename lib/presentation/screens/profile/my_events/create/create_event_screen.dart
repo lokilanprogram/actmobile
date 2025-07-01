@@ -871,6 +871,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
                             decoration: InputDecoration(
+                              floatingLabelBehavior: FloatingLabelBehavior.always,
                               labelText: isErrorDescription
                                   ? "Обнаружены недопустимые слова"
                                   : "",
@@ -1074,6 +1075,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         controller: controller,
         keyboardType: isPrice ? TextInputType.number : null,
         decoration: InputDecoration(
+          floatingLabelBehavior: FloatingLabelBehavior.always,
           labelText: isErrorTitle ? "Обнаружены недопустимые слова" : "",
           labelStyle: TextStyle(color: Colors.red),
           contentPadding: EdgeInsets.only(left: 20),

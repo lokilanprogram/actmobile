@@ -691,7 +691,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                         } else if (result.type ==
                                                 'user_typing' &&
                                             result.userId != profileUserId &&
-                                            result.userId != null) {
+                                            result.userId != null &&
+                                            chatInfo?.type == "private") {
                                           WidgetsBinding.instance
                                               .addPostFrameCallback((_) {
                                             setState(() {
