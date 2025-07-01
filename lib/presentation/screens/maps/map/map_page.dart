@@ -540,7 +540,10 @@ class _MapPageState extends State<MapPage> {
       final clusterLng = clusterCoords[0] as double;
       final clusterLat = clusterCoords[1] as double;
       // Эвристика: радиус кластера зависит от количества точек
-      final clusterRadius = pointCount * 200.0; // метров
+      final minRadius = 150.0;
+      final maxRadius = 900.0;
+      final baseRadius = 120.0 + 90.0 * math.log(pointCount + 1);
+      final clusterRadius = baseRadius.clamp(minRadius, maxRadius);
 
       final mapState = BlocProvider.of<MapBloc>(context, listen: false).state;
       final eventsInCluster =
@@ -792,11 +795,11 @@ class _MapPageState extends State<MapPage> {
 
     final requiredImageIds = <String>{};
     final categoryIds = <String>{};
-    
+
     for (final group in mapState.groupedEvents) {
       final imageId = _getIconNameForGroup(group);
       requiredImageIds.add(imageId);
-      
+
       // Собираем ID категорий для предзагрузки
       if (imageId.startsWith('category_')) {
         final categoryId = imageId.split('_').last;
@@ -805,7 +808,8 @@ class _MapPageState extends State<MapPage> {
     }
 
     print('[DEBUG_GEOJSON_PREPARE] Required image IDs: $requiredImageIds');
-    print('[DEBUG_GEOJSON_PREPARE] Category IDs that need images: $categoryIds');
+    print(
+        '[DEBUG_GEOJSON_PREPARE] Category IDs that need images: $categoryIds');
 
     // Предзагружаем изображения категорий, если они еще не загружены
     if (categoryIds.isNotEmpty) {
@@ -818,7 +822,8 @@ class _MapPageState extends State<MapPage> {
         // --- 1. Prepare Image ---
         final existingImage = await mapboxMap!.style.getStyleImage(imageId);
         if (existingImage == null) {
-          print('[DEBUG_GEOJSON_PREPARE] Image $imageId not found. Capturing widget.');
+          print(
+              '[DEBUG_GEOJSON_PREPARE] Image $imageId not found. Capturing widget.');
           final imageBytes = await _captureWidgetForImageId(imageId);
           if (imageBytes != null) {
             final codec = await ui.instantiateImageCodec(imageBytes);
@@ -827,18 +832,21 @@ class _MapPageState extends State<MapPage> {
             final mbxImage = MbxImage(
                 width: uiImage.width, height: uiImage.height, data: imageBytes);
 
-            await mapboxMap!.style.addStyleImage(imageId, 1.0, mbxImage, false,
-                [], [], null);
-            print('[DEBUG_GEOJSON_PREPARE] Successfully added style image: $imageId');
+            await mapboxMap!.style
+                .addStyleImage(imageId, 1.0, mbxImage, false, [], [], null);
+            print(
+                '[DEBUG_GEOJSON_PREPARE] Successfully added style image: $imageId');
           } else {
-            print('[DEBUG_GEOJSON_PREPARE] Failed to capture widget for $imageId (returned null).');
+            print(
+                '[DEBUG_GEOJSON_PREPARE] Failed to capture widget for $imageId (returned null).');
             continue; // Skip layer creation if image failed
           }
         }
 
         // --- 2. Prepare Layer ---
         if (!_initializedLayers.contains(layerId)) {
-          print('[DEBUG_GEOJSON_PREPARE] Layer $layerId not found. Creating it.');
+          print(
+              '[DEBUG_GEOJSON_PREPARE] Layer $layerId not found. Creating it.');
           await mapboxMap!.style.addLayer(
             SymbolLayer(
               id: layerId,
@@ -849,16 +857,25 @@ class _MapPageState extends State<MapPage> {
               iconIgnorePlacement: true,
               filter: [
                 'all',
-                ['!', ['has', 'point_count']], // is an unclustered point
-                ['==', ['get', 'icon'], imageId] // and has the right icon property
+                [
+                  '!',
+                  ['has', 'point_count']
+                ], // is an unclustered point
+                [
+                  '==',
+                  ['get', 'icon'],
+                  imageId
+                ] // and has the right icon property
               ],
             ),
           );
           _initializedLayers.add(layerId);
-          print('[DEBUG_GEOJSON_PREPARE] Successfully created and cached layer: $layerId');
+          print(
+              '[DEBUG_GEOJSON_PREPARE] Successfully created and cached layer: $layerId');
         }
       } catch (e, st) {
-        print('[ERROR_GEOJSON_PREPARE] Failed to prepare image/layer for $imageId: $e');
+        print(
+            '[ERROR_GEOJSON_PREPARE] Failed to prepare image/layer for $imageId: $e');
         print(st);
       }
     }
@@ -867,16 +884,16 @@ class _MapPageState extends State<MapPage> {
   /// Ensures that category images are loaded before creating markers
   Future<void> _ensureCategoryImagesLoaded(Set<String> categoryIds) async {
     final missingCategories = <String>[];
-    
+
     for (final categoryId in categoryIds) {
       if (!_categoryImageCache.containsKey(categoryId)) {
         missingCategories.add(categoryId);
       }
     }
-    
+
     if (missingCategories.isNotEmpty) {
       print('[DEBUG_PREPARE] Missing category images: $missingCategories');
-      
+
       // Находим URL для недостающих категорий
       final categoryUrls = <String, String>{};
       for (final categoryId in missingCategories) {
@@ -890,10 +907,11 @@ class _MapPageState extends State<MapPage> {
           print('[DEBUG_PREPARE] Category $categoryId not found in events');
         }
       }
-      
+
       // Загружаем недостающие изображения
       if (categoryUrls.isNotEmpty) {
-        print('[DEBUG_PREPARE] Loading ${categoryUrls.length} missing category images');
+        print(
+            '[DEBUG_PREPARE] Loading ${categoryUrls.length} missing category images');
         final futures = <Future<void>>[];
         for (final entry in categoryUrls.entries) {
           futures.add(_loadSingleCategoryImage(entry.key, entry.value));
@@ -907,7 +925,7 @@ class _MapPageState extends State<MapPage> {
   /// Captures a widget based on its ID and returns the bytes.
   Future<Uint8List?> _captureWidgetForImageId(String imageId) async {
     print('[DEBUG_CAPTURE] Starting capture for imageId: $imageId');
-    
+
     Widget widgetToCapture;
 
     if (imageId == 'simple_point') {
@@ -916,7 +934,8 @@ class _MapPageState extends State<MapPage> {
     } else if (imageId.startsWith('grouped_')) {
       final count = int.tryParse(imageId.split('_').last) ?? 0;
       widgetToCapture = GroupedMarker(key: ValueKey(imageId), count: count);
-      print('[DEBUG_CAPTURE] Using GroupedMarker for $imageId with count: $count');
+      print(
+          '[DEBUG_CAPTURE] Using GroupedMarker for $imageId with count: $count');
     } else if (imageId.startsWith('category_')) {
       final categoryId = imageId.split('_').last;
       OrganizedEventModel? event;
@@ -929,16 +948,19 @@ class _MapPageState extends State<MapPage> {
 
       if (event != null && event.category != null) {
         final preloadedImage = _categoryImageCache[event.category!.id];
-        print('[DEBUG_CAPTURE] Capturing widget for category $categoryId, preloadedImage: ${preloadedImage != null ? 'available (${preloadedImage.length} bytes)' : 'not available'}');
-        print('[DEBUG_CAPTURE] Category name: ${event.category!.name}, iconPath: ${event.category!.iconPath}');
-        
+        print(
+            '[DEBUG_CAPTURE] Capturing widget for category $categoryId, preloadedImage: ${preloadedImage != null ? 'available (${preloadedImage.length} bytes)' : 'not available'}');
+        print(
+            '[DEBUG_CAPTURE] Category name: ${event.category!.name}, iconPath: ${event.category!.iconPath}');
+
         widgetToCapture = OptimizedCategoryMarker(
           key: ValueKey(imageId),
           title: event.category!.name,
           preloadedImage: preloadedImage,
         );
       } else {
-        print('[DEBUG_CAPTURE] Category not found for $categoryId, using fallback');
+        print(
+            '[DEBUG_CAPTURE] Category not found for $categoryId, using fallback');
         widgetToCapture = const OptimizedCategoryMarker(
           title: 'Событие',
           preloadedImage: null,
@@ -948,7 +970,7 @@ class _MapPageState extends State<MapPage> {
       print('[DEBUG_CAPTURE] Unknown imageId: $imageId');
       return null;
     }
-    
+
     try {
       print('[DEBUG_CAPTURE] Capturing widget with screenshotController...');
       final capturedBytes = await screenshotController.captureFromWidget(
@@ -961,8 +983,9 @@ class _MapPageState extends State<MapPage> {
         ),
         delay: Duration.zero,
       );
-      
-      print('[DEBUG_CAPTURE] Successfully captured widget for $imageId (${capturedBytes.length} bytes)');
+
+      print(
+          '[DEBUG_CAPTURE] Successfully captured widget for $imageId (${capturedBytes.length} bytes)');
       return capturedBytes;
     } catch (e) {
       print('[ERROR_CAPTURE] Failed to capture widget for $imageId: $e');
@@ -1007,58 +1030,69 @@ class _MapPageState extends State<MapPage> {
         uniqueCategories[event.category!.id] = event.category!.iconPath;
       }
     }
-    
-    print('[DEBUG_PRELOAD] Starting to preload ${uniqueCategories.length} category images');
-    
+
+    print(
+        '[DEBUG_PRELOAD] Starting to preload ${uniqueCategories.length} category images');
+
     final futures = <Future<void>>[];
     for (final entry in uniqueCategories.entries) {
       final categoryId = entry.key;
       final iconUrl = entry.value;
-      
+
       if (!_categoryImageCache.containsKey(categoryId)) {
         futures.add(_loadSingleCategoryImage(categoryId, iconUrl));
       }
     }
-    
+
     // Ждем загрузки всех изображений
     await Future.wait(futures);
-    print('[DEBUG_PRELOAD] Finished preloading ${_categoryImageCache.length} images');
+    print(
+        '[DEBUG_PRELOAD] Finished preloading ${_categoryImageCache.length} images');
   }
 
   /// Loads a single category image and caches it
-  Future<void> _loadSingleCategoryImage(String categoryId, String iconUrl) async {
+  Future<void> _loadSingleCategoryImage(
+      String categoryId, String iconUrl) async {
     try {
-      print('[DEBUG_PRELOAD] Loading image for category $categoryId from $iconUrl');
-      
+      print(
+          '[DEBUG_PRELOAD] Loading image for category $categoryId from $iconUrl');
+
       final imageProvider = CachedNetworkImageProvider(iconUrl);
       final completer = Completer<Uint8List>();
-      
+
       final listener = ImageStreamListener((info, _) async {
         try {
-          print('[DEBUG_PRELOAD] Image loaded for category $categoryId, converting to bytes...');
-          final byteData = await info.image.toByteData(format: ui.ImageByteFormat.png);
+          print(
+              '[DEBUG_PRELOAD] Image loaded for category $categoryId, converting to bytes...');
+          final byteData =
+              await info.image.toByteData(format: ui.ImageByteFormat.png);
           if (byteData != null) {
             final bytes = byteData.buffer.asUint8List();
             _categoryImageCache[categoryId] = bytes;
             completer.complete(bytes);
-            print('[DEBUG_PRELOAD] Successfully loaded image for category $categoryId (${bytes.length} bytes)');
+            print(
+                '[DEBUG_PRELOAD] Successfully loaded image for category $categoryId (${bytes.length} bytes)');
           } else {
-            print('[ERROR_PRELOAD] Failed to get image byte data for category $categoryId');
-            completer.completeError('Failed to get image byte data for category $categoryId');
+            print(
+                '[ERROR_PRELOAD] Failed to get image byte data for category $categoryId');
+            completer.completeError(
+                'Failed to get image byte data for category $categoryId');
           }
         } catch (e) {
-          print('[ERROR_PRELOAD] Exception while converting image for category $categoryId: $e');
+          print(
+              '[ERROR_PRELOAD] Exception while converting image for category $categoryId: $e');
           completer.completeError(e);
         }
       }, onError: (error, stackTrace) {
-        print('[ERROR_PRELOAD] Failed to load image for category $categoryId: $error');
+        print(
+            '[ERROR_PRELOAD] Failed to load image for category $categoryId: $error');
         completer.completeError(error, stackTrace);
       });
-      
-      print('[DEBUG_PRELOAD] Resolving image provider for category $categoryId...');
+
+      print(
+          '[DEBUG_PRELOAD] Resolving image provider for category $categoryId...');
       imageProvider.resolve(const ImageConfiguration()).addListener(listener);
       await completer.future;
-      
     } catch (e) {
       print('[ERROR_PRELOAD] Failed to load category image $categoryId: $e');
       // Не добавляем в кэш при ошибке, чтобы можно было повторить попытку
@@ -1091,10 +1125,11 @@ class _MapPageState extends State<MapPage> {
           setState(() {
             searchedEventsModel = model;
           });
-          
+
           // Сначала загружаем изображения, затем отправляем события в MapBloc
           _preloadCategoryImages(events).then((_) {
-            print('[DEBUG_LISTENER] Images preloaded, sending events to MapBloc');
+            print(
+                '[DEBUG_LISTENER] Images preloaded, sending events to MapBloc');
             context.read<MapBloc>().add(LoadEvents(events));
           }).catchError((e) {
             print('[ERROR_LISTENER] Failed to preload images: $e');
