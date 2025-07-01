@@ -245,6 +245,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                         controller: isMineEvents
                                             ? _scrollControllerMy
                                             : _scrollControllerVisited,
+                                        physics: AlwaysScrollableScrollPhysics(),
                                         children: [
                                           if (isMineEvents)
                                             buildMyEvents(query)
