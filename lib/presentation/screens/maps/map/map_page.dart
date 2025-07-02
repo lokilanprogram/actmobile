@@ -147,7 +147,7 @@ class _MapPageState extends State<MapPage> {
     profileId = await SecureStorageService().getUserId();
     final accessToken = futures[0] as String;
     currentPermission = futures[1] as geolocator.LocationPermission;
-    _connectWebSocket(accessToken);
+    //_connectWebSocket(accessToken);
     Future.microtask(() {
       _mapOptimizationService.preloadMapData().catchError((e) {
         developer.log('Ошибка предварительной загрузки карты: $e',

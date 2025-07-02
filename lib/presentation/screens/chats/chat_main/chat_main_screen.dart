@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/date_utils.dart';
@@ -14,6 +15,7 @@ import 'package:acti_mobile/presentation/widgets/loader_widget.dart';
 import 'package:acti_mobile/presentation/widgets/tab_bar_widget.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -38,6 +40,8 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
   String? lastProcessedEventId;
   String? userId;
   int _count = 0;
+  Map<String, Timer> _typingTimers = {};
+  Map<String, String> _originalMessages = {};
 
   late final ScrollController _scrollControllerPrivate = ScrollController();
   bool isLoadingMorePrivate = false;
@@ -88,6 +92,12 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
     _scrollControllerPrivate.dispose();
     _scrollControllerGroup.dispose();
     webSocketService?.dispose();
+    // Отменяем все активные таймеры
+    for (var timer in _typingTimers.values) {
+      timer.cancel();
+    }
+    _typingTimers.clear();
+    _originalMessages.clear();
     super.dispose();
   }
 
@@ -114,6 +124,45 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
         setState(() => isLoadingMoreGroup = true);
         context.read<ChatBloc>().add(GetAllChatsEvent(loadMoreGroup: true));
       }
+    }
+  }
+
+  void _resetTypingState(String chatId) {
+    if (!mounted) return;
+
+    // Возвращаем последнее сообщение для приватных чатов
+    allPrivateChats.chats = allPrivateChats.chats.map((chat) {
+      if (chat.id == chatId && chat.lastMessage != null) {
+        final originalContent = _originalMessages[chatId];
+        return chat.copyWith(
+          lastMessage: chat.lastMessage!.copyWith(
+            content: originalContent ?? chat.lastMessage!.content,
+          ),
+        );
+      }
+      return chat;
+    }).toList();
+
+    // Возвращаем последнее сообщение для групповых чатов
+    allGroupChats.chats = allGroupChats.chats.map((chat) {
+      if (chat.id == chatId && chat.lastMessage != null) {
+        final originalContent = _originalMessages[chatId];
+        return chat.copyWith(
+          lastMessage: chat.lastMessage!.copyWith(
+            content: originalContent ?? chat.lastMessage!.content,
+          ),
+        );
+      }
+      return chat;
+    }).toList();
+
+    // Удаляем таймер и оригинальное сообщение из карт
+    _typingTimers.remove(chatId);
+    _originalMessages.remove(chatId);
+
+    // Вызываем setState после обновления данных
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -348,8 +397,14 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                     final updatedPrivate = <Chat>[];
 
                                     for (var chat in private) {
-                                      if (chat.id == chatId &&
-                                          chat.lastMessage != null) {
+                                      if (chat.id == chatId) {
+                                        if (chat.unreadCount == 0 &&
+                                            isFromAnotherUser) {
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                            unreadProvider.increment();
+                                          });
+                                        }
                                         final updatedChat = chat.copyWith(
                                           unreadCount: isFromAnotherUser
                                               ? (chat.unreadCount ?? 0) + 1
@@ -362,8 +417,6 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                         );
                                         updatedPrivate.insert(
                                             0, updatedChat); // перемещаем вверх
-                                      } else {
-                                        updatedPrivate.add(chat);
                                       }
                                     }
                                     allPrivateChats.chats = updatedPrivate;
@@ -373,8 +426,14 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                     final updatedGroup = <Chat>[];
 
                                     for (var chat in group) {
-                                      if (chat.id == chatId &&
-                                          chat.lastMessage != null) {
+                                      if (chat.id == chatId) {
+                                        if (chat.unreadCount == 0 &&
+                                            isFromAnotherUser) {
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                            unreadProvider.increment();
+                                          });
+                                        }
                                         final updatedChat = chat.copyWith(
                                           unreadCount:
                                               (chat.unreadCount ?? 0) + 1,
@@ -386,17 +445,50 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                         );
                                         updatedGroup.insert(
                                             0, updatedChat); // перемещаем вверх
-                                      } else {
-                                        updatedGroup.add(chat);
                                       }
                                     }
                                     allGroupChats.chats = updatedGroup;
+
+                                    // Обновляем UI после изменения данных
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                    });
                                   } else if (result.eventType ==
                                           "user_typing" &&
-                                      result.data?.userId != userId) {
+                                      result.data?.userId != userId &&
+                                      result.chatId != null) {
+                                    final chatId = result.chatId!;
+
+                                    // Отменяем предыдущий таймер для этого чата, если он существует
+                                    _typingTimers[chatId]?.cancel();
+
+                                    // Сохраняем оригинальное сообщение, если еще не сохранено
+                                    if (!_originalMessages
+                                        .containsKey(chatId)) {
+                                      final privateChat = allPrivateChats.chats
+                                          .where((chat) => chat.id == chatId)
+                                          .firstOrNull;
+                                      final groupChat = allGroupChats.chats
+                                          .where((chat) => chat.id == chatId)
+                                          .firstOrNull;
+
+                                      if (privateChat?.lastMessage != null) {
+                                        _originalMessages[chatId] =
+                                            privateChat!.lastMessage!.content;
+                                      } else if (groupChat?.lastMessage !=
+                                          null) {
+                                        _originalMessages[chatId] =
+                                            groupChat!.lastMessage!.content;
+                                      }
+                                    }
+
+                                    // Обновляем приватные чаты
                                     allPrivateChats.chats =
                                         allPrivateChats.chats.map((chat) {
-                                      if (chat.id == result.chatId &&
+                                      if (chat.id == chatId &&
                                           chat.lastMessage != null) {
                                         return chat.copyWith(
                                           lastMessage: chat.lastMessage!
@@ -405,9 +497,11 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                       }
                                       return chat;
                                     }).toList();
+
+                                    // Обновляем групповые чаты
                                     allGroupChats.chats =
                                         allGroupChats.chats.map((chat) {
-                                      if (chat.id == result.chatId &&
+                                      if (chat.id == chatId &&
                                           chat.lastMessage != null) {
                                         return chat.copyWith(
                                           lastMessage: chat.lastMessage!
@@ -416,6 +510,20 @@ class _ChatMainScreenState extends State<ChatMainScreen> {
                                       }
                                       return chat;
                                     }).toList();
+
+                                    // Запускаем таймер на 1 секунду
+                                    _typingTimers[chatId] = Timer(
+                                      const Duration(seconds: 1),
+                                      () => _resetTypingState(chatId),
+                                    );
+
+                                    // Обновляем UI после изменения данных
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                    });
                                   }
                                 }
                               }

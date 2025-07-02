@@ -51,7 +51,7 @@ class NotificationTile extends StatelessWidget {
                 letterSpacing: 0,
                 color: Colors.black),
           ),
-          Text(notification.type),
+          //Text(notification.type),
           Text(
             formattedTimestamp(notification.sentAt.toLocal()),
             style: TextStyle(
