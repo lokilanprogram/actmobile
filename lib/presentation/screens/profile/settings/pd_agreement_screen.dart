@@ -41,6 +41,8 @@ class _PdAgreementScreenState extends State<PdAgreementScreen> {
               Navigator.pop(context);
             },
           ),
+        titleSpacing: 0,
+        centerTitle: false,
         backgroundColor: Colors.white,
         title: const Text('Согласие на обработку ПД',
             style: TextStyle(

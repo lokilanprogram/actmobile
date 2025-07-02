@@ -42,6 +42,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               Navigator.pop(context);
             },
           ),
+        titleSpacing: 0,
+        centerTitle: false,
         backgroundColor: Colors.white,
         title: const Text('Политика конфиденциальности',
             style: TextStyle(

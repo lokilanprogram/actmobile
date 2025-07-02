@@ -42,6 +42,8 @@ class _UserAgreementScreenState extends State<UserAgreementScreen> {
             Navigator.pop(context);
           },
         ),
+        centerTitle: false,
+        titleSpacing: 0,
         backgroundColor: Colors.white,
         title: const Text('Пользовательское соглашение',
             style: TextStyle(

@@ -18,14 +18,18 @@ class FaqScreen extends StatelessWidget {
               Navigator.pop(context);
             },
           ),
+          titleSpacing: 0,
           centerTitle: false,
           backgroundColor: Colors.white,
-          title: const Text('Часто задаваемые вопросы и ответы',
-              maxLines: 2,
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w300,
-                  fontFamily: "Inter")),
+          title: Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: const Text('Часто задаваемые вопросы и ответы',
+                maxLines: 2,
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w300,
+                    fontFamily: "Inter")),
+          ),
         ),
         body: Consumer<FaqProvider>(
           builder: (context, faqProvider, child) {
@@ -79,14 +83,14 @@ class FaqScreen extends StatelessWidget {
                             style: TextStyle(
                                 color: Color.fromARGB(255, 26, 107, 199),
                                 fontWeight: FontWeight.w400,
-                                fontSize: 12),
+                                fontSize: 14),
                           ),
                           SizedBox(height: 4),
                           Text(
                             faqs[idx].answer,
                             style: const TextStyle(
                                 fontWeight: FontWeight.w400,
-                                fontSize: 10,
+                                fontSize: 12,
                                 height: 1),
                           ),
                         ]

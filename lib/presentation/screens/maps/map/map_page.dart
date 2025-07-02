@@ -1345,6 +1345,12 @@ class _MapPageState extends State<MapPage> {
                                         filterProvider.selectedAgeRestrictions,
                                     // ... and so on
                                   };
+                                  // Добавляем категории, если выбраны
+                                  if (filterProvider
+                                      .selectedCategoryIds.isNotEmpty) {
+                                    filters['category_ids'] =
+                                        filterProvider.selectedCategoryIds;
+                                  }
                                   context
                                       .read<MapBloc>()
                                       .add(ApplyFilter(filters));
