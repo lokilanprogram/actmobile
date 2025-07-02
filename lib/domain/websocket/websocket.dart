@@ -150,10 +150,22 @@ class AllChatWebSocketService {
   Timer? _reconnectTimer;
   bool _isDisposed = false;
 
-  AllChatWebSocketService({required this.token}) {
+  static AllChatWebSocketService? _instance;
+  static String? _lastToken;
+
+  factory AllChatWebSocketService({required String token}) {
+    // Если уже есть экземпляр и он не был dispose, возвращаем его
+    if (_instance != null && !_instance!._isDisposed && _lastToken == token) {
+      return _instance!;
+    }
+    // Если был dispose или другой токен — создаём новый
+    _instance = AllChatWebSocketService._internal(token);
+    _lastToken = token;
+    return _instance!;
+  }
+
+  AllChatWebSocketService._internal(this.token) {
     _connect();
-    // Сохраняем в глобальную переменную для отслеживания
-    globalAllChatWebSocketService = this;
   }
 
   void _connect() {
@@ -169,29 +181,33 @@ class AllChatWebSocketService {
         },
         onDone: () {
           developer.log('WebSocket все закрыт', name: 'WEBSOCKET');
-          _scheduleReconnect();
+          _handleReconnectOrDispose();
         },
         onError: (error) {
           developer.log('Ошибка все WebSocket: $error', name: 'WEBSOCKET');
-          _scheduleReconnect();
+          _handleReconnectOrDispose();
         },
         cancelOnError: true,
       );
     } catch (e) {
       developer.log('Ошибка при создании WebSocket чатов: $e',
           name: 'WEBSOCKET');
-      _scheduleReconnect();
+      _handleReconnectOrDispose();
     }
   }
 
-  void _scheduleReconnect() {
+  void _handleReconnectOrDispose() {
     if (_isDisposed) return;
-    
+    // Сбросить синглтон, чтобы следующий вызов создал новый экземпляр
+    _instance = null;
+    _lastToken = null;
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(const Duration(seconds: 5), () {
-      if (!_isDisposed) {
-        developer.log('Попытка переподключения...', name: 'WEBSOCKET');
-        _connect();
+      if (!_isDisposed && token.isNotEmpty) {
+        developer.log('Попытка переподключения (создание нового синглтона)...', name: 'WEBSOCKET');
+        // Переподключаемся автоматически
+        _instance = AllChatWebSocketService._internal(token);
+        _lastToken = token;
       }
     });
   }
@@ -205,7 +221,7 @@ class AllChatWebSocketService {
       developer.log('Сообщение отправлено: $message', name: 'WEBSOCKET');
     } catch (e) {
       developer.log('Ошибка при отправке сообщения: $e', name: 'WEBSOCKET');
-      _scheduleReconnect();
+      _handleReconnectOrDispose();
       rethrow;
     }
   }
@@ -217,7 +233,7 @@ class AllChatWebSocketService {
       developer.log('печатаю');
     } catch (e) {
       developer.log('Ошибка печатаю');
-      _scheduleReconnect();
+      _handleReconnectOrDispose();
       rethrow;
     }
   }
@@ -229,7 +245,7 @@ class AllChatWebSocketService {
       developer.log('онлайн');
     } catch (e) {
       developer.log('Ошибка онлайн');
-      _scheduleReconnect();
+      _handleReconnectOrDispose();
       rethrow;
     }
   }
@@ -245,5 +261,8 @@ class AllChatWebSocketService {
       developer.log('Ошибка при закрытии WebSocket соединения: $e',
           name: 'WEBSOCKET');
     }
+    // Сбросить синглтон
+    _instance = null;
+    _lastToken = null;
   }
 }

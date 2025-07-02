@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/constants.dart';
 import 'package:acti_mobile/configs/date_utils.dart' as custom_date;
@@ -54,6 +55,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   List<MessageModel> filteredMessages = [];
   int currentSearchIndex = 0;
   final Map<String, GlobalKey> _messageKeys = {};
+  String lastProcessedEventId = "";
 
   final picker = ImagePicker();
   bool isSearched = false;
@@ -84,6 +86,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   ChatInfoModel? chatInfo;
   bool isOk = false;
   bool isLoad = true;
+
+  String? _originalStatus;
+  Timer? _typingTimer;
 
   @override
   void initState() {
@@ -151,6 +156,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     interlocutorName = null;
     profileUserId = null;
     webSocketService?.dispose();
+    _typingTimer?.cancel();
     super.dispose();
   }
 
@@ -249,7 +255,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               setState(() {
                 isLoading = false;
               });
-              webSocketService?.dispose();
+              //webSocketService?.dispose();
               Navigator.pop(context, true);
             }
 
@@ -414,7 +420,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                       'Удалить диалог?',
                                       trailing != null
                                           ? 'Вы точно хотите удалить групповой чат?'
-                                          : 'Вы точно хотите удалить диалог c пользователем //?',
+                                          : 'Вы точно хотите удалить диалог c пользователем ${chatInfo?.users?.first.name}?',
                                       () async {
                                     if (!mounted) return;
                                     await Future.delayed(
@@ -678,6 +684,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                           if (result.message?.userId !=
                                               profileUserId) {
                                             status = "Онлайн";
+                                            webSocketService?.sendOnline();
                                           }
 
                                           final alreadyExists = messages.any(
@@ -694,17 +701,38 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                                 'user_typing' &&
                                             result.userId != profileUserId &&
                                             result.userId != null &&
-                                            chatInfo?.type == "private") {
-                                          WidgetsBinding.instance
-                                              .addPostFrameCallback((_) {
-                                            setState(() {
-                                              status = "Печатает...";
-                                              for (var i in messages) {
-                                                i.status = "read";
-                                              }
-                                              isReaded = true;
-                                            });
+                                            chatInfo?.type == "private" &&
+                                            result.timestamp !=
+                                                lastProcessedEventId) {
+                                          lastProcessedEventId = result.timestamp ?? "";
+                                          _typingTimer?.cancel();
+                                          if (_originalStatus == null) {
+                                            _originalStatus = status;
+                                          }
+                                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                                            if (mounted) {
+                                              setState(() {
+                                                status = "Печатает...";
+                                                for (var i in messages) {
+                                                  i.status = "read";
+                                                }
+                                                isReaded = true;
+                                              });
+                                            }
                                           });
+                                          _typingTimer = Timer(
+                                            const Duration(seconds: 1),
+                                            () {
+                                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                if (mounted) {
+                                                  setState(() {
+                                                    status = _originalStatus ?? "Офлайн";
+                                                    _originalStatus = null;
+                                                  });
+                                                }
+                                              });
+                                            },
+                                          );
                                           print(result);
                                         } else if (result.type ==
                                             "message_deleted") {

@@ -14,11 +14,13 @@ class ChatSnapshotModel {
     String type;
     MessageModel? message;
     String? userId;
+    String? timestamp;
 
     ChatSnapshotModel({
         required this.type,
         required this.message,
         this.userId,
+        this.timestamp,
     });
 
     factory ChatSnapshotModel.fromJson(Map<String, dynamic> json) => ChatSnapshotModel(
@@ -26,6 +28,7 @@ class ChatSnapshotModel {
         message:json["message"]!=null?
          MessageModel.fromJson(json["message"]):null,
          userId:json["user_id"] ?? "",
+         timestamp: json["timestamp"] ?? "",
     );
 
     Map<String, dynamic> toJson() => {

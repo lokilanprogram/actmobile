@@ -32,16 +32,23 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
   late List<bool> selected;
 
   double _getFontSize(
-      BuildContext context, double small, double medium, double large) {
-    final size = MediaQuery.of(context).size;
-    final diagonal =
-        sqrt((size.width * size.width + size.height * size.height));
-    final screenInches =
-        diagonal / 100; // Простой коэффициент для перевода в дюймы
+    BuildContext context,
+    double small,
+    double medium,
+    double large, {
+    double? extraLarge,
+  }) {
+    final width = MediaQuery.of(context).size.width;
 
-    if (screenInches <= 5.3) return small;
-    if (screenInches <= 6.0) return medium;
-    if (screenInches <= 6.7) return large;
+    // Пороги ширины экрана в dp (logical pixels)
+    const double smallMaxWidth = 360.0;
+    const double mediumMaxWidth = 480.0;
+    const double largeMaxWidth = 720.0;
+
+    if (width <= smallMaxWidth) return small;
+    if (width <= mediumMaxWidth) return medium;
+    if (width <= largeMaxWidth) return large;
+    if (extraLarge != null) return extraLarge;
     return large;
   }
 
@@ -128,8 +135,8 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                   crossAxisCount: 2,
                   // mainAxisSpacing: height * 0.003,
                   // crossAxisSpacing: width * 0.04,
-                  mainAxisSpacing: _getFontSize(context, 5, 7, 10),
-                  crossAxisSpacing: _getFontSize(context, 5, 7, 10),
+                  mainAxisSpacing: _getFontSize(context, 6, 8, 10),
+                  crossAxisSpacing: _getFontSize(context, 6, 8, 10),
                   childAspectRatio: 4,
                   children: List.generate(widget.categories.length, (index) {
                     final event = widget.categories[index];
@@ -173,7 +180,7 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                                   maxLines: 1,
                                   style: TextStyle(
                                     fontFamily: 'Gilroy',
-                                    fontSize: _getFontSize(context, 11, 13, 18),
+                                    fontSize: _getFontSize(context, 12, 15, 18),
                                     fontWeight: FontWeight.w400,
                                     color: isSelected
                                         ? Colors.white
@@ -196,7 +203,7 @@ class _EventsSelectScreenState extends State<EventsSelectScreen> {
                   style: TextStyle(
                     letterSpacing: 0.5,
                     color: Colors.white,
-                    fontSize: _getFontSize(context, 16, 20, 30),
+                    fontSize: _getFontSize(context, 20, 25, 30),
                     fontFamily: "Gilroy",
                     fontWeight: FontWeight.w700,
                     height: 0.9,

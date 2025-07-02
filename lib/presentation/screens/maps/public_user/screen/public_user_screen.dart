@@ -112,280 +112,283 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
               : Stack(
                   children: [
                     Positioned.fill(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Stack(
-                              children: [
-                                publicUserModel.photoUrl != null
-                                    ? Image.network(publicUserModel.photoUrl!,
-                                        width: double.infinity,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Stack(
+                            children: [
+                              publicUserModel.photoUrl != null
+                                  ? Image.network(publicUserModel.photoUrl!,
+                                      width: double.infinity,
+                                      height: 350,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (BuildContext context,
+                                          Widget child,
+                                          ImageChunkEvent? loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return SizedBox(
                                         height: 350,
-                                        fit: BoxFit.cover,
-                                        loadingBuilder: (BuildContext context,
-                                            Widget child,
-                                            ImageChunkEvent? loadingProgress) {
-                                        if (loadingProgress == null)
-                                          return child;
-                                        return SizedBox(
-                                          height: 350,
-                                          child: Center(
-                                            child: CircularProgressIndicator(
-                                              color: mainBlueColor,
-                                              value: loadingProgress
-                                                          .expectedTotalBytes !=
-                                                      null
-                                                  ? loadingProgress
-                                                          .cumulativeBytesLoaded /
-                                                      loadingProgress
-                                                          .expectedTotalBytes!
-                                                  : null,
-                                            ),
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            color: mainBlueColor,
+                                            value: loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
                                           ),
-                                        );
-                                      })
-                                    : Image.asset(
-                                        'assets/images/image_profile.png',
-                                        width: double.infinity,
-                                        height: 350,
-                                        fit: BoxFit.cover,
-                                      ),
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.center,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Colors.transparent,
-                                          Colors.black.withOpacity(0.6),
-                                        ],
-                                      ),
+                                        ),
+                                      );
+                                    })
+                                  : Image.asset(
+                                      'assets/images/image_profile.png',
+                                      width: double.infinity,
+                                      height: 350,
+                                      fit: BoxFit.cover,
+                                    ),
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.center,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.6),
+                                      ],
                                     ),
                                   ),
                                 ),
-                                Positioned(
-                                  top: 48,
-                                  left: 10,
-                                  child: IconButton(
-                                    icon: SvgPicture.asset(
-                                        'assets/icons/icon_back_white.svg'),
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
+                              ),
+                              Positioned(
+                                top: 48,
+                                left: 10,
+                                child: IconButton(
+                                  icon: SvgPicture.asset(
+                                      'assets/icons/icon_back_white.svg'),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ),
+                              // Positioned(
+                              //   top: 77,
+                              //   right: 60,
+                              //   child: Icon(Icons.notifications_none_outlined,
+                              //       color: Colors.white),
+                              // ),
+                              Positioned(
+                                top: 48,
+                                right: 10,
+                                child: PopUpPublicUserButtons(
+                                  isBlocked: isBlockedByPublicUser,
+                                  userId: widget.userId,
+                                  blockFunction: () async {
+                                    if (isBlockedByPublicUser) {
+                                      context.read<ProfileBloc>().add(
+                                          ProfileUnblockUserEvent(
+                                              userId: widget.userId,
+                                              isBlocked:
+                                                  isBlockedByPublicUser));
+                                      setState(() {
+                                        //isLoading = true;
+                                        isBlockedByPublicUser =
+                                            !isBlockedByPublicUser;
+                                      });
+                                    } else {
+                                      context.read<ProfileBloc>().add(
+                                          ProfileBlockUserEvent(
+                                              userId: widget.userId));
+                                      setState(() {
+                                        //isLoading = true;
+                                        isBlockedByPublicUser =
+                                            !isBlockedByPublicUser;
+                                      });
+                                    }
+                                  },
+                                  userName:
+                                      publicUserModel.name ?? 'Неизвестный',
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: ClipRRect(
+                                  child: Container(
+                                    height: 120,
+                                    padding: const EdgeInsets.only(
+                                        left: 20, right: 20, top: 10),
+                                    // decoration: BoxDecoration(
+                                    //   color: Colors.grey.withOpacity(
+                                    //       0.3), // Тёмный полупрозрачный фон
+                                    // ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          publicUserModel.surname != null &&
+                                                  publicUserModel.surname != ""
+                                              ? '${capitalize(publicUserModel.surname!)} ${capitalize(publicUserModel.name!)}'
+                                              : capitalize(
+                                                  publicUserModel.name ??
+                                                      "Неизвестный"),
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 32,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          capitalize(publicUserModel.status ??
+                                              'Offline'),
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                Colors.white.withOpacity(0.5),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                                // Positioned(
-                                //   top: 77,
-                                //   right: 60,
-                                //   child: Icon(Icons.notifications_none_outlined,
-                                //       color: Colors.white),
-                                // ),
-                                Positioned(
-                                  top: 48,
-                                  right: 10,
-                                  child: PopUpPublicUserButtons(
-                                    isBlocked: isBlockedByPublicUser,
-                                    userId: widget.userId,
-                                    blockFunction: () async {
-                                      if (isBlockedByPublicUser) {
-                                        context.read<ProfileBloc>().add(
-                                            ProfileUnblockUserEvent(
-                                                userId: widget.userId,
-                                                isBlocked:
-                                                    isBlockedByPublicUser));
-                                        setState(() {
-                                          //isLoading = true;
-                                          isBlockedByPublicUser =
-                                              !isBlockedByPublicUser;
-                                        });
-                                      } else {
-                                        context.read<ProfileBloc>().add(
-                                            ProfileBlockUserEvent(
-                                                userId: widget.userId));
-                                        setState(() {
-                                          //isLoading = true;
-                                          isBlockedByPublicUser =
-                                              !isBlockedByPublicUser;
-                                        });
-                                      }
-                                    },
-                                    userName:
-                                        publicUserModel.name ?? 'Неизвестный',
-                                  ),
-                                ),
-                                Positioned(
+                              ),
+                              Positioned(
                                   bottom: 0,
                                   left: 0,
                                   right: 0,
-                                  child: ClipRRect(
-                                    child: Container(
-                                      height: 120,
-                                      padding: const EdgeInsets.only(
-                                          left: 20, right: 20, top: 10),
-                                      // decoration: BoxDecoration(
-                                      //   color: Colors.grey.withOpacity(
-                                      //       0.3), // Тёмный полупрозрачный фон
-                                      // ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            publicUserModel.surname != null &&
-                                                    publicUserModel.surname !=
-                                                        ""
-                                                ? '${capitalize(publicUserModel.surname!)} ${capitalize(publicUserModel.name!)}'
-                                                : capitalize(
-                                                    publicUserModel.name ??
-                                                        "Неизвестный"),
-                                            style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontSize: 32,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            capitalize(publicUserModel.status ??
-                                                'Offline'),
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.w700,
-                                              color:
-                                                  Colors.white.withOpacity(0.5),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(20),
+                                            topRight: Radius.circular(20)),
+                                        color: Colors.white),
+                                  )),
+                            ],
+                          ),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              physics: AlwaysScrollableScrollPhysics(),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 25, vertical: 5),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(25)),
                                 ),
-                                Positioned(
-                                    bottom: 0,
-                                    left: 0,
-                                    right: 0,
-                                    child: Container(
-                                      width: MediaQuery.of(context).size.width,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.only(
-                                              topLeft: Radius.circular(20),
-                                              topRight: Radius.circular(20)),
-                                          color: Colors.white),
-                                    )),
-                              ],
-                            ),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 25, vertical: 5),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(25)),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Профиль',
-                                    style: TextStyle(
-                                      fontSize: 25,
-                                      fontFamily: 'Gilroy',
-                                      fontWeight: FontWeight.bold,
-                                      color: mainBlueColor,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  const Text(
-                                    'О себе',
-                                    style: TextStyle(
-                                      fontSize: 16.67,
-                                      fontFamily: 'Gilroy',
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  Text(
-                                    publicUserModel.bio?.isNotEmpty == true
-                                        ? publicUserModel.bio!
-                                        : '...',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 15),
-
-                                  // Интересы
-                                  buildInterestsGrid(
-                                    publicUserModel.categories
-                                        .map((e) => e.name)
-                                        .toList(),
-                                  ),
-
-                                  const SizedBox(height: 25),
-
-                                  // Заголовок и рейтинг
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'События ${publicUserModel.name}',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: 'Gilroy',
-                                        ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Профиль',
+                                      style: TextStyle(
+                                        fontSize: 25,
+                                        fontFamily: 'Gilroy',
+                                        fontWeight: FontWeight.bold,
+                                        color: mainBlueColor,
                                       ),
-                                      const SizedBox(width: 7),
-                                      SvgPicture.asset(
-                                          'assets/icons/icon_star.svg'),
-                                      const SizedBox(width: 3),
-                                      GradientText(
-                                        publicUserModel.rating != null
-                                            ? publicUserModel.rating.toString()
-                                            : '0',
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Color.fromRGBO(23, 132, 255, 1),
-                                            Color.fromRGBO(42, 244, 72, 1),
-                                          ],
-                                        ),
-                                        style: TextStyle(
-                                          fontFamily: 'Inter',
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                        ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    const Text(
+                                      'О себе',
+                                      style: TextStyle(
+                                        fontSize: 16.67,
+                                        fontFamily: 'Gilroy',
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    Text(
+                                      publicUserModel.bio?.isNotEmpty == true
+                                          ? publicUserModel.bio!
+                                          : '...',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 15),
 
-                                  const SizedBox(height: 15),
+                                    // Интересы
+                                    buildInterestsGrid(
+                                      publicUserModel.categories
+                                          .map((e) => e.name)
+                                          .toList(),
+                                    ),
 
-                                  // Карточки событий
-                                  Column(
-                                    children: publicUserModel.organizedEvents !=
-                                            null
-                                        ? publicUserModel.organizedEvents!
-                                            .map((event) => MyCardEventWidget(
-                                                  isCompletedEvent: false,
-                                                  organizedEvent: event,
-                                                  isPublicUser: true,
-                                                ))
-                                            .toList()
-                                        : [],
-                                  ),
-                                  //SizedBox(height:publicUserModel.organizedEvents?.length == 1? 200:0),
-                                  SizedBox(height: 200),
-                                ],
+                                    const SizedBox(height: 25),
+
+                                    // Заголовок и рейтинг
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'События ${publicUserModel.name}',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            fontFamily: 'Gilroy',
+                                          ),
+                                        ),
+                                        const SizedBox(width: 7),
+                                        SvgPicture.asset(
+                                            'assets/icons/icon_star.svg'),
+                                        const SizedBox(width: 3),
+                                        GradientText(
+                                          publicUserModel.rating != null
+                                              ? publicUserModel.rating
+                                                  .toString()
+                                              : '0',
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Color.fromRGBO(23, 132, 255, 1),
+                                              Color.fromRGBO(42, 244, 72, 1),
+                                            ],
+                                          ),
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                    const SizedBox(height: 15),
+
+                                    // Карточки событий
+                                    Column(
+                                      children: publicUserModel
+                                                  .organizedEvents !=
+                                              null
+                                          ? publicUserModel.organizedEvents!
+                                              .map((event) => MyCardEventWidget(
+                                                    isCompletedEvent: false,
+                                                    organizedEvent: event,
+                                                    isPublicUser: true,
+                                                  ))
+                                              .toList()
+                                          : [],
+                                    ),
+                                    //SizedBox(height:publicUserModel.organizedEvents?.length == 1? 200:0),
+                                    SizedBox(height: 100),
+                                  ],
+                                ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                     Align(
@@ -398,7 +401,8 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               publicUserModel.isBlockedByUser == true ||
-                                      isVerified == false
+                                      isVerified == false ||
+                                      isBlockedByPublicUser == true
                                   ? Material(
                                       elevation: 1.2,
                                       borderRadius: BorderRadius.circular(25),

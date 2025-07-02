@@ -191,7 +191,7 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
                   Positioned(
                     left: 35,
                     right: 35,
-                    bottom: 75,
+                    bottom: 35,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
