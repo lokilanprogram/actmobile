@@ -50,56 +50,57 @@ class EventsCreateScreen extends StatelessWidget {
             ],
           ),
         ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: height * 0.07,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Image.asset(
-                    'assets/images/onboard_card2.png',
-                    height: height * 0.55,
-                    width: width * 0.8,
-                  ),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            40,
+            40,
+            40,
+            70,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Image.asset(
+                  'assets/images/onboard_card2.png',
+                  height: height * 0.55,
+                  width: width * 0.8,
                 ),
-                SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Создавай \nактивность",
-                        style: TextStyle(
-                          letterSpacing: 0.01,
-                          color: Colors.white,
-                          fontSize: _getFontSize(context, 18, 22, 35),
-                          fontFamily: "Gilroy",
-                          fontWeight: FontWeight.w700,
-                          height: 0.7,
-                        ),
+              ),
+              Spacer(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Создавай \nактивность",
+                      style: TextStyle(
+                        letterSpacing: 0.01,
+                        color: Colors.white,
+                        fontSize: _getFontSize(context, 18, 22, 35),
+                        fontFamily: "Gilroy",
+                        fontWeight: FontWeight.w700,
+                        height: 0.7,
                       ),
-                      SizedBox(height: height * 0.01),
-                      Text(
-                        "Если не нашли интересующее вас, создайте свою активность! \nМы уверены, вы соберёте команду единомышленников",
-                        style: TextStyle(
-                          letterSpacing: 0.1,
-                          color: Colors.white,
-                          fontSize: _getFontSize(context, 11, 13, 18),
-                          fontFamily: "Gilroy",
-                          fontWeight: FontWeight.w400,
-                          height: 0.9,
-                        ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      "Если не нашли интересующее вас, создайте свою активность! \nМы уверены, вы соберёте команду единомышленников",
+                      style: TextStyle(
+                        letterSpacing: 0.1,
+                        color: Colors.white,
+                        fontSize: _getFontSize(context, 11, 13, 18),
+                        fontFamily: "Gilroy",
+                        fontWeight: FontWeight.w400,
+                        height: 0.9,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Spacer(),
+            ],
           ),
         ),
       ),

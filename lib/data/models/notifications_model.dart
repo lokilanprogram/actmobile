@@ -1,3 +1,5 @@
+import 'package:acti_mobile/data/models/event_model.dart';
+
 class NotificationsResponse {
   final int total;
   final int offset;
@@ -110,6 +112,7 @@ class EventModel {
   final List<String> restrictions;
   final bool? isRecurring;
   final String? rejectionReason;
+  List<Participant>? participants;
 
   EventModel({
     required this.title,
@@ -129,6 +132,7 @@ class EventModel {
     required this.restrictions,
     required this.isRecurring,
     required this.rejectionReason,
+    this.participants,
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
@@ -152,6 +156,7 @@ class EventModel {
           : [],
       isRecurring: json["is_recurring"] ?? false,
       rejectionReason: json['rejection_reason'] ?? '',
+      participants: json["participants"] == null ? [] : List<Participant>.from(json["participants"].map((x) => Participant.fromJson(x))),
     );
   }
 

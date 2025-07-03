@@ -1,5 +1,6 @@
 import 'package:acti_mobile/configs/colors.dart';
 import 'package:acti_mobile/configs/storage.dart';
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/domain/bloc/auth/auth_bloc.dart';
 import 'package:acti_mobile/presentation/screens/chats/chat_detail/models/social_login_request.dart';
 import 'package:acti_mobile/presentation/screens/auth/input_phone/input_phone.dart';
@@ -46,10 +47,11 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
     print('ЗАШЛИ В _onSocialLogin !!!');
     print('provider = $provider');
     print('==========================================');
-    
+
     print('🚀 _onSocialLogin вызван с provider: $provider');
-    developer.log('🚀 _onSocialLogin вызван с provider: $provider', name: 'AUTH_DEBUG');
-    
+    developer.log('🚀 _onSocialLogin вызван с provider: $provider',
+        name: 'AUTH_DEBUG');
+
     String? initialUrl;
     String? redirectUrl;
     Map<String, dynamic>? authResult;
@@ -71,11 +73,12 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
       // Handle Apple Sign In directly
       try {
         print('🍎 НАЧИНАЕМ Apple Sign In процесс...');
-        
+
         if (!Platform.isIOS) {
           print('🍎 ОШИБКА: Apple Sign In доступен только на iOS');
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Apple Sign In доступен только на iOS')),
+            const SnackBar(
+                content: Text('Apple Sign In доступен только на iOS')),
           );
           return;
         }
@@ -126,20 +129,30 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
         print('');
 
         developer.log('🍎 Apple credential получен:', name: 'APPLE_AUTH');
-        developer.log('- identityToken: ${credential.identityToken?.substring(0, 50)}...', name: 'APPLE_AUTH');
-        developer.log('- authorizationCode: ${credential.authorizationCode?.substring(0, 50)}...', name: 'APPLE_AUTH');
+        developer.log(
+            '- identityToken: ${credential.identityToken?.substring(0, 50)}...',
+            name: 'APPLE_AUTH');
+        developer.log(
+            '- authorizationCode: ${credential.authorizationCode?.substring(0, 50)}...',
+            name: 'APPLE_AUTH');
         developer.log('- email: ${credential.email}', name: 'APPLE_AUTH');
-        developer.log('- givenName: ${credential.givenName}', name: 'APPLE_AUTH');
-        developer.log('- familyName: ${credential.familyName}', name: 'APPLE_AUTH');
-        developer.log('- userIdentifier: ${credential.userIdentifier}', name: 'APPLE_AUTH');
+        developer.log('- givenName: ${credential.givenName}',
+            name: 'APPLE_AUTH');
+        developer.log('- familyName: ${credential.familyName}',
+            name: 'APPLE_AUTH');
+        developer.log('- userIdentifier: ${credential.userIdentifier}',
+            name: 'APPLE_AUTH');
 
         print('🍎 🔄 Обработка данных для бэкенда...');
         print('🍎 ⚠️  ВАЖНО: Получены дополнительные данные от Apple:');
-        print('🍎    - authorizationCode: ${credential.authorizationCode != null ? "✅" : "❌"}');
+        print(
+            '🍎    - authorizationCode: ${credential.authorizationCode != null ? "✅" : "❌"}');
         print('🍎    - email: ${credential.email != null ? "✅" : "❌"}');
         print('🍎    - givenName: ${credential.givenName != null ? "✅" : "❌"}');
-        print('🍎    - familyName: ${credential.familyName != null ? "✅" : "❌"}');
-        print('🍎 📤 НО на бэкенд отправляется ТОЛЬКО identity_token согласно новому API!');
+        print(
+            '🍎    - familyName: ${credential.familyName != null ? "✅" : "❌"}');
+        print(
+            '🍎 📤 НО на бэкенд отправляется ТОЛЬКО identity_token согласно новому API!');
         print('');
 
         // Создаем запрос только с identity_token
@@ -152,13 +165,14 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
         final jsonData = appleRequest.toJson();
         print('🍎 JSON структура (только identity_token):');
         jsonData.forEach((key, value) {
-          print('🍎   "$key": ${value == null ? 'null' : '"${value.toString().substring(0, value.toString().length > 100 ? 100 : value.toString().length)}${value.toString().length > 100 ? '...' : ''}"'}');
+          print(
+              '🍎   "$key": ${value == null ? 'null' : '"${value.toString().substring(0, value.toString().length > 100 ? 100 : value.toString().length)}${value.toString().length > 100 ? '...' : ''}"'}');
         });
         print('🍎 Размер JSON: ${jsonData.length} поле(й)');
         print('🍎 Полный JSON: $jsonData');
         print('🍎 =============================================');
         print('');
-        
+
         developer.log('🍎 AppleLoginRequest создан:', name: 'APPLE_AUTH');
         developer.log('- JSON: ${appleRequest.toJson()}', name: 'APPLE_AUTH');
 
@@ -175,7 +189,7 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
         print('🍎 ================================');
         print('🍎 📡 Отправляем через AuthBloc -> SocialLoginRequested...');
         print('');
-        
+
         context.read<AuthBloc>().add(
               SocialLoginRequested(
                 appleRequest,
@@ -271,198 +285,173 @@ class _SelectInputScreenState extends State<SelectInputScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Stack(
-          children: [
-            // Фоновое изображение
-            Align(
-              alignment: Alignment.topCenter,
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.35,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("assets/images/image_background.png"),
-                    fit: BoxFit.cover,
+    return SafeArea(
+      top: false,
+      bottom: isGestureNavigation(context),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Stack(
+            children: [
+              // Фоновое изображение
+              Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.3,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/image_background.png"),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
-            ),
-            // Основной контент
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(
-                top: 120,
-                left: 45,
-                right: 45,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SvgPicture.asset('assets/icons/icon_acti.svg'),
-                  SizedBox(height: 40),
-                  Text(
-                    'Войти в приложение',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Gilroy',
-                      color: authBlueColor,
-                      fontSize: 27,
-                    ),
-                  ),
-
-                  ////
-                  // InkWell(
-                  //   // onTap: () => _onSocialLogin('yandex'),
-                  //   onTap: () {
-                  //     final accessToken =
-                  //         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYWZkYWIwOC05ZDhkLTRlZmUtYWVhMy1hNGQwMDBlZTJhMDgiLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg0MDgzMjEzfQ.hp4g-SOZiw3t1Wg2Q-6h1sQMwpY1220v_5LC8fVQ1Dg';
-                  //     final refreshToken =
-                  //         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYWZkYWIwOC05ZDhkLTRlZmUtYWVhMy1hNGQwMDBlZTJhMDgiLCJ0eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MDY3NTIxM30.Hlec01f57x5xBCU3WLaJiECT2P2ONYnJ81Whk4Bi0Z8';
-                  //     writeAuthTokens(accessToken, refreshToken);
-                  //     Navigator.push(context,
-                  //         MaterialPageRoute(builder: (_) => InitialScreen()));
-                  //   },
-                  //   // child: SvgPicture.asset(
-                  //   //     'assets/icons/icon_yandex_id.svg')
-                  //   child: Container(
-                  //       width: 150,
-                  //       height: 50,
-                  //       decoration: BoxDecoration(
-                  //         borderRadius: BorderRadius.circular(25),
-                  //         color: mainBlueColor,
-                  //       ),
-                  //       child: Center(
-                  //           child: Text(
-                  //         "Временный вход",
-                  //         style: TextStyle(color: Colors.white),
-                  //       ))),
-                  // ),
-                  //////
-                  SizedBox(height: 45),
-                  Text(
-                    'Через сервис',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Gilroy',
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Flexible(
-                        child: InkWell(
-                            onTap: () => _onSocialLogin('yandex'),
-                            child: SvgPicture.asset(
-                                'assets/icons/icon_yandex_id.svg')),
+              // Основной контент
+              Container(
+                padding: const EdgeInsets.only(
+                  top: 120,
+                  left: 45,
+                  right: 45,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset('assets/icons/icon_acti.svg'),
+                    SizedBox(height: 40),
+                    Text(
+                      'Войти в приложение',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Gilroy',
+                        color: authBlueColor,
+                        fontSize: 27,
                       ),
-                      Flexible(
-                        child: InkWell(
-                            onTap: () => _onSocialLogin('vk'),
-                            child:
-                                SvgPicture.asset('assets/icons/icon_vk_id.svg')),
+                    ),
+                    SizedBox(height: 40),
+                    Text(
+                      'Через сервис',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Gilroy',
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
                       ),
-                      if (Platform.isIOS)
+                    ),
+                    SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
                         Flexible(
                           child: InkWell(
-                              onTap: () {
-                                print('НАЖАЛИ НА APPLE!!!!');
-                                debugPrint('НАЖАЛИ НА APPLE!!!!');
-                                print('Вызываем _onSocialLogin с apple');
-                                _onSocialLogin('apple');
-                              },
-                              child:
-                                  SvgPicture.asset('assets/icons/icon_apple_id.svg')),
+                              onTap: () => _onSocialLogin('yandex'),
+                              child: SvgPicture.asset(
+                                  'assets/icons/icon_yandex_id.svg')),
                         ),
-                    ],
-                  ),
-                  SizedBox(height: 60),
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => InputPhoneScreen()),
-                      );
-                    },
-                    child: Container(
-                      height: 59,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(25),
-                        color: mainBlueColor,
-                      ),
-                      child: Center(
-                        child: Text(
-                          'По номеру телефона',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'Inter',
+                        Flexible(
+                          child: InkWell(
+                              onTap: () => _onSocialLogin('vk'),
+                              child: SvgPicture.asset(
+                                  'assets/icons/icon_vk_id.svg')),
+                        ),
+                        if (Platform.isIOS)
+                          Flexible(
+                            child: InkWell(
+                                onTap: () {
+                                  print('НАЖАЛИ НА APPLE!!!!');
+                                  debugPrint('НАЖАЛИ НА APPLE!!!!');
+                                  print('Вызываем _onSocialLogin с apple');
+                                  _onSocialLogin('apple');
+                                },
+                                child: SvgPicture.asset(
+                                    'assets/icons/icon_apple_id.svg')),
+                          ),
+                      ],
+                    ),
+                    Spacer(),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => InputPhoneScreen()),
+                        );
+                      },
+                      child: Container(
+                        height: 59,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(25),
+                          color: mainBlueColor,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'По номеру телефона',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'Inter',
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        children: [
-                          TextSpan(
-                              text:
-                                  'При входе и регистрации, вы соглашаетесь с '),
-                          TextSpan(
-                            text: 'пользовательским соглашением',
-                            style: TextStyle(
-                              color: mainBlueColor,
-                              // decoration: TextDecoration.underline
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const UserAgreementScreen()),
-                                );
-                              },
+                    SizedBox(height: 20),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w400,
                           ),
-                          TextSpan(text: ' и '),
-                          TextSpan(
-                            text: 'политикой конфиденциальности',
-                            style: TextStyle(
-                              color: mainBlueColor,
-                              // decoration: TextDecoration.underline
+                          children: [
+                            TextSpan(
+                                text:
+                                    'При входе и регистрации, вы соглашаетесь с '),
+                            TextSpan(
+                              text: 'пользовательским соглашением',
+                              style: TextStyle(
+                                color: mainBlueColor,
+                                // decoration: TextDecoration.underline
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const UserAgreementScreen()),
+                                  );
+                                },
                             ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const PrivacyPolicyScreen()),
-                                );
-                              },
-                          ),
-                          TextSpan(
-                              text:
-                                  ', а также подтверждаете, что вам 18 лет и более.'),
-                        ]),
-                  ),
-                  SizedBox(height: 50),
-                ],
+                            TextSpan(text: ' и '),
+                            TextSpan(
+                              text: 'политикой конфиденциальности',
+                              style: TextStyle(
+                                color: mainBlueColor,
+                                // decoration: TextDecoration.underline
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const PrivacyPolicyScreen()),
+                                  );
+                                },
+                            ),
+                            TextSpan(
+                                text:
+                                    ', а также подтверждаете, что вам 18 лет и более.'),
+                          ]),
+                    ),
+                    
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

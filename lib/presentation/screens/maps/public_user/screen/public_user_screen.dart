@@ -423,7 +423,9 @@ class _PublicUserScreenState extends State<PublicUserScreen> {
                                           child: Text(
                                             !isVerified
                                                 ? "Подтвердите почту, чтобы ему написать"
-                                                : 'Данный пользователь вас заблокировал, вы не можете ему написать',
+                                                : isBlockedByPublicUser
+                                                    ? "Данный пользователь заблокирован, вы не можете ему написать"
+                                                    : 'Данный пользователь вас заблокировал, вы не можете ему написать',
                                             textAlign: TextAlign.center,
                                             maxLines: 2,
                                             style: TextStyle(

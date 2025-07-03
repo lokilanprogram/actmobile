@@ -63,73 +63,48 @@ class NotificationService {
       if (navigator == null) return;
 
       if (chatId != null) {
-        navigator.pushAndRemoveUntil(
+        navigator.push(
           MaterialPageRoute(
             builder: (_) => ChatDetailScreen(
               interlocutorChatId: chatId,
             ),
           ),
-          (route) => false,
-        );
-        navigator.push(
-          MaterialPageRoute(
-            builder: (_) => MainScreen(initialIndex: 0),
-          ),
         );
       } else if (eventId != null) {
         if (isOrganizer == "true") {
           try {
-            navigator.pushAndRemoveUntil(
+            navigator.push(
               MaterialPageRoute(
                 builder: (_) => EventDetailHomeScreen(
                   eventId: eventId,
                 ),
-              ),
-              (route) => false,
-            );
-            navigator.push(
-              MaterialPageRoute(
-                builder: (_) => MainScreen(initialIndex: 0),
               ),
             );
           } on Exception catch (e) {
             print("");
           }
         } else {
-          navigator.pushAndRemoveUntil(
+          navigator.push(
             MaterialPageRoute(
               builder: (_) => EventDetailScreen(
                 eventId: eventId,
               ),
             ),
-            (route) => false,
-          );
-          navigator.push(
-            MaterialPageRoute(
-              builder: (_) => MainScreen(initialIndex: 0),
-            ),
           );
         }
       } else if (userId != null) {
-        navigator.pushAndRemoveUntil(
+        navigator.push(
           MaterialPageRoute(
             builder: (_) => PublicUserScreen(
               userId: userId,
             ),
           ),
-          (route) => false,
         );
+      } else {
         navigator.push(
           MaterialPageRoute(
             builder: (_) => MainScreen(initialIndex: 0),
           ),
-        );
-      } else {
-        navigator.pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => MainScreen(initialIndex: 0),
-          ),
-          (route) => false,
         );
       }
     }

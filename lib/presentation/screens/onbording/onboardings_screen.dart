@@ -1,3 +1,4 @@
+import 'package:acti_mobile/configs/type_navigation.dart';
 import 'package:acti_mobile/data/models/list_onbording_model.dart';
 import 'package:acti_mobile/data/models/profile_model.dart';
 import 'package:acti_mobile/domain/api/profile/profile_api.dart';
@@ -178,41 +179,45 @@ class _OnboardingsScreenState extends State<OnboardingsScreen> {
           });
         }
       },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: isLoading || isFinishing
-            ? LoaderWidget()
-            : Stack(
-                children: [
-                  IndexedStack(
-                    index: _currentPage,
-                    children: _pages,
-                  ),
-                  Positioned(
-                    left: 35,
-                    right: 35,
-                    bottom: 35,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        if (_currentPage > 0)
-                          PopNavButton(
-                            text: 'Назад',
-                            function: _previousPage,
-                          )
-                        else
-                          SizedBox(width: 47),
-                        PopNavButton(
-                          text: _currentPage == _pages.length - 1
-                              ? 'Далее'
-                              : 'Далее',
-                          function: _nextPage,
-                        ),
-                      ],
+      child: SafeArea(
+        top: false,
+        bottom: isGestureNavigation(context),
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: isLoading || isFinishing
+              ? LoaderWidget()
+              : Stack(
+                  children: [
+                    IndexedStack(
+                      index: _currentPage,
+                      children: _pages,
                     ),
-                  ),
-                ],
-              ),
+                    Positioned(
+                      left: 35,
+                      right: 35,
+                      bottom: 20,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          if (_currentPage > 0)
+                            PopNavButton(
+                              text: 'Назад',
+                              function: _previousPage,
+                            )
+                          else
+                            SizedBox(width: 47),
+                          PopNavButton(
+                            text: _currentPage == _pages.length - 1
+                                ? 'Далее'
+                                : 'Далее',
+                            function: _nextPage,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }

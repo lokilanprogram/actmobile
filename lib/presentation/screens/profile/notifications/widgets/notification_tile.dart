@@ -169,7 +169,7 @@ class NotificationTile extends StatelessWidget {
                   MaterialPageRoute(
                       builder: (_) => EventRequestScreen(
                           eventId: n.eventId ?? "",
-                          participants: [],
+                          participants: n.event?.participants ?? [],
                           completedStatus: completedStatus
                               .contains(n.event?.status ?? ""))));
             });
